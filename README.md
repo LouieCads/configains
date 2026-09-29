@@ -34,7 +34,21 @@ values ('AUTH_USER_UUID', 'Site administrator');
 
 ## Deployment
 
-Deploy `web/` as the Vercel project root and configure the two values from `web/.env.example`. Supabase hosts PostgreSQL, Auth, and Storage separately; no standalone backend service is required.
+Deploy the repository through Netlify's Git integration. The root `netlify.toml` configures:
+
+- Base directory: `web`
+- Build command: `pnpm build`
+- Publish directory: `build` (relative to `web`)
+- Node.js: `22`
+- pnpm: `10.17.1`
+
+Leave the package directory and functions directory unset; the SvelteKit Netlify adapter generates the server function and routing automatically. Do not add an SPA catch-all redirect to `index.html`.
+
+Before the first deploy, add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Netlify's environment variable settings, using your Supabase project values from `web/.env`. Make them available during builds for production and any deploy previews you enable. These variables are imported through SvelteKit's static environment module, so changing them requires rebuilding the site. Use the publishable key, never a service-role key, and do not commit `.env`.
+
+Supabase continues to host PostgreSQL, Auth, and Storage. The existing database migration and admin bootstrap are still required for CMS functionality. Netlify hosts the entire existing SvelteKit app, including its admin and API routes, while the root route displays the landing page.
+
+Commit and push the adapter, lockfile, and configuration changes before triggering the Netlify deployment. A local `pnpm build` validates the Netlify output; the first hosted deployment should also be checked for the home page, admin login, and static assets.
 
 ## Commands
 
@@ -45,4 +59,3 @@ From `web/`:
 - `pnpm lint` — formatting and lint checks
 - `pnpm test` — unit tests
 - `pnpm build` — production build
-

@@ -1,0 +1,8 @@
+[build]
+  base = "web"
+  command = "pnpm build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PNPM_VERSION = "10.17.1"
