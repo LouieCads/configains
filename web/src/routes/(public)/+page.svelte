@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { fly } from 'svelte/transition';
 	import type { PageData } from './$types';
 	import FitnessScene from '$lib/components/landing/FitnessScene.svelte';
 	import CoachingSection from '$lib/components/landing/CoachingSection.svelte';
@@ -7,13 +8,32 @@
 	import '$lib/components/landing/landing.css';
 	let { data }: { data: PageData } = $props();
 	let menuOpen = $state(false);
+	const progressWords = ['PROGRESS.', 'RESULTS.', 'GROWTH.', 'CHANGE.'];
+	let progressWordIndex = $state(0);
 	let menuButton: HTMLButtonElement;
 	onMount(() => {
+		const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+		let wordTimer: ReturnType<typeof setInterval> | undefined;
+		function syncWordRotation() {
+			if (wordTimer) clearInterval(wordTimer);
+			wordTimer = undefined;
+			if (!motionPreference.matches) {
+				wordTimer = setInterval(() => {
+					progressWordIndex = (progressWordIndex + 1) % progressWords.length;
+				}, 1500);
+			}
+		}
+		syncWordRotation();
+		motionPreference.addEventListener('change', syncWordRotation);
 		const resize = new ResizeObserver(() => {
 			if (menuOpen && !menuButton.getClientRects().length) menuOpen = false;
 		});
 		resize.observe(document.querySelector('.header-inner')!);
-		return () => resize.disconnect();
+		return () => {
+			resize.disconnect();
+			if (wordTimer) clearInterval(wordTimer);
+			motionPreference.removeEventListener('change', syncWordRotation);
+		};
 	});
 	const links = [
 		['Home', 'home'],
@@ -176,7 +196,13 @@
 					<span class="status-dot"></span> ONLINE FITNESS COACHING WITH CASH
 				</p>
 				<h1 id="hero-title" use:reveal={70}>
-					REAL LIFE.<br />REAL <span class="cyan-text">PROGRESS.</span>
+					REAL LIFE.<br />REAL <span class="cyan-text rotating-word" aria-live="off"
+						>{#key progressWordIndex}<span
+								in:fly={{ y: 14, duration: 420, delay: 80 }}
+								out:fly={{ y: -14, duration: 320 }}
+								>{progressWords[progressWordIndex]}</span
+							>{/key}</span
+					>
 				</h1>
 				<p class="hero-intro" use:reveal={130}>
 					A stronger you.<br />A life that still feels like yours.

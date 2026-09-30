@@ -98,6 +98,22 @@
 	.cyan-text {
 		color: var(--cyan-ink);
 	}
+	.rotating-word {
+		display: inline-grid;
+		position: relative;
+		vertical-align: baseline;
+	}
+	.rotating-word::before {
+		content: 'PROGRESS.';
+		grid-area: 1 / 1;
+		visibility: hidden;
+	}
+	.rotating-word > span {
+		grid-area: 1 / 1;
+		position: absolute;
+		inset: 0 auto auto 0;
+		white-space: nowrap;
+	}
 	.outlined-text {
 		-webkit-text-stroke: 1px var(--ink);
 		color: transparent;
