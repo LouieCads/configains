@@ -50,6 +50,23 @@ Supabase continues to host PostgreSQL, Auth, and Storage. The existing database 
 
 Commit and push the adapter, lockfile, and configuration changes before triggering the Netlify deployment. A local `pnpm build` validates the Netlify output; the first hosted deployment should also be checked for the home page, admin login, and static assets.
 
+## Coaching assessment and email delivery
+
+Coaching inquiry buttons lead to `/contact`, the fitness and nutrition assessment. Cash Fuerte is presented as Configains' founder and coach, and personally reviews responses before recommending a program, plan, and duration.
+
+The form uses Netlify Forms. The static definition at `web/static/assessment-form.html` lets Netlify detect the form during deployment; its field names must match the visible form in `web/src/routes/(public)/contact/+page.svelte`. Submissions are URL-encoded and sent to the static form endpoint. A honeypot helps filter spam. The submitter's `email` field supplies the notification's Reply-To address.
+
+**Email delivery requires this one-time Netlify setup; committing the code alone does not configure notifications:**
+
+1. Enable form detection in the Netlify site's Forms settings, then deploy the updated site.
+2. Confirm `coaching-assessment` appears in the site's active forms.
+3. Open **Forms → Submission notifications → Add notification → Email notification**. Select `coaching-assessment` and set the recipient to **configains@gmail.com**. Suggested subject: `New Configains coaching assessment`.
+4. Submit an explicitly authorized test on the deployed site and verify that all answers reach the inbox and that Reply-To points to the submitter. Check Netlify's spam submissions if a test does not appear.
+
+Local Vite development intentionally reports that delivery is unavailable and keeps answers intact. Netlify processes submissions only on its deployed service. Network or service errors also preserve answers for a retry. No assessment data is stored in browser local storage or written to application logs.
+
+See [Netlify Forms setup](https://docs.netlify.com/manage/forms/setup/) and [email notification configuration](https://docs.netlify.com/manage/forms/notifications/).
+
 ## Commands
 
 From `web/`:

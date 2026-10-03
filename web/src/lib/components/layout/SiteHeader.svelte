@@ -13,7 +13,14 @@
 		</nav>
 		<a
 			href={resolve('/contact')}
-			class="rounded-full bg-[#172019] px-5 py-2.5 text-sm font-bold text-white">Get started</a
+			class="header-cta rounded-full bg-[#172019] px-5 py-2.5 text-sm font-bold text-white"
+			>Get started</a
 		>
 	</div>
 </header>
+
+<style>
+	.header-cta {
+		color: white;
+	}
+</style>

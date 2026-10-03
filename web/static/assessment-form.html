@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="robots" content="noindex" />
+		<title>Configains assessment form definition</title>
+	</head>
+	<body>
+		<!-- Netlify detects this static form during deployment. Keep names in sync with /contact. -->
+		<form name="coaching-assessment" method="POST" action="/assessment-received.html" data-netlify="true" netlify-honeypot="bot-field" hidden>
+			<input type="hidden" name="form-name" value="coaching-assessment" />
+			<input name="bot-field" />
+			<input name="name" />
+			<input name="email" type="email" />
+			<input name="goal" />
+			<input name="training-experience" />
+			<input name="fitness-knowledge" />
+			<input name="training-days" />
+			<input name="training-location" />
+			<input name="nutrition-knowledge" />
+			<input name="nutrition-experience" />
+			<textarea name="biggest-challenge"></textarea>
+			<textarea name="additional-context"></textarea>
+			<input name="consent" />
+		</form>
+		<a href="/contact">Go to the Configains fitness &amp; nutrition assessment</a>
+	</body>
+</html>

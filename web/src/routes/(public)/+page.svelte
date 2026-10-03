@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import type { PageData } from './$types';
@@ -124,12 +125,12 @@
 	<title>Configains | Real Life. Real Progress.</title>
 	<meta
 		name="description"
-		content="Build strength and confidence with Cash at Configains. Practical fitness coaching, flexible nutrition, and sustainable habits that fit your life."
+		content="Build strength and confidence with Configains. Founded by coach Cash Fuerte, our approach combines practical training, flexible nutrition, and personal coaching."
 	/>
 	<meta property="og:title" content="Configains | Real Life. Real Progress." />
 	<meta
 		property="og:description"
-		content="Practical fitness coaching with Cash. Build strength, confidence, and habits that fit your life."
+		content="Configains coaching: practical training, flexible nutrition, and real human support. Founded by Cash Fuerte. Built around your life."
 	/>
 	<meta property="og:type" content="website" />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -161,7 +162,7 @@
 				<nav class="desktop-nav" aria-label="Main navigation">
 					{#each links as [label, id] (id)}<a href={'#' + id}>{label}</a>{/each}
 				</nav>
-				<a class="button button-dark small header-cta" href="#contact"
+				<a class="button button-dark small header-cta" href={resolve('/contact')}
 					>Let’s talk {@render arrow()}</a
 				>
 				<button
@@ -193,14 +194,14 @@
 		<section class="hero container" aria-labelledby="hero-title">
 			<div class="hero-copy">
 				<p class="eyebrow" use:reveal>
-					<span class="status-dot"></span> ONLINE FITNESS COACHING WITH CASH
+					<span class="status-dot"></span> CONFIGAINS · COACHING FOR REAL LIFE
 				</p>
 				<h1 id="hero-title" use:reveal={70}>
-					REAL LIFE.<br />REAL <span class="cyan-text rotating-word" aria-live="off"
+					REAL LIFE.<br />REAL
+					<span class="cyan-text rotating-word" aria-live="off"
 						>{#key progressWordIndex}<span
 								in:fly={{ y: 14, duration: 420, delay: 80 }}
-								out:fly={{ y: -14, duration: 320 }}
-								>{progressWords[progressWordIndex]}</span
+								out:fly={{ y: -14, duration: 320 }}>{progressWords[progressWordIndex]}</span
 							>{/key}</span
 					>
 				</h1>
@@ -208,14 +209,12 @@
 					A stronger you.<br />A life that still feels like yours.
 				</p>
 				<p class="hero-description" use:reveal={180}>
-					Practical training. Flexible nutrition. A coach in your corner. Build habits that work for
-					the long run.
+					Build strength and confidence with Configains. Practical training, flexible nutrition, and
+					personal guidance from Cash Fuerte, our founder and coach.
 				</p>
 				<div class="hero-actions" use:reveal={230}>
-					<a class="button" href="#contact">Find your starting point {@render arrow()}</a><a
-						class="text-link"
-						href="#coaching">Explore coaching {@render arrow('down')}</a
-					>
+					<a class="button" href={resolve('/contact')}>Find your starting point {@render arrow()}</a
+					><a class="text-link" href="#coaching">Explore coaching {@render arrow('down')}</a>
 				</div>
 			</div>
 			<div class="hero-visual" use:reveal={130}>
@@ -238,19 +237,20 @@
 		<section id="about" class="section about-grid container" aria-labelledby="about-title">
 			<div class="coach-portrait" use:reveal>
 				<div class="portrait-top">
-					<span class="eyebrow">THE HUMAN BEHIND THE PLAN</span><span aria-hidden="true">↗</span>
+					<span class="eyebrow">THE FOUNDER BEHIND CONFIGAINS</span><span aria-hidden="true">↗</span
+					>
 				</div>
 				<div
 					class="portrait-placeholder"
 					role="img"
-					aria-label="Placeholder for coach Cash's portrait"
+					aria-label="Placeholder for coach Cash Fuerte's portrait"
 				>
 					<span class="portrait-initial" aria-hidden="true">C.</span><span class="asset-label"
 						>COACH PORTRAIT / COMING SOON</span
 					>
 				</div>
 				<div class="portrait-bottom">
-					<div><strong>Cash.</strong><span>YOUR COACH, IN YOUR CORNER.</span></div>
+					<div><strong>Cash Fuerte.</strong><span>FOUNDER & COACH, CONFIGAINS.</span></div>
 					<span class="portrait-seal" aria-hidden="true">REAL LIFE.<br />REAL PROGRESS.</span>
 				</div>
 			</div>
@@ -259,10 +259,15 @@
 				<h2 id="about-title">
 					COACHING WITH<br />A <span class="outlined-text">HUMAN</span> SIDE.
 				</h2>
-				<p class="section-intro">Hey, I’m Cash. Getting stronger should add to your life.</p>
+				<p class="section-intro">Built around your life. Guided by a real coach.</p>
 				<p>
-					Configains starts with where you are. Your goals, your schedule, the things you enjoy.
-					Then we work on training, nutrition, and habits that make sense for you.
+					Configains brings training, nutrition, and accountability together to help you build
+					strength and confidence that last. Your goals and starting point shape the plan.
+				</p>
+				<p>
+					Hey, I’m Cash Fuerte, the founder and coach behind Configains. I personally review your
+					assessment, recommend your next steps, and guide you through the work. You’ll have a human
+					coach to ask questions, check in with, and work through real-life challenges.
 				</p>
 				<div class="philosophy-note">
 					<span aria-hidden="true">↗</span>
@@ -408,7 +413,10 @@
 			<div class="app-copy" use:reveal>
 				<p class="eyebrow"><span class="status-dot"></span> YOUR NEXT STEP, ONLINE</p>
 				<h2 id="app-title">YOUR PROGRESS.<br /><span>YOUR SPACE.</span></h2>
-				<p>Meet the Configains app.<br />A dedicated space for the next part of your journey.</p>
+				<p>
+					Meet the Configains app.<br />A space to support your coaching journey, with Cash Fuerte
+					guiding the plan and the decisions along the way.
+				</p>
 				<a class="button" href="https://configains.app" target="_blank" rel="noopener noreferrer"
 					>Explore configains.app {@render arrow()}<span class="sr-only">
 						(opens in a new tab)</span
@@ -441,13 +449,12 @@
 				YOUR NEXT CHAPTER.<br /><span class="outlined-text">LET’S FIGURE IT OUT.</span>
 			</h2>
 			<p use:reveal={100}>
-				Tell me a little about yourself and what you’re working toward.<br />We’ll find a starting
-				point, together.
+				Start with a quick fitness and nutrition assessment.<br />Cash Fuerte will review your
+				answers and email you a recommended program, plan, and duration.
 			</p>
 			<div class="contact-actions" use:reveal={150}>
-				<a class="button" href="mailto:hello@configains.com?subject=Coaching%20inquiry"
-					>Let’s talk about coaching {@render arrow()}</a
-				><a class="email-link" href="mailto:hello@configains.com">hello@configains.com</a>
+				<a class="button" href={resolve('/contact')}>Let’s talk about coaching {@render arrow()}</a
+				><a class="email-link" href="mailto:configains@gmail.com">configains@gmail.com</a>
 			</div>
 		</section>
 	</main>

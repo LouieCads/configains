@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { Snippet } from 'svelte';
 	import { reveal } from './motion';
 	type Service = { number: string; title: string; copy: string; detail: string; icon: string };
@@ -9,10 +10,14 @@
 	<div class="container">
 		<div class="section-heading" use:reveal>
 			<div>
-				<p class="eyebrow"><span class="section-number">02</span> THE WAY WE WORK</p>
+				<p class="eyebrow"><span class="section-number">02</span> CONFIGAINS COACHING</p>
 				<h2 id="coaching-title">
 					LESS GUESSWORK.<br />MORE <span class="cyan-text">DIRECTION.</span>
 				</h2>
+				<p>
+					Your starting point shapes your program. Cash Fuerte guides the training, nutrition, and
+					next steps.
+				</p>
 			</div>
 		</div>
 		<div class="service-grid">
@@ -35,7 +40,7 @@
 			{/each}
 		</div>
 		<div class="coaching-bottom">
-			<a class="text-link" href="#contact"
+			<a class="text-link" href={resolve('/contact')}
 				>Talk about your goals<svg
 					width="20"
 					height="20"
