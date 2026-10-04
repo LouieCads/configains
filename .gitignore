@@ -4,6 +4,8 @@ web/.svelte-kit/
 web/build/
 web/.vercel/
 .corepack/
+web/.audit/
+web/.local-cms/
 
 # Local environment files
 .env

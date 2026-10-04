@@ -1,21 +1,22 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import { dev } from '$app/environment';
 	import { tick } from 'svelte';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
-	let submitting = $state(false);
-	let submitted = $state(false);
-	let error = $state('');
+	import { publicHref } from '$lib/content/links';
+	import type { Content } from '$lib/content/schema';
+	let { data } = $props();
+	const c = $derived(data.site.contact),
+		email = $derived(data.site.brand.email);
+	let submitting = $state(false),
+		submitted = $state(false),
+		error = $state('');
 	let resultHeading = $state<HTMLHeadingElement>();
-
 	async function submitAssessment(event: SubmitEvent) {
 		event.preventDefault();
 		if (submitting) return;
 		error = '';
-		// Vite cannot process Netlify Forms. Never report an unsent preview inquiry as received.
-		if (dev) {
-			error =
-				'This preview cannot send assessments. Your answers are still here. To inquire now, email configains@gmail.com.';
+		if (dev || data.preview) {
+			error = c.previewError.replaceAll('{email}', email);
 			return;
 		}
 		const form = event.currentTarget as HTMLFormElement;
@@ -33,84 +34,52 @@
 			await tick();
 			resultHeading?.focus();
 		} catch {
-			error =
-				'We couldn’t send your assessment. Your answers are still here — please try again, or email configains@gmail.com.';
+			error = c.error.replaceAll('{email}', email);
 		} finally {
 			submitting = false;
 		}
 	}
 </script>
 
-<svelte:head>
-	<title>Fitness & Nutrition Assessment | Configains</title>
-	<meta
-		name="description"
-		content="Find your starting point with Configains. Share your fitness and nutrition experience so Cash Fuerte, our founder and coach, can recommend your next steps."
-	/>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-	<link
-		href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Coustard&display=swap"
-		rel="stylesheet"
-	/>
-</svelte:head>
-
+{#snippet question(name: string, content: Content)}
+	<label
+		>{content.label}<select {name} required
+			><option value="" disabled selected>{content.placeholder}</option
+			>{#each content.options as option, index (index)}<option>{option}</option>{/each}</select
+		></label
+	>
+{/snippet}
 <div class="assessment-page">
 	<div class="assessment-shell">
-		<a class="back-link" href={resolve('/')}>← Back to Configains</a>
+		<a class="back-link" href={publicHref('/', data.preview)}>← {c.back}</a>
 		<header class="assessment-intro">
-			<p class="eyebrow">CONFIGAINS COACHING · YOUR FIRST STEP</p>
-			<h1>YOUR STARTING POINT.<br /><span>YOUR WAY FORWARD.</span></h1>
-			<p class="intro-copy">A quick fitness & nutrition assessment.</p>
-			<p>
-				Tell us what you know, what you’ve tried, and where you want to go. There are no right or
-				wrong answers. Cash Fuerte, our founder and coach, will personally review your responses.
-			</p>
+			<p class="eyebrow">{c.hero.eyebrow}</p>
+			<h1 class="pre-line">{c.hero.title}</h1>
+			<p class="intro-copy">{c.intro}</p>
+			<p class="pre-line">{c.hero.copy}</p>
 		</header>
 		<div class="assessment-layout">
 			<aside aria-label="What happens next">
-				<p class="eyebrow">A REAL COACH. A CLEAR NEXT STEP.</p>
+				<p class="eyebrow">{c.stepsLabel}</p>
 				<ol>
-					<li>
-						<strong>Share your starting point.</strong><span
-							>About 3–5 minutes. No fitness expertise needed.</span
-						>
-					</li>
-					<li>
-						<strong>Cash Fuerte reviews your answers.</strong><span
-							>Your experience, routine, and goals guide his recommendation.</span
-						>
-					</li>
-					<li>
-						<strong>Get a personal recommendation.</strong><span
-							>Cash Fuerte emails you a Configains program, plan, and duration to discuss together.</span
-						>
-					</li>
+					{#each c.steps as step, index (index)}<li>
+							<strong>{step.title}</strong><span>{step.copy}</span>
+						</li>{/each}
 				</ol>
-				<p class="aside-note">
-					This is an inquiry, with no commitment to join. Your next step is a conversation with Cash
-					Fuerte.
-				</p>
-				<a href="mailto:configains@gmail.com">configains@gmail.com</a>
+				<p class="aside-note">{c.note}</p>
+				<a href={'mailto:' + email}>{email}</a>
 			</aside>
-			{#if submitted}
-				<section class="assessment-card success" aria-labelledby="assessment-result">
-					<p class="eyebrow">YOUR FIRST STEP, TAKEN.</p>
-					<h2 id="assessment-result" tabindex="-1" bind:this={resultHeading}>
-						Thanks for sharing your story.
-					</h2>
-					<p>
-						Your assessment has been submitted. Cash Fuerte will review your answers and reply to
-						the email address you provided with a recommended program, plan, and duration.
-					</p>
-					<a class="submit-button" href={resolve('/')}>Back to Configains ↗</a>
+			{#if submitted}<section class="assessment-card success" aria-labelledby="assessment-result">
+					<p class="eyebrow">{c.successEyebrow}</p>
+					<h2 id="assessment-result" tabindex="-1" bind:this={resultHeading}>{c.successTitle}</h2>
+					<p>{c.successCopy}</p>
+					<a class="submit-button" href={publicHref('/', data.preview)}>{c.back} ↗</a>
 				</section>
-			{:else}
-				<form
+			{:else}<form
 					class="assessment-card"
 					name="coaching-assessment"
 					method="POST"
-					action="/assessment-received.html"
+					action="/assessment-received"
 					data-netlify="true"
 					data-netlify-honeypot="bot-field"
 					onsubmit={submitAssessment}
@@ -119,18 +88,22 @@
 					<input type="hidden" name="form-name" value="coaching-assessment" />
 					<p hidden>
 						<label
-							>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off" /></label
+							>Leave this empty<input name="bot-field" tabindex="-1" autocomplete="off" /></label
 						>
 					</p>
-					<p class="form-note">All fields are required unless marked optional.</p>
+					<p class="form-note">{c.formNote}</p>
 					<fieldset disabled={submitting}>
-						<legend><span>01</span> A little about you</legend>
+						<legend><span>01</span>{c.sectionOne}</legend>
 						<div class="field-grid">
 							<label
-								>Your name<input name="name" autocomplete="name" required maxlength="100" /></label
-							>
-							<label
-								>Email address<input
+								>{c.nameLabel}<input
+									name="name"
+									autocomplete="name"
+									required
+									maxlength="100"
+								/></label
+							><label
+								>{c.emailLabel}<input
 									name="email"
 									type="email"
 									autocomplete="email"
@@ -140,138 +113,63 @@
 								/></label
 							>
 						</div>
-						<p id="email-help" class="field-help">
-							Cash Fuerte will send your recommendation to this email address.
-						</p>
-						<label
-							>What would you most like to work toward?
-							<select name="goal" required>
-								<option value="" disabled selected>Choose your main goal</option>
-								<option>Build strength and muscle</option><option>Lose body fat</option><option
-									>Improve general fitness</option
-								><option>Build consistent habits</option><option
-									>Feel more confident with training and nutrition</option
-								><option>Explore my options with a coach</option>
-							</select>
-						</label>
+						<p id="email-help" class="field-help">{c.emailHelp}</p>
+						{@render question('goal', c.goal)}
 					</fieldset>
 					<fieldset disabled={submitting}>
-						<legend><span>02</span> Your training starting point</legend>
-						<label
-							>How much training experience do you have?
-							<select name="training-experience" required>
-								<option value="" disabled selected>Choose what fits you best</option>
-								<option>I’m new to structured training</option><option
-									>I’ve tried it, but haven’t found consistency</option
-								><option>I train regularly and want more direction</option><option
-									>I’m returning after a break</option
-								>
-							</select>
-						</label>
-						<label
-							>How confident are you planning a workout and using good exercise technique?
-							<select name="fitness-knowledge" required>
-								<option value="" disabled selected>Choose your confidence level</option>
-								<option>I’d like help with the basics</option><option
-									>I know some basics, but still need guidance</option
-								><option>I’m comfortable and want to refine my approach</option>
-							</select>
-						</label>
+						<legend><span>02</span>{c.sectionTwo}</legend>{@render question(
+							'training-experience',
+							c.trainingExperience
+						)}{@render question('fitness-knowledge', c.fitnessKnowledge)}
 						<div class="field-grid">
-							<label
-								>Realistically, how often can you train?
-								<select name="training-days" required
-									><option value="" disabled selected>Days per week</option><option>1–2 days</option
-									><option>3–4 days</option><option>5+ days</option><option
-										>I need help figuring this out</option
-									></select
-								>
-							</label>
-							<label
-								>Where would you train?
-								<select name="training-location" required
-									><option value="" disabled selected>Choose your setup</option><option
-										>At a gym</option
-									><option>At home with equipment</option><option
-										>At home with little or no equipment</option
-									><option>A mix / not sure yet</option></select
-								>
-							</label>
+							{@render question('training-days', c.trainingDays)}{@render question(
+								'training-location',
+								c.trainingLocation
+							)}
 						</div>
 					</fieldset>
 					<fieldset disabled={submitting}>
-						<legend><span>03</span> Nutrition & everyday life</legend>
+						<legend><span>03</span>{c.sectionThree}</legend>{@render question(
+							'nutrition-knowledge',
+							c.nutritionKnowledge
+						)}{@render question('nutrition-experience', c.nutritionExperience)}
 						<label
-							>How familiar are you with nutrition basics, like protein, portions, and balanced
-							meals?
-							<select name="nutrition-knowledge" required
-								><option value="" disabled selected>Choose your confidence level</option><option
-									>I’m just getting started</option
-								><option>I know the basics, but find them hard to apply</option><option
-									>I’m comfortable and want more specific guidance</option
-								></select
-							>
-						</label>
-						<label
-							>What’s your experience with nutrition habits or plans?
-							<select name="nutrition-experience" required
-								><option value="" disabled selected>Choose what fits you best</option><option
-									>I haven’t followed a nutrition approach before</option
-								><option>I’ve tried diets or plans, but struggled to sustain them</option><option
-									>I work on balanced meals and portions without tracking</option
-								><option>I’ve tracked food or followed a structured plan</option></select
-							>
-						</label>
-						<label
-							>What’s your biggest challenge right now?
-							<textarea
+							>{c.challengeLabel}<textarea
 								name="biggest-challenge"
 								rows="3"
 								required
 								maxlength="1500"
-								placeholder="For example: finding time, knowing what to eat, or staying consistent."
-							></textarea>
-						</label>
+								placeholder={c.challengePlaceholder}></textarea></label
+						>
 						<label
-							>Anything else you’d like Cash Fuerte to know? <span class="optional">(optional)</span
-							>
-							<textarea
+							>{c.contextLabel} <span class="optional">{c.optionalLabel}</span><textarea
 								name="additional-context"
 								rows="3"
 								maxlength="1500"
-								placeholder="Your routine, preferences, previous coaching experience, or questions."
-							></textarea>
-						</label>
+								placeholder={c.contextPlaceholder}></textarea></label
+						>
 					</fieldset>
 					<div class="form-footer">
-						<p>
-							Your answers are shared with Configains for Cash Fuerte to review your inquiry and
-							contact you about coaching. Please leave out sensitive medical details.
-						</p>
+						<p>{c.privacy}</p>
 						<label class="consent"
 							><input
 								type="checkbox"
 								name="consent"
-								value="I agree to Configains reviewing my answers and contacting me about coaching."
+								value={c.consent}
 								required
 								disabled={submitting}
-							/><span
-								>I agree to Configains using my answers to assess my inquiry and contact me about
-								coaching.</span
-							></label
+							/><span>{c.consent}</span></label
 						>
-						{#if error}<p class="form-error" role="alert">{error}</p>{/if}
-						<button class="submit-button" type="submit" disabled={submitting}
-							>{submitting ? 'Sending your assessment…' : 'Send my assessment ↗'}</button
+						{#if error}<p class="form-error" role="alert">{error}</p>{/if}<button
+							class="submit-button"
+							type="submit"
+							disabled={submitting}>{submitting ? c.submitting : c.submit + ' ↗'}</button
 						>
 						<p class="submit-note" aria-live="polite">
-							{submitting
-								? 'Please keep this page open while your answers are sent.'
-								: 'Reviewed personally by Cash Fuerte. No commitment to join.'}
+							{submitting ? c.sendingNote : c.submitNote}
 						</p>
 					</div>
-				</form>
-			{/if}
+				</form>{/if}
 		</div>
 	</div>
 </div>
@@ -307,9 +205,6 @@
 			Impact,
 			sans-serif;
 		margin: 20px 0;
-	}
-	h1 span {
-		color: #157f90;
 	}
 	.assessment-intro > p:not(.eyebrow) {
 		max-width: 650px;

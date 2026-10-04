@@ -1,5 +1,12 @@
 import { redirect } from '@sveltejs/kit';
-export const POST = async ({ locals }) => {
-	await locals.supabase.auth.signOut();
+import { requireSameOrigin } from '$lib/server/auth/origin';
+import { demoCookie, endDemoSession } from '$lib/server/local-demo';
+export const POST = async (event) => {
+	requireSameOrigin(event);
+	const { locals } = event;
+	if (locals.localAdminDemo) {
+		endDemoSession(event.cookies.get(demoCookie));
+		event.cookies.delete(demoCookie, { path: '/' });
+	} else await locals.supabase.auth.signOut();
 	redirect(303, '/admin/login');
 };

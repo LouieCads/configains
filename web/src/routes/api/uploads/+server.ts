@@ -1,17 +1,23 @@
 import { requireAdmin } from '$lib/server/auth/admin';
 import { json } from '@sveltejs/kit';
+import { requireSameOrigin } from '$lib/server/auth/origin';
+import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL, IMAGE_MIME_TYPES } from '$lib/content/uploads';
 
 const buckets = ['site', 'testimonials', 'transformations'] as const;
 
 export const POST = async (event) => {
+	requireSameOrigin(event);
 	const { user } = await requireAdmin(event);
 	const form = await event.request.formData();
 	const file = form.get('file');
 	const bucket = String(form.get('bucket') ?? 'site');
 	if (!(file instanceof File) || !buckets.includes(bucket as (typeof buckets)[number]))
 		return json({ message: 'A file and valid bucket are required.' }, { status: 400 });
-	if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024)
-		return json({ message: 'Upload an image no larger than 5 MB.' }, { status: 400 });
+	if (!IMAGE_MIME_TYPES.includes(file.type) || !file.size || file.size > MAX_IMAGE_BYTES)
+		return json(
+			{ message: `Upload an image no larger than ${IMAGE_SIZE_LABEL}.` },
+			{ status: 400 }
+		);
 
 	const extension =
 		file.name

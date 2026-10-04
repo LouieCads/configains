@@ -11,7 +11,7 @@ Configains is a serverless SvelteKit website and custom content-management syste
 ## Start locally
 
 1. Copy `web/.env.example` to `web/.env` and add your Supabase project values.
-2. Apply the SQL migration in `supabase/migrations/20260928000000_initial_schema.sql` to your Supabase project.
+2. Apply unapplied migrations in chronological order: `20260928000000_initial_schema.sql`, `20261003000000_website_cms.sql`, then `20261004000000_upload_limits.sql` in `supabase/migrations/`. They configure the schema, protected drafts/publishing and image descriptions, and a 4 MB upload limit. Existing content and images are preserved by the later migrations.
 3. Create an Auth user, then add that user's UUID to `public.admin_profiles` using the Supabase SQL editor.
 4. Run the app:
 
@@ -21,18 +21,45 @@ Configains is a serverless SvelteKit website and custom content-management syste
    pnpm dev
    ```
 
-The public site is available at `http://localhost:5173`; the CMS sign-in is at `/admin/login`.
+The public site is available at `http://localhost:5173`; the CMS sign-in is at `/admin/login`. The public website has no admin login link. Cash can bookmark the sign-in URL; authorization is enforced through Supabase Auth, an administrator allowlist, and database policies.
 
 ## Admin bootstrap
 
-Admin access intentionally cannot be self-assigned. After creating a user in Supabase Auth, run this once with that user's UUID:
+For a temporary local preview, set `LOCAL_ADMIN_DEMO=true` in `web/.env`, run `pnpm dev`, and open `/admin/login`. **Sign in** opens the CMS without credentials. This mode requires Vite development, a loopback hostname and a loopback client connection. It cannot activate in a production build. Drafts, published demo content and images are isolated in the ignored `web/.local-cms/` directory; no Supabase reads or writes occur in demo mode. Edits persist across server restarts, but you must click Sign in again after a restart. Set the flag to `false` and restart Vite to restore normal Supabase authentication and content.
+
+Admin access intentionally cannot be self-assigned. Create Cash's user in Supabase Auth using his confirmed login email and a private password. Then run this once with that user's actual UUID (do not use the public contact email unless Cash confirms it is his login):
 
 ```sql
 insert into public.admin_profiles (id, display_name)
 values ('AUTH_USER_UUID', 'Site administrator');
 ```
 
+The login page includes password recovery. Configure Supabase SMTP, the Site URL, and the supplied recovery email template using [the production setup guide](PRODUCTION_SETUP.md). The recovery screens verify a single-use token and administrator access before allowing a new password. Never put a password or service-role key in the repository. No account has been created or production migration applied by this change.
+
+## Content studio
+
+See [the admin guide](CMS_GUIDE.md) for the editing workflow. `/admin/content` edits all public copy, headings, navigation labels and destinations, brand/contact settings, photos, services, product previews, app readiness/link, assessment labels and options, FAQs, and each page's search/sharing metadata. Lists can be added, removed and reordered; approved images can be uploaded without code changes. Layout, decorative graphics, form field identifiers and security rules remain part of the application.
+
+**Save draft → Preview saved draft → Publish website.** Drafts are private and preview requires an admin session. Saving does not change the public site. Publishing atomically copies the saved draft into the published `website` document. Stale revisions return 409 instead of overwriting another editing session. Unsaved edits trigger a navigation warning and can be discarded. Image uploads must finish before saving/publishing.
+
+Testimonials and transformations have separate editors with image descriptions, publication switches, sorting, and deletion. These collections publish individually when their **Published** checkbox is enabled; they do not share the website draft workflow. The sample seeded testimonial remains unpublished. Obtain client permission before publishing any story or image.
+
+The public pages are rendered on the server from the published document on each request, with schema defaults for a new project. No rebuild is needed for routine content updates. If the database cannot be reached, the public site uses its default content and the editor reports the connection problem; investigate the database before publishing. Existing unrelated `site_content` rows are preserved and are not used as the website document.
+
+## SEO and answer content
+
+The implementation follows the reference Personal Website's structure: a shared SEO component, page metadata, entity structured data, a sitemap, robots rules, and `llms.txt`. It uses only Configains/Cash Fuerte copy and the existing landing theme.
+
+- Public canonical origin: `https://www.cashfuerte.fundrstudio.com`, editable under **Brand and contact**. `configains.app` stays a separate app destination.
+- All five public pages have server-rendered titles, descriptions, canonical links, Open Graph/Twitter metadata and meaningful headings. A Configains favicon and 1200×630 social image are included; either can be replaced in the CMS.
+- JSON-LD describes Configains, Cash Fuerte, the website and pages, inner-page breadcrumbs, and coaching services. Home-page FAQ data uses the same questions and answers as the visible section; disabling the section removes its FAQ schema. No ratings, client endorsements, addresses or credentials are fabricated.
+- `/sitemap.xml`, `/robots.txt` and `/llms.txt` read published CMS content. Publication updates answer content and search metadata alongside the pages. Draft previews, admin pages, APIs and the confirmation page are excluded from indexing.
+
+These additions support crawling and understandable answers; they do not promise rankings, AI citations, or FAQ rich results. Follow [Google's AI search guidance](https://developers.google.com/search/docs/appearance/ai-features) and [structured-data policies](https://developers.google.com/search/docs/appearance/structured-data/sd-policies).
+
 ## Deployment
+
+Follow [the production setup guide](PRODUCTION_SETUP.md) for the ordered Supabase, recovery-email, Netlify, DNS and live verification steps.
 
 Deploy the repository through Netlify's Git integration. The root `netlify.toml` configures:
 
@@ -45,6 +72,8 @@ Deploy the repository through Netlify's Git integration. The root `netlify.toml`
 Leave the package directory and functions directory unset; the SvelteKit Netlify adapter generates the server function and routing automatically. Do not add an SPA catch-all redirect to `index.html`.
 
 Before the first deploy, add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Netlify's environment variable settings, using your Supabase project values from `web/.env`. Make them available during builds for production and any deploy previews you enable. These variables are imported through SvelteKit's static environment module, so changing them requires rebuilding the site. Use the publishable key, never a service-role key, and do not commit `.env`.
+
+Add `www.cashfuerte.fundrstudio.com` in Netlify's domain settings, configure the DNS record supplied by Netlify at the Studio DNS provider, and wait for HTTPS provisioning. Verify that the domain resolves before checking live routes and canonical URLs. The configured domain failed DNS resolution during the local review on October 3, 2026; this change does not configure DNS or publish the site.
 
 Supabase continues to host PostgreSQL, Auth, and Storage. The existing database migration and admin bootstrap are still required for CMS functionality. Netlify hosts the entire existing SvelteKit app, including its admin and API routes, while the root route displays the landing page.
 
@@ -71,8 +100,16 @@ See [Netlify Forms setup](https://docs.netlify.com/manage/forms/setup/) and [ema
 
 From `web/`:
 
-- `pnpm dev` — development server
-- `pnpm check` — Svelte and TypeScript validation
-- `pnpm lint` — formatting and lint checks
-- `pnpm test` — unit tests
-- `pnpm build` — production build
+- `pnpm dev`: development server
+- `pnpm check`: Svelte and TypeScript validation
+- `pnpm lint`: formatting and lint checks
+- `pnpm test`: unit tests
+- `pnpm test:cms`: full browser flow against a local Supabase-compatible fixture; no production writes or email delivery
+- `pnpm test:local-demo`: one-click localhost entry, isolated persistent editing/uploads, and production authentication checks (run `pnpm build` first)
+- `pnpm build`: production build
+
+The browser test covers responsive public pages, hidden admin navigation, nonadmin rejection, draft isolation, authenticated preview, publication, uploads, conflict/CSRF checks, individual story publication and deletion, SEO/AEO updates, and logout. It saves local screenshots/results under the ignored `web/.audit/` directory. Chromium must be available to Playwright. Run it separately from builds or SvelteKit sync commands to avoid development-server reloads interrupting form actions.
+
+`supabase/tests/website_cms.sql` verifies draft privacy, admin-only writes, stale revisions, and publication isolation against real PostgreSQL policies/functions. Run it after both migrations in an isolated local test database, with an owner capable of setting the `anon`/`authenticated` roles. It rolls back its fixtures; it is not a production migration.
+
+See [the Phase 1 review](PHASE_1_REVIEW.md) for verified implementation status and outstanding launch/client items. The user confirmed retaining the existing SvelteKit/Tailwind stack in place of the document's React/Tailwind wording.

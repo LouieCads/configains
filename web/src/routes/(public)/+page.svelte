@@ -1,107 +1,37 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import type { PageData } from './$types';
 	import FitnessScene from '$lib/components/landing/FitnessScene.svelte';
 	import CoachingSection from '$lib/components/landing/CoachingSection.svelte';
+	import FaqSection from '$lib/components/sections/FaqSection.svelte';
 	import { reveal } from '$lib/components/landing/motion';
-	import '$lib/components/landing/landing.css';
-	let { data }: { data: PageData } = $props();
-	let menuOpen = $state(false);
-	const progressWords = ['PROGRESS.', 'RESULTS.', 'GROWTH.', 'CHANGE.'];
+	import { publicHref } from '$lib/content/links';
+	let { data } = $props();
+	const site = $derived(data.site),
+		c = $derived(site.home),
+		proof = $derived(c.proof);
 	let progressWordIndex = $state(0);
-	let menuButton: HTMLButtonElement;
 	onMount(() => {
-		const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
-		let wordTimer: ReturnType<typeof setInterval> | undefined;
-		function syncWordRotation() {
-			if (wordTimer) clearInterval(wordTimer);
-			wordTimer = undefined;
-			if (!motionPreference.matches) {
-				wordTimer = setInterval(() => {
-					progressWordIndex = (progressWordIndex + 1) % progressWords.length;
+		const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+		let timer: ReturnType<typeof setInterval> | undefined;
+		function sync() {
+			if (timer) clearInterval(timer);
+			timer = undefined;
+			if (!preference.matches)
+				timer = setInterval(() => {
+					progressWordIndex = (progressWordIndex + 1) % c.hero.rotatingWords.length;
 				}, 1500);
-			}
 		}
-		syncWordRotation();
-		motionPreference.addEventListener('change', syncWordRotation);
-		const resize = new ResizeObserver(() => {
-			if (menuOpen && !menuButton.getClientRects().length) menuOpen = false;
-		});
-		resize.observe(document.querySelector('.header-inner')!);
+		sync();
+		preference.addEventListener('change', sync);
 		return () => {
-			resize.disconnect();
-			if (wordTimer) clearInterval(wordTimer);
-			motionPreference.removeEventListener('change', syncWordRotation);
+			if (timer) clearInterval(timer);
+			preference.removeEventListener('change', sync);
 		};
 	});
-	const links = [
-		['Home', 'home'],
-		['About', 'about'],
-		['Coaching', 'coaching'],
-		['Transformations', 'transformations'],
-		['Products', 'products']
-	] as const;
-	const services = [
-		{
-			number: '01',
-			title: 'Train with purpose.',
-			copy: 'A clear direction in the gym, built around your starting point, your schedule, and the equipment you have.',
-			detail: 'Training that fits your goals',
-			icon: 'training'
-		},
-		{
-			number: '02',
-			title: 'Eat for your life.',
-			copy: 'Flexible nutrition guidance and everyday habits. Make room for the food you enjoy while working toward your goals.',
-			detail: 'Practical nutrition support',
-			icon: 'nutrition'
-		},
-		{
-			number: '03',
-			title: 'Keep moving forward.',
-			copy: 'A coach to ask, a place to reflect, and support to find your next step when real life changes the plan.',
-			detail: 'Support & accountability',
-			icon: 'support'
-		}
-	];
-	const products = [
-		{
-			type: 'E-BOOK',
-			title: 'The foundations.',
-			copy: 'A practical starting point for building better fitness habits.',
-			cover: 'START\nSIMPLE.',
-			className: 'book-cyan',
-			number: '01'
-		},
-		{
-			type: 'WORKOUT PLAN',
-			title: 'A little more structure.',
-			copy: 'A clear framework to bring purpose to your training.',
-			cover: 'SHOW\nUP.',
-			className: 'book-dark',
-			number: '02'
-		},
-		{
-			type: 'TEMPLATE',
-			title: 'See your progress.',
-			copy: 'Simple tools to help you reflect, plan, and stay consistent.',
-			cover: 'KEEP\nGOING.',
-			className: 'book-light',
-			number: '03'
-		}
-	];
 </script>
 
-{#snippet arrow(direction = 'up')}
-	<svg
-		width="20"
-		height="20"
-		viewBox="0 0 24 24"
-		fill="none"
-		aria-hidden="true"
-		class:down={direction === 'down'}
+{#snippet arrow()}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"
 		><path
 			d="M6 18 18 6M6 6h12v12"
 			stroke="currentColor"
@@ -109,8 +39,7 @@
 			stroke-linecap="round"
 			stroke-linejoin="round"
 		/></svg
-	>
-{/snippet}
+	>{/snippet}
 {#snippet serviceIcon(name: string)}
 	<svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
 		{#if name === 'training'}<path d="m7 21 14-14M4 18l10 10M18 4l10 10M3 23l6 6M23 3l6 6" />
@@ -120,363 +49,273 @@
 		{:else}<path d="M5 6h22v16H16l-7 5v-5H5V6ZM10 12h12M10 17h7" />{/if}
 	</svg>
 {/snippet}
-
-<svelte:head>
-	<title>Configains | Real Life. Real Progress.</title>
-	<meta
-		name="description"
-		content="Build strength and confidence with Configains. Founded by coach Cash Fuerte, our approach combines practical training, flexible nutrition, and personal coaching."
-	/>
-	<meta property="og:title" content="Configains | Real Life. Real Progress." />
-	<meta
-		property="og:description"
-		content="Configains coaching: practical training, flexible nutrition, and real human support. Founded by Cash Fuerte. Built around your life."
-	/>
-	<meta property="og:type" content="website" />
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-	<link
-		href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Coustard&display=swap"
-		rel="stylesheet"
-	/>
-</svelte:head>
-
-<svelte:window
-	onkeydown={(event) => {
-		if (event.key === 'Escape' && menuOpen) {
-			menuOpen = false;
-			menuButton?.focus();
-		}
-	}}
-/>
-<div class="landing" id="home">
-	<a class="skip-link" href="#main-content">Skip to content</a>
-	<header class="site-header">
-		<div class="header-content container">
-			<div class="header-inner">
-				<a class="wordmark" href="#home" aria-label="Configains home"
-					><span class="brand-symbol" aria-hidden="true">c<span>↗</span></span>CONFI<span
-						class="brand-accent">GAINS</span
-					><span class="brand-period">.</span></a
-				>
-				<nav class="desktop-nav" aria-label="Main navigation">
-					{#each links as [label, id] (id)}<a href={'#' + id}>{label}</a>{/each}
-				</nav>
-				<a class="button button-dark small header-cta" href={resolve('/contact')}
-					>Let’s talk {@render arrow()}</a
-				>
-				<button
-					class="menu-toggle"
-					bind:this={menuButton}
-					aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
-					aria-expanded={menuOpen}
-					aria-controls="mobile-nav"
-					onclick={() => (menuOpen = !menuOpen)}
-					>{menuOpen ? 'Close' : 'Menu'}<span aria-hidden="true">{menuOpen ? '−' : '+'}</span
-					></button
-				>
-			</div>
-			<nav
-				id="mobile-nav"
-				class="mobile-nav"
-				class:open={menuOpen}
-				aria-label="Mobile navigation"
-				hidden={!menuOpen}
+<section class="hero container" aria-labelledby="hero-title">
+	<div class="hero-copy">
+		<p class="eyebrow" use:reveal><span class="status-dot"></span>{c.hero.eyebrow}</p>
+		<h1 id="hero-title" use:reveal={70}>
+			{c.hero.firstLine}<br />{c.hero.secondLine}
+			<span
+				class="cyan-text rotating-word"
+				aria-live="off"
+				style:--word-width={Math.max(...c.hero.rotatingWords.map((word: string) => word.length)) +
+					'ch'}
 			>
-				{#each [...links, ['Contact', 'contact']] as [label, id] (id)}<a
-						href={'#' + id}
-						onclick={() => (menuOpen = false)}>{label}{@render arrow()}</a
-					>{/each}
-			</nav>
+				{#key progressWordIndex}<span
+						in:fly={{ y: 14, duration: 420, delay: 80 }}
+						out:fly={{ y: -14, duration: 320 }}
+						>{c.hero.rotatingWords[progressWordIndex % c.hero.rotatingWords.length]}</span
+					>{/key}
+			</span>
+		</h1>
+		<p class="hero-intro pre-line" use:reveal={130}>{c.hero.intro}</p>
+		<p class="hero-description pre-line" use:reveal={180}>{c.hero.copy}</p>
+		<div class="hero-actions" use:reveal={230}>
+			<a class="button" href={publicHref('/contact', data.preview)}>{c.hero.cta}{@render arrow()}</a
+			><a class="text-link" href="#coaching">{c.hero.explore} ↓</a>
 		</div>
-	</header>
-	<main id="main-content">
-		<section class="hero container" aria-labelledby="hero-title">
-			<div class="hero-copy">
-				<p class="eyebrow" use:reveal>
-					<span class="status-dot"></span> CONFIGAINS · COACHING FOR REAL LIFE
-				</p>
-				<h1 id="hero-title" use:reveal={70}>
-					REAL LIFE.<br />REAL
-					<span class="cyan-text rotating-word" aria-live="off"
-						>{#key progressWordIndex}<span
-								in:fly={{ y: 14, duration: 420, delay: 80 }}
-								out:fly={{ y: -14, duration: 320 }}>{progressWords[progressWordIndex]}</span
-							>{/key}</span
-					>
-				</h1>
-				<p class="hero-intro" use:reveal={130}>
-					A stronger you.<br />A life that still feels like yours.
-				</p>
-				<p class="hero-description" use:reveal={180}>
-					Build strength and confidence with Configains. Practical training, flexible nutrition, and
-					personal guidance from Cash Fuerte, our founder and coach.
-				</p>
-				<div class="hero-actions" use:reveal={230}>
-					<a class="button" href={resolve('/contact')}>Find your starting point {@render arrow()}</a
-					><a class="text-link" href="#coaching">Explore coaching {@render arrow('down')}</a>
-				</div>
-			</div>
-			<div class="hero-visual" use:reveal={130}>
-				<div class="visual-heading">
-					<span>THE CONFIGAINS APPROACH</span><span class="plus" aria-hidden="true">+</span>
-				</div>
-				<div class="visual-statement" aria-hidden="true">A LITTLE<br /><span>STRONGER.</span></div>
-				<div class="scene-wrap"><FitnessScene /></div>
-			</div>
-		</section>
-		<div class="principles">
-			<div class="container">
-				<span>TRAIN WITH PURPOSE</span><i aria-hidden="true">✳</i><span>EAT LIKE A HUMAN</span><i
-					aria-hidden="true">✳</i
-				><span>SHOW UP FOR YOURSELF</span><i aria-hidden="true">✳</i><span
-					>BUILD FOR THE LONG RUN</span
-				>
-			</div>
+	</div>
+	<div class="hero-visual" use:reveal={130}>
+		<div class="visual-heading">
+			<span>{c.hero.visualLabel}</span><span class="plus" aria-hidden="true">+</span>
 		</div>
-		<section id="about" class="section about-grid container" aria-labelledby="about-title">
-			<div class="coach-portrait" use:reveal>
-				<div class="portrait-top">
-					<span class="eyebrow">THE FOUNDER BEHIND CONFIGAINS</span><span aria-hidden="true">↗</span
-					>
-				</div>
-				<div
-					class="portrait-placeholder"
-					role="img"
-					aria-label="Placeholder for coach Cash Fuerte's portrait"
+		{#if c.hero.image}<img
+				class="hero-cms-image"
+				src={c.hero.image}
+				alt={c.hero.imageAlt}
+				fetchpriority="high"
+			/>
+		{:else}<div class="visual-statement pre-line" aria-hidden="true">{c.hero.visualTitle}</div>
+			<div class="scene-wrap"><FitnessScene /></div>{/if}
+	</div>
+</section>
+<div class="principles">
+	<div class="container">
+		{#each c.hero.principles as principle, index (index)}{#if index}<i aria-hidden="true">✳</i
+				>{/if}<span>{principle}</span>{/each}
+	</div>
+</div>
+<section id="about" class="section about-grid container" aria-labelledby="about-title">
+	<div class="coach-portrait" use:reveal>
+		<div class="portrait-top">
+			<span class="eyebrow">{c.about.portraitLabel}</span><span aria-hidden="true">↗</span>
+		</div>
+		{#if site.brand.portrait}<img
+				class="coach-photo"
+				src={site.brand.portrait}
+				alt={site.brand.portraitAlt}
+				loading="lazy"
+			/>
+		{:else}<div class="portrait-placeholder" role="img" aria-label={site.brand.portraitAlt}>
+				<span class="portrait-initial" aria-hidden="true">{site.brand.founder.charAt(0)}.</span
+				><span class="asset-label">{site.brand.portraitPlaceholder}</span>
+			</div>{/if}
+		<div class="portrait-bottom">
+			<div><strong>{site.brand.founder}.</strong><span>{site.brand.role}</span></div>
+			<span class="portrait-seal pre-line" aria-hidden="true">{site.brand.tagline}</span>
+		</div>
+	</div>
+	<div class="about-copy" use:reveal={100}>
+		<p class="eyebrow"><span class="section-number">01</span>{c.about.eyebrow}</p>
+		<h2 id="about-title">
+			{c.about.heading.first}<br /><span class="outlined-text">{c.about.heading.accent}</span>
+		</h2>
+		<p class="section-intro">{c.about.intro}</p>
+		<p class="pre-line">{c.about.copy}</p>
+		<p class="pre-line">{site.brand.bio}</p>
+		<div class="philosophy-note">
+			<span aria-hidden="true">↗</span>
+			<p class="pre-line">{c.about.philosophy}</p>
+		</div>
+		<a class="text-link" href="#coaching">{c.about.cta}{@render arrow()}</a>
+	</div>
+</section>
+<CoachingSection
+	services={site.services}
+	content={c.coaching}
+	icon={serviceIcon}
+	preview={data.preview}
+/>
+<section id="transformations" class="section container" aria-labelledby="transformations-title">
+	<div class="section-heading" use:reveal>
+		<div>
+			<p class="eyebrow"><span class="section-number">03</span>{proof.eyebrow}</p>
+			<h2 id="transformations-title">
+				{proof.heading.first}<br /><span class="outlined-text">{proof.heading.accent}</span>
+			</h2>
+		</div>
+	</div>
+	<div class="transformation-grid">
+		{#if data.transformations.length}{#each data.transformations as item, index (item.id)}<article
+					class="transformation-card"
+					use:reveal={index * 80}
 				>
-					<span class="portrait-initial" aria-hidden="true">C.</span><span class="asset-label"
-						>COACH PORTRAIT / COMING SOON</span
+					<div class="comparison">
+						{#each [{ label: proof.before, src: item.before_image_url, alt: item.before_image_alt }, { label: proof.after, src: item.after_image_url, alt: item.after_image_alt }] as photo, side (side)}
+							<div class="comparison-photo">
+								{#if photo.src}<img
+										src={photo.src}
+										alt={photo.alt || item.title + ': ' + photo.label}
+										loading="lazy"
+									/>{:else}<span class="image-placeholder">{proof.photoPlaceholder}</span>{/if}<span
+									class="image-label">{photo.label}</span
+								>
+							</div>
+						{/each}
+					</div>
+					<h3>{item.title}</h3>
+					{#if item.summary}<p>{item.summary}</p>{/if}
+				</article>{/each}
+		{:else}{#each proof.placeholderTitles as title, index (index)}<article
+					class="transformation-card"
+					use:reveal={index * 80}
+				>
+					<div class="comparison">
+						{#each [proof.before, proof.after] as label, side (side)}<div
+								class="comparison-photo"
+								class:after={side === 1}
+							>
+								<span class="image-placeholder"
+									><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"
+										><rect x="5" y="7" width="30" height="26" rx="3" /><path
+											d="m6 28 10-10 8 8 5-5 6 6"
+										/><circle cx="27" cy="15" r="3" /></svg
+									><span>{proof.photoPlaceholder}</span></span
+								><span class="image-label">{label}</span>
+							</div>{/each}
+					</div>
+					<div class="story-meta">
+						<span>{proof.journey} {String(index + 1).padStart(2, '0')}</span><span
+							class="coming-soon">{proof.comingSoon}</span
+						>
+					</div>
+					<h3>{title}</h3>
+					<p>{proof.placeholderCopy}</p>
+				</article>{/each}{/if}
+	</div>
+</section>
+<section class="testimonial-section" aria-labelledby="testimonials-title">
+	<div class="testimonial-layout container">
+		<div use:reveal>
+			<p class="eyebrow"><span class="section-number">04</span>{proof.testimonialEyebrow}</p>
+			<h2 id="testimonials-title">
+				{proof.testimonialHeading.first}<br /><span class="outlined-text"
+					>{proof.testimonialHeading.accent}</span
+				>
+			</h2>
+			<p>{proof.testimonialCopy}</p>
+		</div>
+		<div class="testimonial-content" use:reveal={100}>
+			{#if data.testimonials.length}{#each data.testimonials as testimonial (testimonial.id)}<blockquote
 					>
-				</div>
-				<div class="portrait-bottom">
-					<div><strong>Cash Fuerte.</strong><span>FOUNDER & COACH, CONFIGAINS.</span></div>
-					<span class="portrait-seal" aria-hidden="true">REAL LIFE.<br />REAL PROGRESS.</span>
-				</div>
-			</div>
-			<div class="about-copy" use:reveal={100}>
-				<p class="eyebrow"><span class="section-number">01</span> MEET CONFIGAINS</p>
-				<h2 id="about-title">
-					COACHING WITH<br />A <span class="outlined-text">HUMAN</span> SIDE.
+						<span class="quote-mark" aria-hidden="true">“</span>{#if testimonial.image_url}<img
+								class="testimonial-avatar"
+								src={testimonial.image_url}
+								alt={testimonial.image_alt || testimonial.name}
+								loading="lazy"
+							/>{/if}
+						<p>{testimonial.quote}</p>
+						<footer>
+							{testimonial.name}{#if testimonial.role}<span> / {testimonial.role}</span>{/if}
+						</footer>
+					</blockquote>{/each}
+			{:else}<div class="testimonial-placeholder">
+					<span class="quote-mark" aria-hidden="true">“</span>
+					<p class="pre-line">{proof.testimonialPlaceholder}</p>
+					<div class="testimonial-status">
+						<span class="status-dot"></span>{proof.testimonialStatus}
+					</div>
+					<span class="testimonial-hint">{proof.testimonialHint}</span>
+				</div>{/if}
+		</div>
+	</div>
+</section>
+{#if c.products.enabled}<section
+		id="products"
+		class="section container"
+		aria-labelledby="products-title"
+	>
+		<div class="section-heading" use:reveal>
+			<div>
+				<p class="eyebrow"><span class="section-number">05</span>{c.products.eyebrow}</p>
+				<h2 id="products-title">
+					{c.products.heading.first}<br /><span class="outlined-text"
+						>{c.products.heading.accent}</span
+					>
 				</h2>
-				<p class="section-intro">Built around your life. Guided by a real coach.</p>
-				<p>
-					Configains brings training, nutrition, and accountability together to help you build
-					strength and confidence that last. Your goals and starting point shape the plan.
-				</p>
-				<p>
-					Hey, I’m Cash Fuerte, the founder and coach behind Configains. I personally review your
-					assessment, recommend your next steps, and guide you through the work. You’ll have a human
-					coach to ask questions, check in with, and work through real-life challenges.
-				</p>
-				<div class="philosophy-note">
-					<span aria-hidden="true">↗</span>
-					<p>You don’t need a perfect routine.<br />You need one you can come back to.</p>
-				</div>
-				<a class="text-link" href="#coaching">Meet your next step {@render arrow()}</a>
 			</div>
-		</section>
-		<CoachingSection {services} icon={serviceIcon} />
-		<section id="transformations" class="section container" aria-labelledby="transformations-title">
-			<div class="section-heading" use:reveal>
-				<div>
-					<p class="eyebrow"><span class="section-number">03</span> PROGRESS IN PRACTICE</p>
-					<h2 id="transformations-title">
-						REAL WORK.<br />PERSONAL <span class="outlined-text">PROGRESS.</span>
-					</h2>
-				</div>
-			</div>
-			<div class="transformation-grid">
-				{#if data.transformations.length}{#each data.transformations as item, i (item.id)}<article
-							class="transformation-card"
-							use:reveal={i * 80}
-						>
-							<div class="comparison">
-								{#each [['Before', item.before_image_url], ['After', item.after_image_url]] as [label, src] (label)}<div
-										class="comparison-photo"
-									>
-										{#if src}<img
-												{src}
-												alt={`${item.title} — ${label}`}
-												loading="lazy"
-											/>{:else}<span class="image-placeholder"
-												><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"
-													><rect x="5" y="7" width="30" height="26" rx="3" /><path
-														d="m6 28 10-10 8 8 5-5 6 6"
-													/><circle cx="27" cy="15" r="3" /></svg
-												><span>Photo coming soon</span></span
-											>{/if}<span class="image-label">{label}</span>
-									</div>{/each}
-							</div>
-							<h3>{item.title}</h3>
-							{#if item.summary}<p>{item.summary}</p>{/if}
-						</article>{/each}
-				{:else}{#each ['Building strength', 'Finding consistency', 'Growing confidence'] as title, i (title)}<article
-							class="transformation-card"
-							use:reveal={i * 80}
-						>
-							<div class="comparison">
-								{#each ['Before', 'After'] as label (label)}<div
-										class="comparison-photo"
-										class:after={label === 'After'}
-									>
-										<span class="image-placeholder"
-											><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"
-												><rect x="5" y="7" width="30" height="26" rx="3" /><path
-													d="m6 28 10-10 8 8 5-5 6 6"
-												/><circle cx="27" cy="15" r="3" /></svg
-											><span>Photo coming soon</span></span
-										><span class="image-label">{label}</span>
-									</div>{/each}
-							</div>
-							<div class="story-meta">
-								<span>JOURNEY 0{i + 1}</span><span class="coming-soon">COMING SOON</span>
-							</div>
-							<h3>{title}</h3>
-							<p>A real client’s journey will go here, shared with their permission.</p>
-						</article>{/each}{/if}
-			</div>
-		</section>
-		<section class="testimonial-section" aria-labelledby="testimonials-title">
-			<div class="testimonial-layout container">
-				<div use:reveal>
-					<p class="eyebrow"><span class="section-number">04</span> THE COMMUNITY</p>
-					<h2 id="testimonials-title">
-						THEIR JOURNEY.<br />THEIR <span class="outlined-text">WORDS.</span>
-					</h2>
-					<p>Honest feedback from the people doing the work.</p>
-				</div>
-				<div class="testimonial-content" use:reveal={100}>
-					{#if data.testimonials.length}{#each data.testimonials as testimonial (testimonial.id)}<blockquote
-							>
-								<span class="quote-mark" aria-hidden="true">“</span>
-								<p>{testimonial.quote}</p>
-								<footer>
-									{testimonial.name}{#if testimonial.role}<span> / {testimonial.role}</span>{/if}
-								</footer>
-							</blockquote>{/each}
-					{:else}<div class="testimonial-placeholder">
-							<span class="quote-mark" aria-hidden="true">“</span>
-							<p>Good progress deserves<br />an honest story.</p>
-							<div class="testimonial-status">
-								<span class="status-dot"></span> CLIENT STORIES COMING SOON
-							</div>
-							<span class="testimonial-hint"
-								>Reserved for real feedback from the Configains community.</span
-							>
-						</div>{/if}
-				</div>
-			</div>
-		</section>
-		<section id="products" class="section container" aria-labelledby="products-title">
-			<div class="section-heading" use:reveal>
-				<div>
-					<p class="eyebrow"><span class="section-number">05</span> YOUR EVERYDAY TOOLKIT</p>
-					<h2 id="products-title">
-						A LITTLE STRUCTURE.<br />A STEP <span class="outlined-text">FORWARD.</span>
-					</h2>
-				</div>
-			</div>
-			<div class="product-grid">
-				{#each products as product, i (product.number)}<article
-						class="product-card"
-						use:reveal={i * 80}
-					>
-						<div
-							class="product-art {product.className}"
-							role="img"
-							aria-label={`Placeholder cover for ${product.type.toLowerCase()}`}
-						>
-							<div class="book-3d">
+		</div>
+		<div class="product-grid">
+			{#each c.products.items as product, index (index)}<article
+					class="product-card"
+					use:reveal={index * 80}
+				>
+					<div class={'product-art ' + ['book-cyan', 'book-dark', 'book-light'][index % 3]}>
+						{#if product.image}<img
+								class="product-cover-image"
+								src={product.image}
+								alt={product.imageAlt || product.title}
+								loading="lazy"
+							/>
+						{:else}<div class="book-3d" role="img" aria-label={product.title}>
 								<div class="book-cover">
-									<span>CONFIGAINS / THE TOOLKIT</span><strong>{product.cover}</strong>
+									<span>{c.products.coverLabel}</span><strong>{product.cover}</strong>
 									<div>
-										<span>A LITTLE STRUCTURE.<br />A STEP FORWARD.</span><span
-											>{product.number}</span
+										<span class="pre-line">{c.products.coverNote}</span><span
+											>{String(index + 1).padStart(2, '0')}</span
 										>
 									</div>
 								</div>
 								<div class="book-pages"></div>
 								<div class="book-spine"></div>
 							</div>
-							<span class="asset-label">COVER PLACEHOLDER</span>
-						</div>
-						<div class="story-meta">
-							<span>{product.type}</span><span class="coming-soon">COMING SOON</span>
-						</div>
-						<h3>{product.title}</h3>
-						<p>{product.copy}</p>
-					</article>{/each}
-			</div>
-		</section>
-		<section class="app-section container" aria-labelledby="app-title">
-			<div class="app-copy" use:reveal>
-				<p class="eyebrow"><span class="status-dot"></span> YOUR NEXT STEP, ONLINE</p>
-				<h2 id="app-title">YOUR PROGRESS.<br /><span>YOUR SPACE.</span></h2>
-				<p>
-					Meet the Configains app.<br />A space to support your coaching journey, with Cash Fuerte
-					guiding the plan and the decisions along the way.
-				</p>
-				<a class="button" href="https://configains.app" target="_blank" rel="noopener noreferrer"
-					>Explore configains.app {@render arrow()}<span class="sr-only">
-						(opens in a new tab)</span
-					></a
-				>
-			</div>
-			<div
-				class="app-art"
-				use:reveal={120}
-				role="img"
-				aria-label="Placeholder preview of the Configains app"
-			>
-				<div class="app-orbit" aria-hidden="true"></div>
-				<div class="app-device">
+							<span class="asset-label">{c.products.placeholderLabel}</span>{/if}
+					</div>
+					<div class="story-meta">
+						<span>{product.type}</span><span class="coming-soon">{product.status}</span>
+					</div>
+					<h3>{product.title}</h3>
+					<p>{product.copy}</p>
+				</article>{/each}
+		</div>
+	</section>{/if}
+{#if c.app.enabled}<section class="app-section container" aria-labelledby="app-title">
+		<div class="app-copy" use:reveal>
+			<p class="eyebrow"><span class="status-dot"></span>{c.app.eyebrow}</p>
+			<h2 id="app-title">{c.app.heading.first}<br /><span>{c.app.heading.accent}</span></h2>
+			<p class="pre-line">{c.app.copy}</p>
+			{#if c.app.ready}<a class="button" href={c.app.url} target="_blank" rel="noopener noreferrer"
+					>{c.app.cta}{@render arrow()}<span class="sr-only">(opens in a new tab)</span></a
+				>{:else}<span class="coming-soon">{c.app.unavailable}</span>{/if}
+		</div>
+		<div class="app-art" use:reveal={120}>
+			{#if c.app.previewImage}<img
+					class="app-preview-image"
+					src={c.app.previewImage}
+					alt={c.app.previewAlt}
+					loading="lazy"
+				/>{:else}<div class="app-orbit" aria-hidden="true"></div>
+				<div class="app-device" role="img" aria-label={c.app.previewAlt}>
 					<div class="device-camera"></div>
 					<div class="device-screen">
-						<span class="device-wordmark">CONFIGAINS.</span>
+						<span class="device-wordmark">{site.brand.wordmark}</span>
 						<div class="app-mark" aria-hidden="true">C<span>↗</span></div>
-						<strong>A LITTLE<br />STRONGER.<br /><span>EVERY DAY.</span></strong><span
-							class="device-rule"
-						></span><small>APP PREVIEW PLACEHOLDER</small>
+						<strong class="pre-line">{c.app.deviceHeading}</strong><span class="device-rule"
+						></span><small>{c.app.previewLabel}</small>
 					</div>
-				</div>
-			</div>
-		</section>
-		<section id="contact" class="section contact-section container" aria-labelledby="contact-title">
-			<div class="contact-orbit" aria-hidden="true"></div>
-			<p class="eyebrow" use:reveal><span class="status-dot"></span> START WHERE YOU ARE</p>
-			<h2 id="contact-title" use:reveal={60}>
-				YOUR NEXT CHAPTER.<br /><span class="outlined-text">LET’S FIGURE IT OUT.</span>
-			</h2>
-			<p use:reveal={100}>
-				Start with a quick fitness and nutrition assessment.<br />Cash Fuerte will review your
-				answers and email you a recommended program, plan, and duration.
-			</p>
-			<div class="contact-actions" use:reveal={150}>
-				<a class="button" href={resolve('/contact')}>Let’s talk about coaching {@render arrow()}</a
-				><a class="email-link" href="mailto:configains@gmail.com">configains@gmail.com</a>
-			</div>
-		</section>
-	</main>
-	<footer class="landing-footer">
-		<div class="footer-top container">
-			<a class="wordmark" href="#home"
-				>CONFI<span class="brand-accent">GAINS</span><span class="brand-period">.</span></a
-			>
-			<p>Real life. Real progress.</p>
-			<a class="text-link" href="#home">Back to top {@render arrow()}</a>
+				</div>{/if}
 		</div>
-		<div class="footer-bottom container">
-			<span>© {new Date().getFullYear()} Configains</span>
-			<nav aria-label="Footer navigation">
-				<a href="#about">About</a><a href="#coaching">Coaching</a><a href="#contact">Contact</a><a
-					href="https://configains.app"
-					target="_blank"
-					rel="noopener noreferrer"
-					>Configains app ↗<span class="sr-only"> (opens in a new tab)</span></a
-				>
-			</nav>
-			<span>Built for the long run.</span>
-		</div>
-	</footer>
-</div>
+	</section>{/if}
+<FaqSection content={site.faq} />
+<section id="contact" class="section contact-section container" aria-labelledby="contact-title">
+	<div class="contact-orbit" aria-hidden="true"></div>
+	<p class="eyebrow" use:reveal><span class="status-dot"></span>{c.contact.eyebrow}</p>
+	<h2 id="contact-title" use:reveal={60}>
+		{c.contact.heading.first}<br /><span class="outlined-text">{c.contact.heading.accent}</span>
+	</h2>
+	<p class="pre-line" use:reveal={100}>{c.contact.copy}</p>
+	<div class="contact-actions" use:reveal={150}>
+		<a class="button" href={publicHref('/contact', data.preview)}
+			>{c.contact.cta}{@render arrow()}</a
+		><a class="email-link" href={'mailto:' + site.brand.email}>{site.brand.email}</a>
+	</div>
+</section>

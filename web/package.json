@@ -14,6 +14,8 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
+		"test:cms": "node tests/cms-browser.mjs",
+		"test:local-demo": "node tests/local-demo-browser.mjs",
 		"test": "vitest --run"
 	},
 	"dependencies": {

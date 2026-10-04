@@ -1,26 +1,89 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { publicNavigation } from '$lib/constants/navigation';
+	import { page } from '$app/state';
+	import { onMount } from 'svelte';
+	import { publicHref } from '$lib/content/links';
+	import type { Content } from '$lib/content/schema';
+	let { site, preview = false }: { site: Content; preview?: boolean } = $props();
+	let open = $state(false);
+	let menuButton: HTMLButtonElement;
+	onMount(() => {
+		const observer = new ResizeObserver(() => {
+			if (open && !menuButton.getClientRects().length) open = false;
+		});
+		observer.observe(menuButton);
+		return () => observer.disconnect();
+	});
+	const links = $derived(
+		site.navigation.items.filter(
+			(item: { href: string }) =>
+				!(!site.home.products.enabled && item.href.includes('#products')) &&
+				!(!site.faq.enabled && item.href.includes('#faq'))
+		)
+	);
+	function href(destination: string) {
+		return page.url.pathname === '/' && destination.startsWith('/#')
+			? destination.slice(1)
+			: publicHref(destination, preview);
+	}
 </script>
 
-<header class="border-b border-black/10 bg-[#f6f7f2]/95">
-	<div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-		<a href={resolve('/')} class="text-xl font-black tracking-tight">CONFIGAINS</a>
-		<nav aria-label="Main navigation" class="hidden gap-6 text-sm font-semibold md:flex">
-			{#each publicNavigation as item (item.href)}
-				<a class="transition hover:text-emerald-700" href={resolve(item.href)}>{item.label}</a>
-			{/each}
-		</nav>
-		<a
-			href={resolve('/contact')}
-			class="header-cta rounded-full bg-[#172019] px-5 py-2.5 text-sm font-bold text-white"
-			>Get started</a
+<svelte:window
+	onkeydown={(event) => {
+		if (event.key === 'Escape' && open) {
+			open = false;
+			menuButton.focus();
+		}
+	}}
+/>
+<header class="site-header">
+	<div class="header-content container">
+		<div class="header-inner">
+			<a class="wordmark" href={publicHref('/', preview)} aria-label={site.brand.name}>
+				{#if site.brand.logo}<img
+						class="brand-logo"
+						src={site.brand.logo}
+						alt={site.brand.logoAlt}
+					/>{:else}<span class="brand-symbol" aria-hidden="true">c<span>↗</span></span>{site.brand
+						.wordmark}{/if}
+			</a>
+			<nav class="desktop-nav" aria-label="Main navigation">
+				{#each links as item, index (index)}<a href={href(item.href)}>{item.label}</a>{/each}
+			</nav>
+			<a class="button button-dark small header-cta" href={publicHref('/contact', preview)}
+				>{site.navigation.contactLabel} ↗</a
+			>
+			<button
+				class="menu-toggle"
+				bind:this={menuButton}
+				aria-expanded={open}
+				aria-controls="mobile-nav"
+				onclick={() => {
+					open = !open;
+				}}
+				>{open ? site.navigation.menuClose : site.navigation.menuOpen}<span aria-hidden="true"
+					>{open ? '−' : '+'}</span
+				></button
+			>
+		</div>
+		<nav
+			id="mobile-nav"
+			class="mobile-nav"
+			class:open
+			aria-label="Mobile navigation"
+			hidden={!open}
 		>
+			{#each links as item, index (index)}<a
+					href={href(item.href)}
+					onclick={() => {
+						open = false;
+					}}>{item.label}<span aria-hidden="true">↗</span></a
+				>{/each}
+			<a
+				href={publicHref('/contact', preview)}
+				onclick={() => {
+					open = false;
+				}}>{site.navigation.contactLabel} ↗</a
+			>
+		</nav>
 	</div>
 </header>
-
-<style>
-	.header-cta {
-		color: white;
-	}
-</style>

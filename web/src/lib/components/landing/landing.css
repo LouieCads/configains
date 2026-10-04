@@ -1864,3 +1864,128 @@
 body:has(.landing) {
 	min-width: 0;
 }
+
+.landing .pre-line {
+	white-space: pre-line;
+}
+.landing .brand-logo {
+	width: auto;
+	max-width: 210px;
+	max-height: 48px;
+	object-fit: contain;
+}
+.landing .hero-cms-image {
+	width: 100%;
+	height: 400px;
+	object-fit: cover;
+	border-radius: 10px;
+}
+.landing .coach-photo {
+	width: 100%;
+	height: 332px;
+	object-fit: cover;
+}
+.landing .testimonial-avatar {
+	width: 64px;
+	height: 64px;
+	object-fit: cover;
+	border-radius: 50%;
+	margin: 12px 0;
+}
+.landing .product-cover-image {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+.landing .app-preview-image {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+.landing .page-hero {
+	padding-block: 80px 48px;
+	border-bottom: 1px solid var(--line);
+}
+.landing .page-hero h1 {
+	max-width: 900px;
+	font-size: clamp(3rem, 6vw, 5.5rem);
+}
+.landing .page-hero > p:last-child {
+	max-width: 700px;
+	margin-top: 24px;
+}
+.landing .page-copy {
+	max-width: 850px;
+}
+.landing .page-copy article {
+	margin-bottom: 40px;
+}
+.landing .page-copy p {
+	margin-block: 20px 28px;
+}
+.landing .about-portrait {
+	width: 100%;
+	max-width: 380px;
+	border-radius: 12px;
+	margin-bottom: 36px;
+}
+.landing .service-card h2 {
+	font-size: 2rem;
+}
+.landing .faq-list {
+	max-width: 900px;
+}
+.landing .faq-list details {
+	padding: 24px 0;
+	border-top: 1px solid var(--line);
+}
+.landing .faq-list summary {
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	font:
+		600 1.1rem/1.5 Arial,
+		sans-serif;
+	cursor: pointer;
+}
+.landing .faq-list summary span {
+	color: var(--cyan-ink);
+}
+.landing .faq-list p {
+	margin-top: 20px;
+	white-space: pre-line;
+}
+.landing .empty-message {
+	border: 1px solid var(--line);
+	background: var(--paper);
+	padding: 32px;
+	border-radius: 8px;
+}
+.landing .preview-banner {
+	padding: 12px 24px;
+	text-align: center;
+	background: #59d9e8;
+	color: #182a30;
+	font:
+		0.875rem/1.6 Arial,
+		sans-serif;
+}
+.landing .preview-banner a {
+	text-decoration: underline;
+	margin-left: 10px;
+}
+.landing .rotating-word {
+	min-width: min(var(--word-width, 9ch), 100%);
+}
+.landing .rotating-word::before {
+	content: none;
+}
+.landing .rotating-word > span {
+	position: static;
+	white-space: normal;
+}
+@media (max-width: 850px) {
+	.landing .page-hero {
+		padding-block: 48px 36px;
+	}
+}

@@ -1,12 +1,16 @@
 <script lang="ts">
 	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
-
-	let { children } = $props();
+	let { children, data } = $props();
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
-	<meta name="theme-color" content="#121a14" />
+	<link rel="icon" href={data.site.brand.favicon || '/favicon.svg'} />
+	<meta name="theme-color" content="#182a30" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Coustard&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 {@render children()}

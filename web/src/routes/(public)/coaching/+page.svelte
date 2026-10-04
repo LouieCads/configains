@@ -1,45 +1,23 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
 	import PageHero from '$lib/components/sections/PageHero.svelte';
+	import { publicHref } from '$lib/content/links';
+	let { data } = $props();
+	const c = $derived(data.site.coaching);
 </script>
 
-<svelte:head
-	><title>Coaching | Configains</title><meta
-		name="description"
-		content="Explore Configains online fitness coaching."
-	/></svelte:head
->
-<PageHero
-	eyebrow="Configains coaching"
-	title="A plan built around you."
-	copy="Training, nutrition, and accountability with personal guidance from Cash Fuerte, the founder and coach behind Configains."
-/>
-<section class="mx-auto grid max-w-6xl gap-6 px-6 py-20 md:grid-cols-3">
-	{#each ['Personal training plan', 'Nutrition guidance', 'Regular accountability'] as item (item)}<article
-			class="rounded-2xl border border-black/10 bg-white p-7"
-		>
-			<h2 class="text-xl font-black">{item}</h2>
-			<p class="mt-3 text-slate-600">
-				Practical, personalized direction focused on sustainable progress.
-			</p>
-		</article>{/each}
+<PageHero {...c.hero} />
+<section class="section container">
+	<div class="service-grid">
+		{#each data.site.services as service, index (index)}<article class="service-card">
+				<p class="eyebrow">{String(index + 1).padStart(2, '0')}</p>
+				<h2>{service.title}</h2>
+				<p>{service.copy}</p>
+				<div class="service-detail">✓ {service.detail}</div>
+			</article>{/each}
+	</div>
 </section>
-<section class="mx-auto max-w-6xl px-6 pb-20">
-	<h2 class="text-3xl font-black">Start with your story.</h2>
-	<p class="mt-4 max-w-2xl leading-8 text-slate-700">
-		Complete a quick fitness and nutrition assessment. Cash Fuerte will personally review your
-		answers and email you a recommended Configains program, plan, and duration.
-	</p>
-	<a
-		class="coaching-cta mt-6 inline-block rounded-full bg-[#172019] px-7 py-4 font-bold text-white"
-		href={resolve('/contact')}
-	>
-		Find your starting point →
-	</a>
+<section class="page-copy section container">
+	<h2>{c.closingTitle}</h2>
+	<p class="pre-line">{c.closingCopy}</p>
+	<a class="button" href={publicHref('/contact', data.preview)}>{c.cta} ↗</a>
 </section>
-
-<style>
-	.coaching-cta {
-		color: white;
-	}
-</style>

@@ -1,28 +1,33 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { adminNavigation } from '$lib/constants/navigation';
-
-	let { children, email }: { children: import('svelte').Snippet; email: string } = $props();
+	import '$lib/features/cms/cms.css';
+	let {
+		children,
+		email,
+		localDemo = false
+	}: { children: import('svelte').Snippet; email: string; localDemo?: boolean } = $props();
 </script>
 
-<div class="min-h-screen bg-slate-100 lg:grid lg:grid-cols-[16rem_1fr]">
-	<aside class="bg-[#172019] p-6 text-white">
-		<a href={resolve('/')} class="text-xl font-black">CONFIGAINS</a>
-		<p class="mt-1 text-xs tracking-widest text-white/50 uppercase">Content studio</p>
-		<nav class="mt-10 flex gap-2 overflow-x-auto lg:flex-col" aria-label="Admin navigation">
-			{#each adminNavigation as item (item.href)}
-				<a
-					class="rounded-lg px-3 py-2 text-sm font-semibold hover:bg-white/10"
-					href={resolve(item.href)}>{item.label}</a
-				>
-			{/each}
+<div class="cms cms-shell">
+	<aside class="cms-sidebar">
+		<a href="/" class="cms-brand">CONFIGAINS.</a>
+		<p class="cms-eyebrow">CONTENT STUDIO</p>
+		<nav aria-label="Admin navigation">
+			{#each adminNavigation as item (item.href)}<a
+					class:active={page.url.pathname === item.href}
+					href={item.href}>{item.label}</a
+				>{/each}
 		</nav>
-		<div class="mt-8 border-t border-white/10 pt-5">
-			<p class="truncate text-xs text-white/60">{email}</p>
-			<form method="POST" action="/admin/logout" class="mt-3">
-				<button class="text-sm font-semibold hover:underline">Sign out</button>
-			</form>
-		</div>
+		<a class="cms-secondary" href="/" target="_blank" rel="noopener">View website ↗</a>
+		<p class="editor-help">{email}</p>
+		<form method="POST" action="/admin/logout">
+			<button class="cms-secondary">Sign out</button>
+		</form>
 	</aside>
-	<main class="p-6 lg:p-10">{@render children()}</main>
+	<main class="cms-main">
+		{#if localDemo}<p class="cms-success" role="status">
+				Local demo: edits and publishing stay on this device.
+			</p>{/if}{@render children()}
+	</main>
 </div>

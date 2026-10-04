@@ -15,6 +15,7 @@ export interface Testimonial {
 	quote: string;
 	role: string | null;
 	image_url: string | null;
+	image_alt: string | null;
 	is_published: boolean;
 	sort_order: number;
 }
@@ -26,6 +27,8 @@ export interface Transformation {
 	story: string | null;
 	before_image_url: string | null;
 	after_image_url: string | null;
+	before_image_alt: string | null;
+	after_image_alt: string | null;
 	is_published: boolean;
 	sort_order: number;
 }

@@ -1,35 +1,31 @@
 <script lang="ts">
 	import PageHero from '$lib/components/sections/PageHero.svelte';
 	let { data } = $props();
+	const c = $derived(data.site.transformations),
+		proof = $derived(data.site.home.proof);
 </script>
 
-<svelte:head
-	><title>Transformations | Configains</title><meta
-		name="description"
-		content="Configains client transformation stories."
-	/></svelte:head
->
-<PageHero
-	eyebrow="Transformations"
-	title="Progress beyond the photo."
-	copy="Real stories of strength, confidence, and consistency built one step at a time."
-/>
-<section class="mx-auto max-w-6xl px-6 py-20">
-	{#if data.transformations.length}<div class="grid gap-8 md:grid-cols-2">
-			{#each data.transformations as item (item.id)}<article
-					class="overflow-hidden rounded-2xl bg-white shadow-sm"
-				>
-					{#if item.after_image_url}<img
-							src={item.after_image_url}
-							alt={item.title}
-							class="aspect-video w-full object-cover"
-						/>{/if}
-					<div class="p-7">
-						<h2 class="text-2xl font-black">{item.title}</h2>
-						<p class="mt-3 text-slate-600">{item.summary}</p>
+<PageHero {...c.hero} />
+<section class="section container">
+	{#if data.transformations.length}<div class="transformation-grid">
+			{#each data.transformations as item (item.id)}<article class="transformation-card">
+					<div class="comparison">
+						{#each [{ label: proof.before, src: item.before_image_url, alt: item.before_image_alt }, { label: proof.after, src: item.after_image_url, alt: item.after_image_alt }] as photo, index (index)}<div
+								class="comparison-photo"
+							>
+								{#if photo.src}<img
+										src={photo.src}
+										alt={photo.alt || item.title + ': ' + photo.label}
+										loading="lazy"
+									/>{:else}<span class="image-placeholder">{proof.photoPlaceholder}</span>{/if}<span
+									class="image-label">{photo.label}</span
+								>
+							</div>{/each}
 					</div>
+					<h2>{item.title}</h2>
+					<p>{item.summary}</p>
+					{#if item.story}<p class="pre-line">{item.story}</p>{/if}
 				</article>{/each}
-		</div>{:else}<p class="rounded-2xl bg-white p-8 text-slate-600">
-			Transformation stories are coming soon.
-		</p>{/if}
+		</div>
+	{:else}<p class="empty-message">{c.empty}</p>{/if}
 </section>

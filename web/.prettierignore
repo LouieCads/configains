@@ -6,4 +6,6 @@ bun.lock
 bun.lockb
 
 # Miscellaneous
+.audit/
+.local-cms/
 /static/

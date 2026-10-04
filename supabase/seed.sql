@@ -5,5 +5,5 @@ values
 on conflict (key) do update set title = excluded.title, body = excluded.body;
 
 insert into public.testimonials (name, role, quote, is_published, sort_order)
-values ('Sample client', 'Configains member', 'I finally found a routine I can stick with.', true, 1);
+values ('Sample client', 'Configains member', 'I finally found a routine I can stick with.', false, 1);
 
