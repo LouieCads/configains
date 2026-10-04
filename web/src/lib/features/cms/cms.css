@@ -117,6 +117,7 @@
 .cms-primary,
 .cms-secondary,
 .cms-subtle {
+	cursor: pointer;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -492,6 +493,9 @@
 .collection-grid {
 	display: grid;
 	gap: 24px;
+}
+.collection-add[open] > summary {
+	margin-bottom: 16px;
 }
 .collection-grid form {
 	display: grid;

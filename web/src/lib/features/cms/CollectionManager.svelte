@@ -10,6 +10,7 @@
 	};
 	let { collection, rows, fields }: { collection: string; rows: Row[]; fields: Field[] } = $props();
 	let items = $state<Row[]>(untrack(() => structuredClone(rows)));
+	let newItemOpen = $state(false);
 	let dirtyItems = $state<Record<string, boolean>>({});
 	const dirty = $derived(Object.values(dirtyItems).some(Boolean));
 	beforeNavigate(({ cancel, willUnload }) => {
@@ -44,8 +45,9 @@
 		You have unsaved changes or an operation in progress.
 	</p>{/if}
 <div class="collection-grid">
-	<details>
-		<summary class="cms-secondary">+ Add new item</summary><CollectionEditor
+	<details class="collection-add" bind:open={newItemOpen}>
+		<summary class="cms-secondary">{newItemOpen ? 'Hide new item' : '+ Add new item'}</summary>
+		<CollectionEditor
 			{collection}
 			{fields}
 			onSaved={saved}
