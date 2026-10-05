@@ -17,6 +17,7 @@
 	);
 	const canonical = $derived(`${origin}${path === '/' ? '/' : path}`);
 	const socialImage = $derived(new URL(meta.image || site.brand.socialImage, origin).href);
+	const defaultSocialImage = $derived(socialImage === new URL('/og-image.png', origin).href);
 	const noindex = $derived(
 		preview || !['home', 'about', 'coaching', 'transformations', 'contact'].includes(key)
 	);
@@ -41,6 +42,11 @@
 	<meta property="og:title" content={meta.title} />
 	<meta property="og:description" content={meta.description} />
 	<meta property="og:image" content={socialImage} />
+	{#if defaultSocialImage}
+		<meta property="og:image:type" content="image/png" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+	{/if}
 	<meta property="og:image:alt" content={meta.imageAlt || site.brand.socialImageAlt} />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={meta.title} />

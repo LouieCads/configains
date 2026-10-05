@@ -17,6 +17,7 @@
 		"test:cms": "node tests/cms-browser.mjs",
 		"test:local-demo": "node tests/local-demo-browser.mjs",
 		"test:logout": "node tests/logout-browser.mjs",
+		"generate:social": "node scripts/generate-social-image.mjs",
 		"test": "vitest --run"
 	},
 	"dependencies": {

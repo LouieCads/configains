@@ -108,6 +108,7 @@ From `web/`:
 - `pnpm test:local-demo`: one-click localhost entry, isolated persistent editing/uploads, and production authentication checks (run `pnpm build` first)
 - `pnpm test:logout`: builds and tests production logout in Chromium with and without JavaScript, including cookie removal, Back/refresh, and CSRF rejection against a local Auth fixture
 - `pnpm build`: production build
+- `pnpm generate:social`: regenerate the 1200 × 630 sharing image from the landing palette and bundled Bebas Neue font
 
 The browser test covers responsive public pages, hidden admin navigation, nonadmin rejection, draft isolation, authenticated preview, publication, uploads, conflict/CSRF checks, individual story publication and deletion, SEO/AEO updates, and logout. It saves local screenshots/results under the ignored `web/.audit/` directory. Chromium must be available to Playwright. Run it separately from builds or SvelteKit sync commands to avoid development-server reloads interrupting form actions.
 

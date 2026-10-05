@@ -7,8 +7,19 @@ export async function readWebsite(supabase: SupabaseClient, draft = false) {
 		.select('metadata, updated_at')
 		.eq('key', draft ? 'website.draft' : 'website')
 		.maybeSingle();
+	const content = data
+		? (normalizeContent(websiteSchema, data.metadata) as Content)
+		: defaultWebsite();
+	// Older published CMS documents retain the original domain after code defaults change.
+	const legacyOrigins = [
+		'https://www.cashfuerte.fundrstudio.com',
+		'https://cashfuerte.fundrstudio.com',
+		'https://confgains.fundrstudio.com'
+	];
+	if (legacyOrigins.includes(content.brand.canonicalUrl.replace(/\/+$/, '')))
+		content.brand.canonicalUrl = defaultWebsite().brand.canonicalUrl;
 	return {
-		content: data ? (normalizeContent(websiteSchema, data.metadata) as Content) : defaultWebsite(),
+		content,
 		revision: data?.updated_at ?? null,
 		error
 	};

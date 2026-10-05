@@ -261,15 +261,6 @@ try {
 	page.on('pageerror', (error) => failures.push(error.message));
 	await mkdir('.audit/screenshots', { recursive: true });
 
-	// Generate the repository-native social card in the landing palette.
-	const art = await context.newPage();
-	await art.setViewportSize({ width: 1200, height: 630 });
-	await art.setContent(
-		'<html><style>*{box-sizing:border-box}body{margin:0;background:#fcfdfb;color:#182a30;font-family:Arial,sans-serif}.card{width:1200px;height:630px;padding:65px 75px;border:24px solid #182a30;position:relative;overflow:hidden}.mark{display:inline-flex;align-items:center;font-size:34px;font-weight:900;letter-spacing:-1px}.symbol{background:#59d9e8;border-radius:50%;width:56px;height:56px;display:grid;place-items:center;margin-right:15px}.heading{font-size:96px;line-height:.95;letter-spacing:-5px;margin:48px 0 25px;font-weight:900;position:relative;z-index:1}.heading span{background:#59d9e8}.copy{font-size:28px;position:relative;z-index:1}.founder{font-size:20px;margin-top:35px}.ring{position:absolute;width:370px;height:370px;border:60px solid #59d9e8;border-radius:50%;right:-120px;bottom:-100px;opacity:.65}</style><div class="card"><div class="mark"><span class="symbol">c↗</span>configains.</div><div class="heading">BUILD STRENGTH.<br><span>MAKE IT LAST.</span></div><div class="copy">Fitness & nutrition coaching for real life.</div><div class="founder">CASH FUERTE, FOUNDER & COACH</div><div class="ring"></div></div></html>'
-	);
-	await art.screenshot({ path: 'static/og-image.png' });
-	await art.close();
-
 	for (const width of [320, 390, 768, 1280]) {
 		await page.setViewportSize({ width, height: 850 });
 		for (const path of ['/', '/about', '/coaching', '/transformations', '/contact']) {
