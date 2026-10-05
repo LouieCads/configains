@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ContentField from './ContentField.svelte';
+	import ConfirmDialog from './ConfirmDialog.svelte';
 	import { onDestroy, untrack } from 'svelte';
 	import type { Content } from '$lib/content/schema';
 	type Row = Record<string, unknown> & { id: string };
@@ -36,7 +37,8 @@
 	);
 	let busy = $state(false),
 		pendingUploads = $state(0),
-		message = $state('');
+		message = $state(''),
+		deleteOpen = $state(false);
 	let baseline = $state(untrack(() => JSON.stringify(values)));
 	$effect(() => {
 		onDirtyChange(JSON.stringify(values) !== baseline || busy || pendingUploads > 0);
@@ -71,7 +73,7 @@
 		}
 	}
 	async function remove() {
-		if (!row || !window.confirm('Delete this item? This cannot be undone.')) return;
+		if (!row) return;
 		busy = true;
 		message = '';
 		try {
@@ -137,7 +139,19 @@
 				type="button"
 				class="cms-secondary danger"
 				disabled={busy || pendingUploads > 0}
-				onclick={remove}>Delete item</button
+				onclick={() => (deleteOpen = true)}>Delete item</button
 			>{/if}
 	</div>
 </form>
+<ConfirmDialog
+	open={deleteOpen}
+	title={`Delete ${collection === 'testimonials' ? 'testimonial' : 'transformation'}?`}
+	message="This item will be removed from the website. This action cannot be undone."
+	confirmLabel="Delete item"
+	danger
+	onCancel={() => (deleteOpen = false)}
+	onConfirm={() => {
+		deleteOpen = false;
+		void remove();
+	}}
+/>

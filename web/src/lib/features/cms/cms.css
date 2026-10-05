@@ -146,6 +146,47 @@
 .danger {
 	color: #a23131;
 }
+.cms-dialog {
+	width: min(440px, calc(100vw - 32px));
+	max-height: calc(100vh - 32px);
+	margin: auto;
+	padding: 0;
+	border: 1px solid #dce5e2;
+	border-radius: 12px;
+	background: var(--paper);
+	color: var(--ink);
+	box-shadow: 0 24px 70px #182a3040;
+}
+.cms-dialog::backdrop {
+	background: #182a30b8;
+}
+.cms-dialog-body {
+	padding: 30px;
+}
+.cms-dialog h2 {
+	font-size: 2.4rem;
+	line-height: 1;
+	margin: 10px 0 16px;
+}
+.cms-dialog p:not(.cms-eyebrow) {
+	margin: 0;
+	color: #56676b;
+}
+.cms-dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 28px;
+}
+.cms-dialog .cms-danger-button {
+	min-height: 44px;
+	padding: 11px 18px;
+	border: 1px solid #a23131;
+	border-radius: 6px;
+	background: #a23131;
+	color: white;
+}
 .editor-toolbar {
 	display: flex;
 	gap: 12px;

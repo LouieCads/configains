@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { beforeNavigate } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { onMount, untrack } from 'svelte';
 	import ContentTabs from '$lib/features/cms/ContentTabs.svelte';
+	import ConfirmDialog from '$lib/features/cms/ConfirmDialog.svelte';
 	import { websiteSchema, validateWebsite, type Content } from '$lib/content/schema';
 	let { data } = $props();
 	let content = $state<Content>(untrack(() => structuredClone(data.content)));
@@ -15,6 +16,9 @@
 		message = $state(''),
 		errors = $state<string[]>([]);
 	let selectedPanels = $state<Record<string, string>>({});
+	let dialogAction = $state<'publish' | 'discard' | 'leave' | null>(null);
+	let leaveTarget = $state<string | null>(null);
+	let allowLeave = false;
 	const dirty = $derived(JSON.stringify(content) !== baseline),
 		sections = Object.entries(websiteSchema.fields!);
 	const pageKeys = ['home', 'about', 'coaching', 'transformations', 'contact'];
@@ -31,9 +35,31 @@
 	onMount(() => {
 		ready = true;
 	});
-	beforeNavigate(({ cancel }) => {
-		if (dirty && !window.confirm('You have unsaved changes. Leave without saving?')) cancel();
+	beforeNavigate(({ cancel, to, willUnload }) => {
+		if (dirty && !willUnload && !allowLeave && to?.url) {
+			cancel();
+			leaveTarget = to.url.href;
+			dialogAction = 'leave';
+		}
 	});
+	async function confirmAction() {
+		const action = dialogAction;
+		dialogAction = null;
+		if (action === 'publish') await publishConfirmed();
+		if (action === 'discard') discardConfirmed();
+		if (action === 'leave' && leaveTarget) {
+			const target = leaveTarget;
+			leaveTarget = null;
+			allowLeave = true;
+			try {
+				// This URL came from SvelteKit's own beforeNavigate event.
+				// eslint-disable-next-line svelte/no-navigation-without-resolve
+				await goto(target);
+			} finally {
+				allowLeave = false;
+			}
+		}
+	}
 	async function save() {
 		errors = validateWebsite(content);
 		if (errors.length) {
@@ -63,7 +89,9 @@
 		}
 	}
 	async function publish() {
-		if (!window.confirm('Publish these changes to the public website?')) return;
+		dialogAction = 'publish';
+	}
+	async function publishConfirmed() {
 		if ((dirty || !revision) && !(await save())) return;
 		busy = true;
 		message = '';
@@ -87,8 +115,9 @@
 		}
 	}
 	function discard() {
-		if (!dirty || !window.confirm('Discard your unsaved edits and restore the saved draft?'))
-			return;
+		if (dirty) dialogAction = 'discard';
+	}
+	function discardConfirmed() {
 		content = JSON.parse(baseline);
 		errors = [];
 		message = 'Unsaved edits discarded.';
@@ -112,6 +141,30 @@
 		metadata and FAQs update alongside your pages.
 	</p>
 </div>
+<ConfirmDialog
+	open={dialogAction !== null}
+	title={dialogAction === 'publish'
+		? 'Publish your website?'
+		: dialogAction === 'discard'
+			? 'Discard your edits?'
+			: 'Leave this page?'}
+	message={dialogAction === 'publish'
+		? 'Your saved changes will appear on the public website.'
+		: dialogAction === 'discard'
+			? 'Unsaved changes will be replaced with your last saved draft.'
+			: 'You have unsaved changes. Leaving now will discard them.'}
+	confirmLabel={dialogAction === 'publish'
+		? 'Publish website'
+		: dialogAction === 'discard'
+			? 'Discard edits'
+			: 'Leave page'}
+	danger={dialogAction !== 'publish'}
+	onCancel={() => {
+		dialogAction = null;
+		leaveTarget = null;
+	}}
+	onConfirm={() => void confirmAction()}
+/>
 {#if data.unavailable}<p class="cms-error" role="alert">
 		The content database is unavailable. Saving requires a working CMS connection.
 	</p>{/if}

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import CollectionEditor from './CollectionEditor.svelte';
+	import ConfirmDialog from './ConfirmDialog.svelte';
 	import { untrack } from 'svelte';
-	import { beforeNavigate } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	type Row = Record<string, unknown> & { id: string };
 	type Field = {
 		name: string;
@@ -12,11 +13,32 @@
 	let items = $state<Row[]>(untrack(() => structuredClone(rows)));
 	let newItemOpen = $state(false);
 	let dirtyItems = $state<Record<string, boolean>>({});
+	let leaveTarget = $state<string | null>(null);
+	let allowLeave = false;
 	const dirty = $derived(Object.values(dirtyItems).some(Boolean));
-	beforeNavigate(({ cancel, willUnload }) => {
-		if (dirty && !willUnload && !window.confirm('You have unsaved changes. Leave without saving?'))
+	beforeNavigate(({ cancel, to, willUnload }) => {
+		if (dirty && !willUnload && !allowLeave && to?.url) {
 			cancel();
+			leaveTarget = to.url.href;
+		}
 	});
+	async function leave() {
+		const target = leaveTarget;
+		leaveTarget = null;
+		if (!target) return;
+		allowLeave = true;
+		try {
+			// This URL came from SvelteKit's own beforeNavigate event.
+			// eslint-disable-next-line svelte/no-navigation-without-resolve
+			await goto(target);
+		} finally {
+			allowLeave = false;
+		}
+	}
+	function cancelLeave() {
+		leaveTarget = null;
+		if (dirtyItems.new) newItemOpen = true;
+	}
 	function saved(row: Row) {
 		items = items.some((item) => item.id === row.id)
 			? items.map((item) => (item.id === row.id ? row : item))
@@ -64,3 +86,12 @@
 			onDirtyChange={(dirty) => (dirtyItems[row.id] = dirty)}
 		/>{/each}
 </div>
+<ConfirmDialog
+	open={leaveTarget !== null}
+	title="Leave this page?"
+	message="You have unsaved changes. Leaving now will discard them."
+	confirmLabel="Leave page"
+	danger
+	onCancel={cancelLeave}
+	onConfirm={() => void leave()}
+/>

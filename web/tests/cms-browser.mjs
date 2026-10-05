@@ -388,6 +388,11 @@ try {
 		'true'
 	);
 	assert.equal(await page.getByLabel('First headline line').inputValue(), 'TEST YOUR STRENGTH.');
+	await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
+	await page.getByRole('dialog', { name: 'Leave this page?' }).waitFor();
+	await page.getByRole('button', { name: 'Keep editing' }).click();
+	assert.equal(new URL(page.url()).pathname, '/admin/content');
+	assert.equal(await page.getByLabel('First headline line').inputValue(), 'TEST YOUR STRENGTH.');
 	await page.getByRole('button', { name: 'Save draft', exact: true }).first().click();
 	await page.getByRole('status').filter({ hasText: 'Draft saved.' }).waitFor();
 	const tabDraft = rows.site_content.find((row) => row.key === 'website.draft').metadata;
@@ -416,8 +421,26 @@ try {
 		'noindex, nofollow'
 	);
 	await preview.close();
-	page.on('dialog', (dialog) => dialog.accept());
+	await page.getByLabel('First headline line').fill('TEMPORARY HEADLINE.');
+	await page.getByRole('button', { name: 'Discard unsaved edits' }).click();
+	await page.getByRole('dialog', { name: 'Discard your edits?' }).waitFor();
+	await page.getByRole('button', { name: 'Keep editing' }).click();
+	assert.equal(await page.getByLabel('First headline line').inputValue(), 'TEMPORARY HEADLINE.');
+	await page.getByRole('button', { name: 'Discard unsaved edits' }).click();
+	await page
+		.getByRole('dialog', { name: 'Discard your edits?' })
+		.getByRole('button', { name: 'Discard edits' })
+		.click();
+	assert.equal(await page.getByLabel('First headline line').inputValue(), 'TEST YOUR STRENGTH.');
 	await page.getByRole('button', { name: 'Publish website', exact: true }).click();
+	await page.getByRole('dialog', { name: 'Publish your website?' }).waitFor();
+	await page.getByRole('button', { name: 'Keep editing' }).click();
+	assert(!(await (await fetch(origin + '/')).text()).includes('TEST YOUR STRENGTH.'));
+	await page.getByRole('button', { name: 'Publish website', exact: true }).click();
+	await page
+		.getByRole('dialog', { name: 'Publish your website?' })
+		.getByRole('button', { name: 'Publish website' })
+		.click();
 	await page.getByRole('status').filter({ hasText: 'Published.' }).waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('TEST YOUR STRENGTH.'));
 	await page.getByRole('button', { name: 'Brand and contact', exact: true }).click();
@@ -512,21 +535,12 @@ try {
 	await page.getByText('+ Add new item', { exact: true }).click();
 	await page.getByLabel('Client name', { exact: true }).fill('Consent test client');
 	await page.getByLabel('Quote', { exact: true }).fill('A locally tested story.');
-	page.removeAllListeners('dialog');
-	let navigationWarnings = 0;
-	const cancelNavigation = async (dialog) => {
-		navigationWarnings++;
-		await dialog.dismiss();
-	};
-	page.on('dialog', cancelNavigation);
 	await page
 		.getByText('You have unsaved changes or an operation in progress.', { exact: true })
 		.waitFor();
-	await Promise.all([
-		page.waitForEvent('dialog'),
-		page.getByRole('link', { name: 'Content', exact: true }).click()
-	]);
-	assert.equal(navigationWarnings, 1);
+	await page.getByRole('link', { name: 'Content', exact: true }).click();
+	await page.getByRole('dialog', { name: 'Leave this page?' }).waitFor();
+	await page.getByRole('button', { name: 'Keep editing' }).click();
 	assert.equal(new URL(page.url()).pathname, '/admin/testimonials');
 	assert.equal(
 		await page.getByLabel('Quote', { exact: true }).inputValue(),
@@ -538,8 +552,6 @@ try {
 		),
 		true
 	);
-	page.removeListener('dialog', cancelNavigation);
-	page.on('dialog', (dialog) => dialog.accept());
 	await page.getByRole('button', { name: 'Create item', exact: true }).click();
 	await page.getByRole('button', { name: 'Save item', exact: true }).waitFor();
 	await page
@@ -557,6 +569,14 @@ try {
 	await page.getByRole('status').filter({ hasText: 'Saved.' }).last().waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
 	await page.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await page.getByRole('dialog', { name: 'Delete testimonial?' }).waitFor();
+	await page.getByRole('button', { name: 'Keep editing' }).click();
+	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
+	await page.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await page
+		.getByRole('dialog', { name: 'Delete testimonial?' })
+		.getByRole('button', { name: 'Delete item' })
+		.click();
 	await page.getByRole('button', { name: 'Save item', exact: true }).waitFor({ state: 'detached' });
 	assert(!(await (await fetch(origin + '/')).text()).includes('Consent test client'));
 	notes.push(
@@ -568,27 +588,35 @@ try {
 	await page
 		.getByText('You have unsaved changes or an operation in progress.', { exact: true })
 		.waitFor();
-	page.removeAllListeners('dialog');
-	page.on('dialog', cancelNavigation);
-	await Promise.all([
-		page.waitForEvent('dialog'),
-		page.getByRole('link', { name: 'Content', exact: true }).click()
-	]);
-	assert.equal(navigationWarnings, 2);
+	await page.getByRole('link', { name: 'Content', exact: true }).click();
+	await page.getByRole('dialog', { name: 'Leave this page?' }).waitFor();
+	await page.getByRole('button', { name: 'Keep editing' }).click();
 	assert.equal(new URL(page.url()).pathname, '/admin/transformations');
 	await page.getByRole('button', { name: 'Create item', exact: true }).click();
 	await page
 		.getByText('You have unsaved changes or an operation in progress.', { exact: true })
 		.waitFor({ state: 'hidden' });
-	page.removeListener('dialog', cancelNavigation);
-	page.on('dialog', (dialog) => dialog.accept());
 	await page.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await page
+		.getByRole('dialog', { name: 'Delete transformation?' })
+		.getByRole('button', { name: 'Delete item' })
+		.click();
 	await page.getByRole('button', { name: 'Save item', exact: true }).waitFor({ state: 'detached' });
+	await page
+		.locator('.collection-add')
+		.getByLabel('Title', { exact: true })
+		.fill('Discarded transformation');
+	await page.getByRole('link', { name: 'Content', exact: true }).click();
+	await page
+		.getByRole('dialog', { name: 'Leave this page?' })
+		.getByRole('button', { name: 'Leave page' })
+		.click();
+	await page.waitForURL('**/admin/content');
+	assert(!rows.transformations.some((item) => item.title === 'Discarded transformation'));
 	notes.push(
-		'4 MB client and API upload limits; testimonial and transformation navigation warnings retain edits and clear after saving.'
+		'4 MB upload limits; custom dialogs keep edits on cancel and leave the editor when confirmed.'
 	);
 
-	await page.goto(origin + '/admin/content');
 	for (const width of [320, 390, 768, 1280]) {
 		await page.setViewportSize({ width, height: 850 });
 		if (width < 760) {
@@ -608,10 +636,12 @@ try {
 	await page.getByRole('button', { name: 'Sign out' }).click();
 	await page.waitForURL('**/admin/login');
 	assert.equal((await context.request.get(origin + '/api/site-content')).status(), 401);
-	await checkRecovery({ page, context, browser, origin, recovery, failures });
-	notes.push(
-		'Recovery verifies single-use tokens and administrator access, works in a fresh browser, protects passwords, and handles invalid links and delivery errors.'
-	);
+	if (!process.argv.includes('--dialogs-only')) {
+		await checkRecovery({ page, context, browser, origin, recovery, failures });
+		notes.push(
+			'Recovery verifies single-use tokens and administrator access, works in a fresh browser, protects passwords, and handles invalid links and delivery errors.'
+		);
+	}
 	assert.deepEqual(failures, []);
 	await writeFile(
 		'.audit/browser-results.json',

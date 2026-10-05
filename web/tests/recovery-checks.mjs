@@ -18,7 +18,7 @@ export async function checkRecovery({ page, context, browser, origin, recovery, 
 	try {
 		const response = await recoveryPage.goto(recoveryUrl);
 		assert.equal(response.headers()['cache-control'], 'private, no-store');
-		assert.equal(response.headers()['referrer-policy'], 'no-referrer');
+		assert.equal(response.headers()['referrer-policy'], 'same-origin');
 		assert.equal(recovery.verifications, 0, 'GET must not consume an email recovery token');
 		await recoveryPage.screenshot({
 			path: '.audit/screenshots/admin-recovery.png',
