@@ -27,6 +27,14 @@ describe('admin request origins', () => {
 		).not.toThrow();
 	});
 
+	it('accepts the Netlify site domain when Netlify supplies the custom-domain URL', () => {
+		expect(() =>
+			requireSameOrigin(
+				event('https://configains.fundrstudio.com/admin/logout', 'https://configainss.netlify.app')
+			)
+		).not.toThrow();
+	});
+
 	it('rejects other origins and requests without an Origin header', () => {
 		expect(() =>
 			requireSameOrigin(

@@ -3,13 +3,13 @@ import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import adapter from '@sveltejs/adapter-netlify';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { productionSiteOrigin } from './src/lib/constants/site-origin.ts';
+import { adminAllowedOrigins } from './src/lib/constants/site-origin.ts';
 
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
 		sveltekit({
-			csrf: { trustedOrigins: [productionSiteOrigin] },
+			csrf: { trustedOrigins: [...adminAllowedOrigins] },
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) =>
