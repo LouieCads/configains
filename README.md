@@ -106,9 +106,12 @@ From `web/`:
 - `pnpm test`: unit tests
 - `pnpm test:cms`: full browser flow against a local Supabase-compatible fixture; no production writes or email delivery
 - `pnpm test:local-demo`: one-click localhost entry, isolated persistent editing/uploads, and production authentication checks (run `pnpm build` first)
+- `pnpm test:logout`: builds and tests production logout in Chromium with and without JavaScript, including cookie removal, Back/refresh, and CSRF rejection against a local Auth fixture
 - `pnpm build`: production build
 
 The browser test covers responsive public pages, hidden admin navigation, nonadmin rejection, draft isolation, authenticated preview, publication, uploads, conflict/CSRF checks, individual story publication and deletion, SEO/AEO updates, and logout. It saves local screenshots/results under the ignored `web/.audit/` directory. Chromium must be available to Playwright. Run it separately from builds or SvelteKit sync commands to avoid development-server reloads interrupting form actions.
+
+The logout test produces a build using local fixture credentials. Run `pnpm build` again before previewing or deploying that build with your actual environment. Admin responses use `Referrer-Policy: same-origin`; `no-referrer` makes native logout forms send `Origin: null`, which correctly fails CSRF validation.
 
 `supabase/tests/website_cms.sql` verifies draft privacy, admin-only writes, stale revisions, and publication isolation against real PostgreSQL policies/functions. Run it after both migrations in an isolated local test database, with an owner capable of setting the `anon`/`authenticated` roles. It rolls back its fixtures; it is not a production migration.
 

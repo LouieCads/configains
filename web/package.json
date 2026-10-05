@@ -16,6 +16,7 @@
 		"test:unit": "vitest",
 		"test:cms": "node tests/cms-browser.mjs",
 		"test:local-demo": "node tests/local-demo-browser.mjs",
+		"test:logout": "node tests/logout-browser.mjs",
 		"test": "vitest --run"
 	},
 	"dependencies": {

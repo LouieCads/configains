@@ -2,13 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { GET, POST } from './+server';
 
 describe('admin logout', () => {
-	it('signs out requests from the Netlify site and returns to login', async () => {
+	it('signs out same-origin requests and returns to login', async () => {
 		const signOut = vi.fn().mockResolvedValue({ error: null });
 		const event = {
 			url: new URL('https://configains.fundrstudio.com/admin/logout'),
 			request: new Request('https://configains.fundrstudio.com/admin/logout', {
 				method: 'POST',
-				headers: { origin: 'https://configainss.netlify.app' }
+				headers: { origin: 'https://configains.fundrstudio.com' }
 			}),
 			locals: { localAdminDemo: false, supabase: { auth: { signOut } } }
 		} as unknown as Parameters<typeof POST>[0];

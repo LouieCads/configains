@@ -13,36 +13,20 @@ function event(url: string, origin?: string) {
 }
 
 describe('admin request origins', () => {
-	it('accepts a request from its own origin', () => {
-		expect(() =>
-			requireSameOrigin(event('http://localhost:5173/admin/logout', 'http://localhost:5173'))
-		).not.toThrow();
+	it.each([
+		'http://localhost:5173',
+		'https://configains.fundrstudio.com',
+		'https://configainss.netlify.app'
+	])('accepts a request from its own origin: %s', (origin) => {
+		expect(() => requireSameOrigin(event(`${origin}/admin/logout`, origin))).not.toThrow();
 	});
 
-	it('accepts the public domain when Netlify supplies an internal request URL', () => {
-		expect(() =>
-			requireSameOrigin(
-				event('https://configainss.netlify.app/admin/logout', 'https://configains.fundrstudio.com')
-			)
-		).not.toThrow();
-	});
-
-	it('accepts the Netlify site domain when Netlify supplies the custom-domain URL', () => {
-		expect(() =>
-			requireSameOrigin(
-				event('https://configains.fundrstudio.com/admin/logout', 'https://configainss.netlify.app')
-			)
-		).not.toThrow();
-	});
-
-	it('rejects other origins and requests without an Origin header', () => {
-		expect(() =>
-			requireSameOrigin(
-				event('https://configainss.netlify.app/admin/logout', 'https://evil.example')
-			)
-		).toThrow();
-		expect(() =>
-			requireSameOrigin(event('https://configainss.netlify.app/admin/logout'))
-		).toThrow();
-	});
+	it.each([undefined, 'null', 'https://evil.example', 'https://configainss.netlify.app'])(
+		'rejects missing, opaque, or cross-site origin: %s',
+		(origin) => {
+			expect(() =>
+				requireSameOrigin(event('https://configains.fundrstudio.com/admin/logout', origin))
+			).toThrow();
+		}
+	);
 });

@@ -29,7 +29,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (event.url.pathname.startsWith('/admin') || event.url.pathname.startsWith('/api/')) {
 		response.headers.set('Cache-Control', 'private, no-store');
 		response.headers.set('X-Robots-Tag', 'noindex, nofollow');
-		response.headers.set('Referrer-Policy', 'no-referrer');
+		// Native POST forms need their same-origin Origin header for CSRF checks.
+		// no-referrer makes browsers send Origin: null for these submissions.
+		response.headers.set('Referrer-Policy', 'same-origin');
 	}
 	return response;
 };
