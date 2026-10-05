@@ -11,7 +11,7 @@
 >
 	{#if data.localAdminDemo}
 		<p class="cms-error" role="alert">Recovery links cannot be used in the local demo.</p>
-	{:else if !data.tokenHash}
+	{:else if !data.tokenHash && !data.authCode}
 		<p class="cms-error" role="alert">This recovery link is invalid. Request a new link.</p>
 	{:else}
 		<form
@@ -25,7 +25,8 @@
 			}}
 		>
 			{#if form?.message}<p class="cms-error" role="alert">{form.message}</p>{/if}
-			<input type="hidden" name="token_hash" value={data.tokenHash} />
+			{#if data.tokenHash}<input type="hidden" name="token_hash" value={data.tokenHash} />{/if}
+			{#if data.authCode}<input type="hidden" name="code" value={data.authCode} />{/if}
 			<button class="cms-primary" disabled={busy}
 				>{busy ? 'Checking link…' : 'Continue to reset password'}</button
 			>

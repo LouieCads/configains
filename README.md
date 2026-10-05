@@ -34,7 +34,7 @@ insert into public.admin_profiles (id, display_name)
 values ('AUTH_USER_UUID', 'Site administrator');
 ```
 
-The login page includes password recovery. Configure Supabase SMTP, the Site URL, and the supplied recovery email template using [the production setup guide](PRODUCTION_SETUP.md). The recovery screens verify a single-use token and administrator access before allowing a new password. Never put a password or service-role key in the repository. No account has been created or production migration applied by this change.
+The login page includes password recovery. Configure Supabase email delivery and the Site URL using [the production setup guide](PRODUCTION_SETUP.md). The default Supabase reset email works; a branded template is optional. The recovery screens verify the link and administrator access before allowing a new password. Never put a password or service-role key in the repository. No account has been created or production migration applied by this change.
 
 ## Content studio
 

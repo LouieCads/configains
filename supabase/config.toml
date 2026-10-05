@@ -23,10 +23,6 @@ additional_redirect_urls = ["http://localhost:5173/**"]
 jwt_expiry = 3600
 enable_signup = false
 
-[auth.email.template.recovery]
-subject = "Reset your Configains admin password"
-content_path = "./supabase/templates/recovery.html"
-
 [storage]
 enabled = true
 file_size_limit = "4MiB"

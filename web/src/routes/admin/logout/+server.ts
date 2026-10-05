@@ -7,6 +7,9 @@ export const POST = async (event) => {
 	if (locals.localAdminDemo) {
 		endDemoSession(event.cookies.get(demoCookie));
 		event.cookies.delete(demoCookie, { path: '/' });
-	} else await locals.supabase.auth.signOut();
+	} else {
+		const { error } = await locals.supabase.auth.signOut();
+		if (error) throw error;
+	}
 	redirect(303, '/admin/login');
 };
