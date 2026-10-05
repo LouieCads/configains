@@ -307,7 +307,7 @@ try {
 	await page.goto(origin + '/');
 	assert.equal(
 		await page.locator('link[rel="canonical"]').getAttribute('href'),
-		'https://www.cashfuerte.fundrstudio.com/'
+		'https://configains.fundrstudio.com/'
 	);
 	const structured = JSON.parse(
 		await page.locator('script[type="application/ld+json"]').textContent()
@@ -320,7 +320,7 @@ try {
 	assert(structured['@graph'].some((entry) => entry['@type'] === 'FAQPage'));
 	assert.equal((await fetch(origin + '/og-image.png')).status, 200);
 	const sitemap = await (await fetch(origin + '/sitemap.xml')).text();
-	assert(sitemap.includes('https://www.cashfuerte.fundrstudio.com/coaching'));
+	assert(sitemap.includes('https://configains.fundrstudio.com/coaching'));
 	assert.equal((sitemap.match(/<url>/g) || []).length, 5);
 	assert((await (await fetch(origin + '/robots.txt')).text()).includes('Disallow: /admin'));
 	assert((await (await fetch(origin + '/llms.txt')).text()).includes('Cash Fuerte'));

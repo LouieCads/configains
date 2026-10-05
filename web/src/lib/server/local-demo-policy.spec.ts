@@ -8,7 +8,7 @@ describe('temporary local admin access', () => {
 		expect(allowLocalDemo(true, undefined, 'localhost', '127.0.0.1')).toBe(false);
 		expect(allowLocalDemo(true, 'false', 'localhost', '127.0.0.1')).toBe(false);
 		expect(allowLocalDemo(false, 'true', 'localhost', '127.0.0.1')).toBe(false);
-		expect(allowLocalDemo(true, 'true', 'www.cashfuerte.fundrstudio.com', '127.0.0.1')).toBe(false);
+		expect(allowLocalDemo(true, 'true', 'configains.fundrstudio.com', '127.0.0.1')).toBe(false);
 		expect(allowLocalDemo(true, 'true', 'localhost', '192.168.1.10')).toBe(false);
 	});
 });

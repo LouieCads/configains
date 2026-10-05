@@ -50,7 +50,7 @@ The public pages are rendered on the server from the published document on each 
 
 The implementation follows the reference Personal Website's structure: a shared SEO component, page metadata, entity structured data, a sitemap, robots rules, and `llms.txt`. It uses only Configains/Cash Fuerte copy and the existing landing theme.
 
-- Public canonical origin: `https://www.cashfuerte.fundrstudio.com`, editable under **Brand and contact**. `configains.app` stays a separate app destination.
+- Public canonical origin: `https://configains.fundrstudio.com`, editable under **Brand and contact**. `configains.app` stays a separate app destination.
 - All five public pages have server-rendered titles, descriptions, canonical links, Open Graph/Twitter metadata and meaningful headings. A Configains favicon and 1200×630 social image are included; either can be replaced in the CMS.
 - JSON-LD describes Configains, Cash Fuerte, the website and pages, inner-page breadcrumbs, and coaching services. Home-page FAQ data uses the same questions and answers as the visible section; disabling the section removes its FAQ schema. No ratings, client endorsements, addresses or credentials are fabricated.
 - `/sitemap.xml`, `/robots.txt` and `/llms.txt` read published CMS content. Publication updates answer content and search metadata alongside the pages. Draft previews, admin pages, APIs and the confirmation page are excluded from indexing.
@@ -73,7 +73,7 @@ Leave the package directory and functions directory unset; the SvelteKit Netlify
 
 Before the first deploy, add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Netlify's environment variable settings, using your Supabase project values from `web/.env`. Make them available during builds for production and any deploy previews you enable. These variables are imported through SvelteKit's static environment module, so changing them requires rebuilding the site. Use the publishable key, never a service-role key, and do not commit `.env`.
 
-Add `www.cashfuerte.fundrstudio.com` in Netlify's domain settings, configure the DNS record supplied by Netlify at the Studio DNS provider, and wait for HTTPS provisioning. Verify that the domain resolves before checking live routes and canonical URLs. The configured domain failed DNS resolution during the local review on October 3, 2026; this change does not configure DNS or publish the site.
+Add `configains.fundrstudio.com` in Netlify's domain settings, configure the DNS record supplied by Netlify at the Studio DNS provider, and wait for HTTPS provisioning. Verify that the domain resolves before checking live routes and canonical URLs. The earlier DNS review covered a different domain and does not establish this domain's status.
 
 Supabase continues to host PostgreSQL, Auth, and Storage. The existing database migration and admin bootstrap are still required for CMS functionality. Netlify hosts the entire existing SvelteKit app, including its admin and API routes, while the root route displays the landing page.
 

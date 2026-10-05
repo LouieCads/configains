@@ -108,7 +108,7 @@ export const websiteSchema: Field = group('Website', {
 			logoAlt: text('Logo description', 'Configains'),
 			favicon: image('Browser icon', '/favicon.svg'),
 			email: { label: 'Public contact email', kind: 'email', defaultValue: 'configains@gmail.com' },
-			canonicalUrl: url('Public website URL', 'https://www.cashfuerte.fundrstudio.com'),
+			canonicalUrl: url('Public website URL', 'https://configains.fundrstudio.com'),
 			socialImage: image('Default social preview image', '/og-image.png'),
 			socialImageAlt: text(
 				'Social image description',
