@@ -185,7 +185,7 @@
 	}
 	.assessment-intro {
 		max-width: 780px;
-		padding: 48px 0;
+		padding: clamp(36px, 5vw, 48px) 0 clamp(40px, 5vw, 56px);
 	}
 	.eyebrow {
 		font:
@@ -196,7 +196,7 @@
 	}
 	h1 {
 		font:
-			400 clamp(3.4rem, 7vw, 5.8rem)/1 'Bebas Neue',
+			400 clamp(3rem, 7vw, 5.8rem)/1 'Bebas Neue',
 			Impact,
 			sans-serif;
 		margin: 0 0 20px;
@@ -217,7 +217,7 @@
 	.assessment-layout {
 		display: grid;
 		grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.6fr);
-		gap: 48px;
+		gap: clamp(32px, 4vw, 56px);
 		align-items: start;
 	}
 	aside {
@@ -284,7 +284,7 @@
 		font-size: 1.18rem;
 		font-weight: 700;
 		padding: 0;
-		margin-bottom: 24px;
+		margin-bottom: 20px;
 	}
 	legend > span {
 		color: #157f90;
@@ -305,6 +305,10 @@
 	fieldset > label,
 	fieldset > .field-grid {
 		margin-top: 20px;
+	}
+	fieldset > legend + label,
+	fieldset > legend + .field-grid {
+		margin-top: 0;
 	}
 	.field-grid {
 		display: grid;
@@ -398,27 +402,46 @@
 		outline: 3px solid #157f90;
 		outline-offset: 4px;
 	}
-	@media (max-width: 800px) {
+	@media (max-width: 1100px) {
 		.assessment-layout {
 			grid-template-columns: 1fr;
-			gap: 24px;
+			grid-template-areas: 'form' 'steps';
+			gap: 36px;
+		}
+		.assessment-card {
+			grid-area: form;
 		}
 		aside {
-			padding-top: 0;
+			grid-area: steps;
+			border-top: 1px solid #dce5e2;
+			padding-top: 28px;
 		}
 		ol {
-			margin: 20px 0 0;
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 24px;
+			margin: 0;
 		}
-		.assessment-intro {
-			padding-bottom: 20px;
+		li {
+			min-width: 0;
+			padding-bottom: 0;
+		}
+		aside > a {
+			margin-top: 24px;
+		}
+	}
+	@media (max-width: 767px) {
+		.field-grid {
+			grid-template-columns: 1fr;
+		}
+		ol {
+			grid-template-columns: 1fr;
+			gap: 18px;
 		}
 	}
 	@media (max-width: 480px) {
 		.assessment-page {
 			padding-inline: 16px;
-		}
-		.field-grid {
-			grid-template-columns: 1fr;
 		}
 		.submit-button {
 			width: 100%;
