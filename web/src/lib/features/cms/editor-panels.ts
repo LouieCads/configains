@@ -75,17 +75,9 @@ const layouts: Record<string, PanelDefinition[]> = {
 	transformations: [panel('Introduction', 'hero', 'empty'), panel('SEO', 'seo')],
 	faq: [panel('Section settings', 'enabled', 'eyebrow', 'heading'), panel('Questions', 'items')],
 	contact: [
-		panel('Introduction', 'hero', 'intro', 'back', 'note'),
-		panel('Next steps', 'stepsLabel', 'steps'),
-		panel(
-			'Personal details',
-			'formNote',
-			'sectionOne',
-			'nameLabel',
-			'emailLabel',
-			'emailHelp',
-			'goal'
-		),
+		panel('Introduction', 'hero', 'intro', 'back'),
+		panel('Next steps', 'steps'),
+		panel('Personal details', 'sectionOne', 'nameLabel', 'emailLabel', 'emailHelp', 'goal'),
 		panel(
 			'Training',
 			'sectionTwo',
@@ -104,15 +96,7 @@ const layouts: Record<string, PanelDefinition[]> = {
 			'optionalLabel'
 		),
 		panel('Privacy and consent', 'privacy', 'consent'),
-		panel(
-			'Submission',
-			'submit',
-			'submitting',
-			'submitNote',
-			'sendingNote',
-			'previewError',
-			'error'
-		),
+		panel('Submission', 'submit', 'submitting', 'sendingNote', 'previewError', 'error'),
 		panel('Success message', 'successEyebrow', 'successTitle', 'successCopy'),
 		panel('SEO', 'seo')
 	]

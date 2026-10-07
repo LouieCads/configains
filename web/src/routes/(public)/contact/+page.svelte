@@ -43,7 +43,7 @@
 
 {#snippet question(name: string, content: Content)}
 	<label
-		>{content.label}<select {name} required
+		>{content.label}<span class="required-marker" aria-hidden="true">*</span><select {name} required
 			><option value="" disabled selected>{content.placeholder}</option
 			>{#each content.options as option, index (index)}<option>{option}</option>{/each}</select
 		></label
@@ -53,20 +53,17 @@
 	<div class="assessment-shell">
 		<a class="back-link" href={publicHref('/', data.preview)}>← {c.back}</a>
 		<header class="assessment-intro">
-			<p class="eyebrow">{c.hero.eyebrow}</p>
 			<h1 class="pre-line">{c.hero.title}</h1>
 			<p class="intro-copy">{c.intro}</p>
 			<p class="pre-line">{c.hero.copy}</p>
 		</header>
 		<div class="assessment-layout">
 			<aside aria-label="What happens next">
-				<p class="eyebrow">{c.stepsLabel}</p>
 				<ol>
 					{#each c.steps as step, index (index)}<li>
 							<strong>{step.title}</strong><span>{step.copy}</span>
 						</li>{/each}
 				</ol>
-				<p class="aside-note">{c.note}</p>
 				<a href={'mailto:' + email}>{email}</a>
 			</aside>
 			{#if submitted}<section class="assessment-card success" aria-labelledby="assessment-result">
@@ -91,19 +88,18 @@
 							>Leave this empty<input name="bot-field" tabindex="-1" autocomplete="off" /></label
 						>
 					</p>
-					<p class="form-note">{c.formNote}</p>
 					<fieldset disabled={submitting}>
 						<legend><span>01</span>{c.sectionOne}</legend>
 						<div class="field-grid">
 							<label
-								>{c.nameLabel}<input
+								>{c.nameLabel}<span class="required-marker" aria-hidden="true">*</span><input
 									name="name"
 									autocomplete="name"
 									required
 									maxlength="100"
 								/></label
 							><label
-								>{c.emailLabel}<input
+								>{c.emailLabel}<span class="required-marker" aria-hidden="true">*</span><input
 									name="email"
 									type="email"
 									autocomplete="email"
@@ -134,7 +130,7 @@
 							c.nutritionKnowledge
 						)}{@render question('nutrition-experience', c.nutritionExperience)}
 						<label
-							>{c.challengeLabel}<textarea
+							>{c.challengeLabel}<span class="required-marker" aria-hidden="true">*</span><textarea
 								name="biggest-challenge"
 								rows="3"
 								required
@@ -158,16 +154,15 @@
 								value={c.consent}
 								required
 								disabled={submitting}
-							/><span>{c.consent}</span></label
+							/><span>{c.consent}<span class="required-marker" aria-hidden="true">*</span></span
+							></label
 						>
 						{#if error}<p class="form-error" role="alert">{error}</p>{/if}<button
 							class="submit-button"
 							type="submit"
 							disabled={submitting}>{submitting ? c.submitting : c.submit + ' ↗'}</button
 						>
-						<p class="submit-note" aria-live="polite">
-							{submitting ? c.sendingNote : c.submitNote}
-						</p>
+						{#if submitting}<p class="submit-note" aria-live="polite">{c.sendingNote}</p>{/if}
 					</div>
 				</form>{/if}
 		</div>
@@ -204,9 +199,9 @@
 			400 clamp(3.4rem, 7vw, 5.8rem)/1 'Bebas Neue',
 			Impact,
 			sans-serif;
-		margin: 20px 0;
+		margin: 0 0 20px;
 	}
-	.assessment-intro > p:not(.eyebrow) {
+	.assessment-intro > p {
 		max-width: 650px;
 		line-height: 1.8;
 		color: #56676b;
@@ -251,8 +246,7 @@
 	li span {
 		display: block;
 	}
-	li span,
-	.aside-note {
+	li span {
 		color: #56676b;
 		font-size: 0.9rem;
 		line-height: 1.7;
@@ -272,16 +266,12 @@
 		border-radius: 4px;
 		min-width: 0;
 	}
-	.form-note,
 	.field-help,
 	.form-footer > p,
 	.optional {
 		font-size: 0.8rem;
 		color: #56676b;
 		line-height: 1.65;
-	}
-	.form-note {
-		margin-bottom: 28px;
 	}
 	fieldset {
 		border: 0;
@@ -306,6 +296,11 @@
 		font-size: 0.9rem;
 		font-weight: 600;
 		line-height: 1.6;
+	}
+	.required-marker {
+		margin-left: 0.25em;
+		color: #157f90;
+		font-weight: 700;
 	}
 	fieldset > label,
 	fieldset > .field-grid {

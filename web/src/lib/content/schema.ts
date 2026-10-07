@@ -410,14 +410,15 @@ export const websiteSchema: Field = group('Website', {
 			'Fitness & Nutrition Assessment | Configains',
 			'Share your fitness and nutrition starting point with Configains. Cash Fuerte personally reviews your assessment and recommends coaching next steps.'
 		),
-		hero: hero(
-			'CONFIGAINS COACHING: YOUR FIRST STEP',
-			'YOUR STARTING POINT.\nYOUR WAY FORWARD.',
-			'Tell us what you know, what you’ve tried, and where you want to go. There are no right or wrong answers. Cash Fuerte, our founder and coach, will personally review your responses.'
-		),
+		hero: group('Page introduction', {
+			title: area('Heading', 'YOUR STARTING POINT.\nYOUR WAY FORWARD.'),
+			copy: area(
+				'Introduction',
+				'Tell us what you know, what you’ve tried, and where you want to go. There are no right or wrong answers. Cash Fuerte, our founder and coach, will personally review your responses.'
+			)
+		}),
 		intro: text('Short introduction', 'A quick fitness & nutrition assessment.'),
 		back: text('Back link', 'Back to Configains'),
-		stepsLabel: text('Next steps heading', 'A REAL COACH. A CLEAR NEXT STEP.'),
 		steps: list(
 			'What happens next',
 			group('Step', { title: text('Title', 'Next step'), copy: area('Description') }),
@@ -436,11 +437,6 @@ export const websiteSchema: Field = group('Website', {
 				}
 			]
 		),
-		note: area(
-			'Inquiry note',
-			'This is an inquiry, with no commitment to join. Your next step is a conversation with Cash Fuerte.'
-		),
-		formNote: text('Form instructions', 'All fields are required unless marked optional.'),
 		sectionOne: text('First field group', 'A little about you'),
 		sectionTwo: text('Second field group', 'Your training starting point'),
 		sectionThree: text('Third field group', 'Nutrition & everyday life'),
@@ -519,7 +515,6 @@ export const websiteSchema: Field = group('Website', {
 		),
 		submit: text('Submit button', 'Send my assessment'),
 		submitting: text('Sending button label', 'Sending your assessment…'),
-		submitNote: area('Submit note', 'Reviewed personally by Cash Fuerte. No commitment to join.'),
 		sendingNote: text('Sending note', 'Please keep this page open while your answers are sent.'),
 		previewError: area(
 			'Local preview message',
