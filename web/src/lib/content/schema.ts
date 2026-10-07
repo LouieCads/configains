@@ -153,7 +153,6 @@ export const websiteSchema: Field = group('Website', {
 			'Build strength and confidence with Configains. Cash Fuerte combines practical training, flexible nutrition, and personal coaching built around your life.'
 		),
 		hero: group('Hero', {
-			eyebrow: text('Eyebrow', 'CONFIGAINS COACHING FOR REAL LIFE'),
 			firstLine: text('First headline line', 'REAL LIFE.'),
 			secondLine: text('Second headline opening', 'REAL'),
 			rotatingWords: list('Rotating headline words', text('Word', 'PROGRESS.'), [
@@ -162,7 +161,6 @@ export const websiteSchema: Field = group('Website', {
 				'GROWTH.',
 				'CHANGE.'
 			]),
-			intro: area('Short introduction', 'A stronger you.\nA life that still feels like yours.'),
 			copy: area(
 				'Description',
 				'Build strength and confidence with Configains. Practical training, flexible nutrition, and personal guidance from Cash Fuerte, our founder and coach.'
@@ -192,16 +190,11 @@ export const websiteSchema: Field = group('Website', {
 			philosophy: area(
 				'Philosophy note',
 				'You don’t need a perfect routine.\nYou need one you can come back to.'
-			),
-			cta: text('Coaching link', 'Meet your next step')
+			)
 		}),
 		coaching: group('Coaching section', {
 			eyebrow: text('Section label', 'CONFIGAINS COACHING'),
 			heading: heading('Heading', 'LESS GUESSWORK.', 'MORE DIRECTION.'),
-			copy: area(
-				'Introduction',
-				'Your starting point shapes your program. Cash Fuerte guides the training, nutrition, and next steps.'
-			),
 			cta: text('Inquiry link', 'Talk about your goals')
 		}),
 		proof: group('Social proof placeholders', {
@@ -223,10 +216,6 @@ export const websiteSchema: Field = group('Website', {
 			comingSoon: text('Status label', 'COMING SOON'),
 			testimonialEyebrow: text('Testimonial section label', 'THE COMMUNITY'),
 			testimonialHeading: heading('Testimonial heading', 'THEIR JOURNEY.', 'THEIR WORDS.'),
-			testimonialCopy: area(
-				'Testimonial introduction',
-				'Honest feedback from the people doing the work.'
-			),
 			testimonialPlaceholder: area(
 				'Testimonial placeholder',
 				'Good progress deserves\nan honest story.'
@@ -304,7 +293,6 @@ export const websiteSchema: Field = group('Website', {
 			previewLabel: text('Preview placeholder label', 'APP PREVIEW PLACEHOLDER')
 		}),
 		contact: group('Contact section', {
-			eyebrow: text('Section label', 'START WHERE YOU ARE'),
 			heading: heading('Heading', 'YOUR NEXT CHAPTER.', 'LET’S FIGURE IT OUT.'),
 			copy: area(
 				'Description',

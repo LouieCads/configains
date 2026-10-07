@@ -51,7 +51,6 @@
 {/snippet}
 <section class="hero container" aria-labelledby="hero-title">
 	<div class="hero-copy">
-		<p class="eyebrow" use:reveal><span class="status-dot"></span>{c.hero.eyebrow}</p>
 		<h1 id="hero-title" use:reveal={70}>
 			{c.hero.firstLine}<br />{c.hero.secondLine}
 			<span
@@ -67,7 +66,6 @@
 					>{/key}
 			</span>
 		</h1>
-		<p class="hero-intro pre-line" use:reveal={130}>{c.hero.intro}</p>
 		<p class="hero-description pre-line" use:reveal={180}>{c.hero.copy}</p>
 		<div class="hero-actions" use:reveal={230}>
 			<a class="button" href={publicHref('/contact', data.preview)}>{c.hero.cta}{@render arrow()}</a
@@ -126,7 +124,6 @@
 			<span aria-hidden="true">↗</span>
 			<p class="pre-line">{c.about.philosophy}</p>
 		</div>
-		<a class="text-link" href="#coaching">{c.about.cta}{@render arrow()}</a>
 	</div>
 </section>
 <CoachingSection
@@ -202,7 +199,6 @@
 					>{proof.testimonialHeading.accent}</span
 				>
 			</h2>
-			<p>{proof.testimonialCopy}</p>
 		</div>
 		<div class="testimonial-content" use:reveal={100}>
 			{#if data.testimonials.length}{#each data.testimonials as testimonial (testimonial.id)}<blockquote
@@ -308,7 +304,6 @@
 <FaqSection content={site.faq} />
 <section id="contact" class="section contact-section container" aria-labelledby="contact-title">
 	<div class="contact-orbit" aria-hidden="true"></div>
-	<p class="eyebrow" use:reveal><span class="status-dot"></span>{c.contact.eyebrow}</p>
 	<h2 id="contact-title" use:reveal={60}>
 		{c.contact.heading.first}<br /><span class="outlined-text">{c.contact.heading.accent}</span>
 	</h2>

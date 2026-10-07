@@ -24,7 +24,6 @@
 				<h2 id="coaching-title">
 					{content.heading.first}<br /><span class="cyan-text">{content.heading.accent}</span>
 				</h2>
-				<p>{content.copy}</p>
 			</div>
 		</div>
 		<div class="service-grid">

@@ -24,11 +24,9 @@ const layouts: Record<string, PanelDefinition[]> = {
 	home: [
 		panel(
 			'Hero',
-			'hero.eyebrow',
 			'hero.firstLine',
 			'hero.secondLine',
 			'hero.rotatingWords',
-			'hero.intro',
 			'hero.copy',
 			'hero.cta',
 			'hero.explore'
@@ -59,7 +57,6 @@ const layouts: Record<string, PanelDefinition[]> = {
 			'Testimonials',
 			'proof.testimonialEyebrow',
 			'proof.testimonialHeading',
-			'proof.testimonialCopy',
 			'proof.testimonialPlaceholder',
 			'proof.testimonialStatus',
 			'proof.testimonialHint'
