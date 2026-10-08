@@ -1,7 +1,12 @@
 <script lang="ts">
 	import ContentField from './ContentField.svelte';
 	import { defaultFor, type Field } from '$lib/content/schema';
-	import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL, IMAGE_MIME_TYPES } from '$lib/content/uploads';
+	import {
+		IMAGE_SIZE_LABEL,
+		IMAGE_MIME_TYPES,
+		MAX_SOURCE_IMAGE_BYTES,
+		SOURCE_IMAGE_SIZE_LABEL
+	} from '$lib/content/uploads';
 	import { imageGuide } from '$lib/content/image-guides';
 	import ImageCropper from './ImageCropper.svelte';
 	let {
@@ -49,8 +54,8 @@
 			file = input.files?.[0];
 		if (!file) return;
 		message = '';
-		if (!IMAGE_MIME_TYPES.includes(file.type) || !file.size || file.size > MAX_IMAGE_BYTES) {
-			message = `Choose a JPG, PNG, WebP, or GIF up to ${IMAGE_SIZE_LABEL}.`;
+		if (!IMAGE_MIME_TYPES.includes(file.type) || !file.size || file.size > MAX_SOURCE_IMAGE_BYTES) {
+			message = `Choose a JPG, PNG, WebP, or GIF up to ${SOURCE_IMAGE_SIZE_LABEL}.`;
 			input.value = '';
 			return;
 		}
@@ -205,7 +210,10 @@
 				Recommended: {guide.width} × {guide.height} px. Crop and position the image before upload.{#if guide.note}
 					{guide.note}{/if}
 			</p>
-			<p class="editor-help">JPG, PNG, WebP or GIF. Maximum size: {IMAGE_SIZE_LABEL}.</p>{/if}
+			<p class="editor-help">
+				JPG, PNG, WebP or GIF. Original photo: up to {SOURCE_IMAGE_SIZE_LABEL}; cropped upload: up
+				to {IMAGE_SIZE_LABEL}.
+			</p>{/if}
 		{#if field.help}<p class="editor-help">{field.help}</p>{/if}{#if message}<p
 				class="cms-error"
 				role="alert"

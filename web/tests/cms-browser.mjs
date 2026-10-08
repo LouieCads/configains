@@ -458,20 +458,40 @@ try {
 	const cropDialog = page.getByRole('dialog', { name: 'Crop image' });
 	await cropDialog.waitFor();
 	assert.match(await cropDialog.innerText(), /960 × 664 px/);
-	await cropDialog.getByLabel('Zoom').focus();
-	await cropDialog.getByLabel('Zoom').press('ArrowRight');
+	const cropStage = await cropDialog.locator('.crop-stage').boundingBox();
+	const initialCrop = await cropDialog.locator('.crop-selection').boundingBox();
+	assert(cropStage && initialCrop);
+	await page.mouse.move(
+		cropStage.x + cropStage.width * 0.03,
+		cropStage.y + cropStage.height * 0.03
+	);
+	await page.mouse.down();
+	await page.mouse.move(
+		cropStage.x + cropStage.width * 0.55,
+		cropStage.y + cropStage.height * 0.55,
+		{ steps: 5 }
+	);
+	await page.mouse.up();
+	const freeCrop = await cropDialog.locator('.crop-selection').boundingBox();
+	assert(
+		freeCrop && freeCrop.width < initialCrop.width,
+		'Dragging on the photo creates a free crop'
+	);
+	await cropDialog.getByRole('button', { name: 'Website shape' }).click();
+	assert.match(await cropDialog.innerText(), /Output: 960 × 664 px/);
+	await cropDialog.screenshot({ path: '.audit/screenshots/crop-dialog.png' });
 	await cropDialog.getByRole('button', { name: 'Crop and upload' }).click();
 	await page.waitForFunction(() =>
 		document.querySelector('#field-brand-portrait')?.value.includes('/storage/')
 	);
 	assert.equal(uploads, 1);
-	const oversizedImage = Buffer.alloc(4 * 1024 * 1024 + 1);
+	const oversizedImage = Buffer.alloc(20 * 1024 * 1024 + 1);
 	await fileInput.setInputFiles({
 		name: 'too-large.png',
 		mimeType: 'image/png',
 		buffer: oversizedImage
 	});
-	await page.getByRole('alert').filter({ hasText: 'up to 4 MB' }).waitFor();
+	await page.getByRole('alert').filter({ hasText: 'up to 20 MB' }).waitFor();
 	assert.equal(uploads, 1, 'Oversized file must not reach Storage');
 	const oversizedStatus = await page.evaluate(async () => {
 		const body = new FormData();
