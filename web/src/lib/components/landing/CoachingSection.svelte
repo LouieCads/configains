@@ -7,12 +7,14 @@
 		services,
 		content,
 		icon,
-		preview = false
+		preview = false,
+		number = '02'
 	}: {
 		services: Content[];
 		content: Content;
 		icon: Snippet<[string]>;
 		preview?: boolean;
+		number?: string;
 	} = $props();
 </script>
 
@@ -20,7 +22,7 @@
 	<div class="container">
 		<div class="section-heading" use:reveal>
 			<div>
-				<p class="eyebrow"><span class="section-number">02</span>{content.eyebrow}</p>
+				<p class="eyebrow"><span class="section-number">{number}</span>{content.eyebrow}</p>
 				<h2 id="coaching-title">
 					{content.heading.first}<br /><span class="cyan-text">{content.heading.accent}</span>
 				</h2>

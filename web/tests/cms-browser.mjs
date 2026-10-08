@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { checkRecovery } from './recovery-checks.mjs';
+import { checkLayoutAndCarousel } from './layout-carousel-checks.mjs';
 
 const backendPort = 55479,
 	appPort = 5187;
@@ -641,6 +642,10 @@ try {
 	assert(!rows.transformations.some((item) => item.title === 'Discarded transformation'));
 	notes.push(
 		'4 MB upload limits; custom dialogs keep edits on cancel and leave the editor when confirmed.'
+	);
+	await checkLayoutAndCarousel({ page, context, origin });
+	notes.push(
+		'Homepage order persists through draft, preview and publishing; transformation carousels support 8, 5, 3, 1 and 0 entries on desktop and mobile.'
 	);
 
 	for (const width of [320, 390, 768, 1280]) {

@@ -1,3 +1,5 @@
+import { defaultSectionOrder, validSectionOrder } from './home-sections';
+
 export type Field = {
 	label: string;
 	kind: 'text' | 'textarea' | 'image' | 'url' | 'email' | 'boolean' | 'group' | 'list';
@@ -6,6 +8,7 @@ export type Field = {
 	item?: Field;
 	items?: unknown[];
 	help?: string;
+	editor?: 'sectionOrder';
 };
 
 const text = (label: string, defaultValue = '', help?: string): Field => ({
@@ -148,6 +151,10 @@ export const websiteSchema: Field = group('Website', {
 		appLink: text('Footer app link', 'Configains app')
 	}),
 	home: group('Home page', {
+		sectionOrder: {
+			...list('Section order', text('Section'), defaultSectionOrder),
+			editor: 'sectionOrder'
+		},
 		seo: seo(
 			'Configains | Online Fitness Coaching with Cash Fuerte',
 			'Build strength and confidence with Configains. Cash Fuerte combines practical training, flexible nutrition, and personal coaching built around your life.'
@@ -609,6 +616,8 @@ export function isSafeUrl(value: string): boolean {
 export function validateWebsite(value: Content): string[] {
 	const errors = validateContent(websiteSchema, value);
 	if (errors.length) return errors;
+	if (!validSectionOrder(value.home.sectionOrder))
+		errors.push('Home: include every homepage section exactly once in the section order.');
 	for (const key of ['name', 'founder', 'email'])
 		if (!value.brand[key].trim()) errors.push(`Brand: ${key} is required.`);
 	if (!value.brand.socialImage.trim())

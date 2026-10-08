@@ -64,6 +64,7 @@ const layouts: Record<string, PanelDefinition[]> = {
 		panel('Products', 'products'),
 		panel('App', 'app'),
 		panel('Contact', 'contact'),
+		panel('Section order', 'sectionOrder'),
 		panel('SEO', 'seo')
 	],
 	about: [panel('Introduction', 'hero', 'cta'), panel('Story', 'sections'), panel('SEO', 'seo')],

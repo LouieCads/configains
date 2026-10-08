@@ -7,8 +7,32 @@ import {
 	websiteSchema
 } from './schema';
 import { buildStructuredData, jsonLd, llmsText, xmlEscape } from './seo';
+import { defaultSectionOrder, orderedHomeSections } from './home-sections';
 
 describe('CMS content validation', () => {
+	it('preserves a reordered homepage, restores legacy defaults, and rejects invalid orders', () => {
+		const original = defaultWebsite();
+		delete original.home.sectionOrder;
+		const migrated = normalizeContent(websiteSchema, original) as ReturnType<typeof defaultWebsite>;
+		expect(migrated.home.sectionOrder).toEqual(defaultSectionOrder);
+		migrated.home.sectionOrder = [...defaultSectionOrder].reverse();
+		expect(validateWebsite(migrated)).toEqual([]);
+		expect(orderedHomeSections(migrated.home.sectionOrder)).toEqual(migrated.home.sectionOrder);
+		for (const invalid of [
+			[],
+			[...defaultSectionOrder, 'hero'],
+			['unknown', ...defaultSectionOrder.slice(1)]
+		]) {
+			migrated.home.sectionOrder = invalid;
+			expect(validateWebsite(migrated)).toContain(
+				'Home: include every homepage section exactly once in the section order.'
+			);
+		}
+		expect(orderedHomeSections(['contact', 'unknown', 'contact'])).toEqual([
+			'contact',
+			...defaultSectionOrder.filter((id) => id !== 'contact')
+		]);
+	});
 	it('accepts the complete Configains defaults and fills older documents safely', () => {
 		expect(validateWebsite(defaultWebsite())).toEqual([]);
 		const content = normalizeContent(websiteSchema, {

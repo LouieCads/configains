@@ -9,6 +9,7 @@
 	} from '$lib/content/uploads';
 	import { imageGuide } from '$lib/content/image-guides';
 	import ImageCropper from './ImageCropper.svelte';
+	import SectionOrderEditor from './SectionOrderEditor.svelte';
 	let {
 		field,
 		value = $bindable(),
@@ -140,7 +141,9 @@
 	/>
 {/snippet}
 
-{#if field.kind === 'group'}
+{#if field.editor === 'sectionOrder'}
+	<SectionOrderEditor bind:value {disabled} />
+{:else if field.kind === 'group'}
 	{#if collapsible}
 		<details class="editor-disclosure">
 			<summary>{field.label}</summary>
