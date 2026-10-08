@@ -2,6 +2,8 @@
 	import ContentField from './ContentField.svelte';
 	import { defaultFor, type Field } from '$lib/content/schema';
 	import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL, IMAGE_MIME_TYPES } from '$lib/content/uploads';
+	import { imageGuide } from '$lib/content/image-guides';
+	import ImageCropper from './ImageCropper.svelte';
 	let {
 		field,
 		value = $bindable(),
@@ -19,8 +21,10 @@
 	} = $props();
 	let uploading = $state(false),
 		message = $state(''),
+		selectedFile = $state<File | null>(null),
 		expanded = $state<boolean[]>([]);
 	const id = $derived(`field-${path.replace(/[^a-z0-9-]/gi, '-')}`);
+	const guide = $derived(imageGuide(path));
 	function move(index: number, direction: number) {
 		const next = [...value];
 		[next[index], next[index + direction]] = [next[index + direction], next[index]];
@@ -40,7 +44,7 @@
 				.find((text) => typeof text === 'string' && text.trim()) ?? 'Untitled item'
 		);
 	}
-	async function upload(event: Event) {
+	function selectImage(event: Event) {
 		const input = event.currentTarget as HTMLInputElement,
 			file = input.files?.[0];
 		if (!file) return;
@@ -50,8 +54,17 @@
 			input.value = '';
 			return;
 		}
-		uploading = true;
+		selectedFile = file;
 		onUploadChange?.(true);
+		input.value = '';
+	}
+	function cancelCrop() {
+		selectedFile = null;
+		onUploadChange?.(false);
+	}
+	async function upload(file: File) {
+		selectedFile = null;
+		uploading = true;
 		try {
 			const body = new FormData();
 			body.set('file', file);
@@ -65,7 +78,6 @@
 		} finally {
 			uploading = false;
 			onUploadChange?.(false);
-			input.value = '';
 		}
 	}
 </script>
@@ -186,9 +198,13 @@
 					type="file"
 					accept="image/jpeg,image/png,image/webp,image/gif"
 					disabled={disabled || uploading}
-					onchange={upload}
+					onchange={selectImage}
 				/></label
 			>
+			<p class="editor-help">
+				Recommended: {guide.width} × {guide.height} px. Crop and position the image before upload.{#if guide.note}
+					{guide.note}{/if}
+			</p>
 			<p class="editor-help">JPG, PNG, WebP or GIF. Maximum size: {IMAGE_SIZE_LABEL}.</p>{/if}
 		{#if field.help}<p class="editor-help">{field.help}</p>{/if}{#if message}<p
 				class="cms-error"
@@ -198,3 +214,9 @@
 			</p>{/if}
 	</div>
 {/if}
+{#if selectedFile}<ImageCropper
+		file={selectedFile}
+		{guide}
+		onApply={upload}
+		onCancel={cancelCrop}
+	/>{/if}

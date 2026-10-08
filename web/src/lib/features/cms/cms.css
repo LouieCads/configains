@@ -466,6 +466,57 @@
 	margin-left: 0;
 	font-size: 0.75rem;
 }
+.crop-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: grid;
+	place-items: center;
+	padding: 20px;
+	background: #10252bc9;
+}
+.crop-dialog {
+	width: min(100%, 560px);
+	max-height: calc(100vh - 40px);
+	overflow: auto;
+	padding: 24px;
+	border-radius: 12px;
+	background: var(--paper);
+	box-shadow: 0 18px 60px #0005;
+}
+.crop-dialog h2 {
+	margin-bottom: 4px;
+}
+.crop-dialog canvas {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-height: 42vh;
+	object-fit: contain;
+	margin: 14px auto;
+	background: #e6ede7;
+	border: 1px solid #b7c6c7;
+}
+.crop-dialog label {
+	display: block;
+	margin: 12px 0;
+	font-weight: 600;
+}
+.cms .crop-dialog input[type='range'] {
+	display: block;
+	width: 100%;
+	margin-top: 4px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+.crop-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-top: 20px;
+}
 .cms-error,
 .cms-success {
 	padding: 16px;

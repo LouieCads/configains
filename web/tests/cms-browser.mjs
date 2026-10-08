@@ -455,6 +455,12 @@ try {
 			'base64'
 		)
 	});
+	const cropDialog = page.getByRole('dialog', { name: 'Crop image' });
+	await cropDialog.waitFor();
+	assert.match(await cropDialog.innerText(), /960 × 664 px/);
+	await cropDialog.getByLabel('Zoom').focus();
+	await cropDialog.getByLabel('Zoom').press('ArrowRight');
+	await cropDialog.getByRole('button', { name: 'Crop and upload' }).click();
 	await page.waitForFunction(() =>
 		document.querySelector('#field-brand-portrait')?.value.includes('/storage/')
 	);
