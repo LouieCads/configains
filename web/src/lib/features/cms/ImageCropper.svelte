@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import type { ImageGuide } from '$lib/content/image-guides';
 	import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL } from '$lib/content/uploads';
+	import { error as errorClass, help, primary, secondary } from './styles';
 
 	/** Selection in fractions (0–1) of the source image's width and height. */
 	type Crop = { x: number; y: number; width: number; height: number };
@@ -49,6 +50,19 @@
 	/** Smallest selection edge, as a fraction of the image. */
 	const MIN_SELECTION = 0.06;
 	const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+	/** Rule-of-thirds guides drawn inside the selection. */
+	const thirds =
+		'bg-[linear-gradient(90deg,transparent_33.15%,#ffffff75_33.3%,#ffffff75_33.6%,transparent_33.75%,transparent_66.3%,#ffffff75_66.45%,#ffffff75_66.75%,transparent_66.9%),linear-gradient(0deg,transparent_33.15%,#ffffff75_33.3%,#ffffff75_33.6%,transparent_33.75%,transparent_66.3%,#ffffff75_66.45%,#ffffff75_66.75%,transparent_66.9%)]';
+	const handles: Record<Handle, string> = {
+		nw: '-top-[9px] -left-[9px] cursor-nwse-resize',
+		ne: '-top-[9px] -right-[9px] cursor-nesw-resize',
+		sw: '-bottom-[9px] -left-[9px] cursor-nesw-resize',
+		se: '-right-[9px] -bottom-[9px] cursor-nwse-resize'
+	};
+	const shapeButton = (active: boolean) => [
+		'rounded-[6px] border px-[14px] py-2',
+		active ? 'border-ink bg-ink text-white' : 'border-[#b7c6c7] bg-transparent text-ink'
+	];
 
 	onMount(() => {
 		const url = URL.createObjectURL(file);
@@ -110,7 +124,7 @@
 		const target = event.target as HTMLElement;
 		const handle = target.closest<HTMLElement>('[data-handle]')?.dataset.handle as
 			Handle | undefined;
-		const mode = handle ? 'resize' : target.closest('.crop-selection') ? 'move' : 'create';
+		const mode = handle ? 'resize' : target.closest('[data-selection]') ? 'move' : 'create';
 		const startPoint = point(event);
 		interaction = {
 			pointerId: event.pointerId,
@@ -230,39 +244,44 @@
 		if (event.key === 'Escape' && !working) onCancel();
 	}}
 />
-<div class="crop-backdrop" role="presentation">
-	<div class="crop-dialog" role="dialog" aria-modal="true" aria-label="Crop image">
-		<h2>Crop image</h2>
-		<p class="editor-help">
+<div class="fixed inset-0 z-[1000] grid place-items-center bg-[#10252bc9] p-5" role="presentation">
+	<div
+		class="max-h-[calc(100vh-40px)] w-[min(100%,680px)] overflow-auto rounded-xl bg-paper p-6 [box-shadow:0_18px_60px_#0005]"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Crop image"
+	>
+		<h2 class="mb-1">Crop image</h2>
+		<p class={help}>
 			Recommended: {guide.width} × {guide.height} px. Source: {picture
 				? `${picture.naturalWidth} × ${picture.naturalHeight} px`
 				: 'Loading…'}.
 		</p>
-		{#if guide.note}<p class="editor-help">{guide.note}</p>{/if}
-		<div class="crop-shapes" role="group" aria-label="Crop shape">
+		{#if guide.note}<p class={help}>{guide.note}</p>{/if}
+		<div class="my-4 flex gap-2" role="group" aria-label="Crop shape">
 			<button
 				type="button"
-				class:active={shape === 'free'}
+				class={shapeButton(shape === 'free')}
 				aria-pressed={shape === 'free'}
 				disabled={working}
 				onclick={() => chooseShape('free')}>Free crop</button
 			>
 			<button
 				type="button"
-				class:active={shape === 'website'}
+				class={shapeButton(shape === 'website')}
 				aria-pressed={shape === 'website'}
 				disabled={working}
 				onclick={() => chooseShape('website')}>Website shape</button
 			>
 		</div>
-		<p class="editor-help">
+		<p class={help}>
 			Drag on the photo to select an area. Drag inside the frame to move it, or drag a corner to
 			resize it.
 		</p>
 		{#if picture}
 			<div
 				bind:this={stage}
-				class="crop-stage"
+				class="relative mx-auto my-[18px] max-w-full cursor-crosshair touch-none overflow-hidden border border-[#b7c6c7] bg-[#e6ede7] select-none focus-visible:outline-offset-4"
 				role="button"
 				tabindex="0"
 				aria-label="Photo crop area. Drag to select, move or resize. Arrow keys move the selection."
@@ -273,32 +292,38 @@
 				onpointercancel={stop}
 				onkeydown={keyboard}
 			>
-				<img src={sourceUrl} alt="" draggable="false" />
+				<img
+					class="pointer-events-none block size-full object-fill"
+					src={sourceUrl}
+					alt=""
+					draggable="false"
+				/>
 				<div
-					class="crop-selection"
+					class="absolute cursor-move border-2 border-white {thirds} [box-shadow:0_0_0_2000px_#10252b99,0_0_0_1px_#152b31]"
+					data-selection
 					style={`left: ${crop.x * 100}%; top: ${crop.y * 100}%; width: ${crop.width * 100}%; height: ${crop.height * 100}%;`}
 				>
-					{#each ['nw', 'ne', 'sw', 'se'] as handle (handle)}<span
-							class={`crop-handle ${handle}`}
+					{#each ['nw', 'ne', 'sw', 'se'] as const as handle (handle)}<span
+							class="absolute size-[18px] rounded-[3px] border-2 border-[#152b31] bg-white {handles[
+								handle
+							]}"
 							data-handle={handle}
 						></span>{/each}
 				</div>
 			</div>
-			<p class="editor-help">
+			<p class={help}>
 				Selected area: {selectedWidth} × {selectedHeight} source px. {shape === 'website'
 					? `Output: ${guide.width} × ${guide.height} px.`
 					: 'The website may trim a free crop to fit its frame.'}
 			</p>
 		{/if}
-		{#if file.type === 'image/gif'}<p class="editor-help">
+		{#if file.type === 'image/gif'}<p class={help}>
 				Cropping a GIF saves its first frame as a still image.
 			</p>{/if}
-		{#if error}<p class="cms-error" role="alert">{error}</p>{/if}
-		<div class="crop-actions">
-			<button type="button" class="cms-secondary" disabled={working} onclick={onCancel}
-				>Cancel</button
-			>
-			<button type="button" class="cms-primary" disabled={working || !picture} onclick={apply}
+		{#if error}<p class={errorClass} role="alert">{error}</p>{/if}
+		<div class="mt-5 flex flex-wrap justify-end gap-[10px]">
+			<button type="button" class={secondary} disabled={working} onclick={onCancel}>Cancel</button>
+			<button type="button" class={primary} disabled={working || !picture} onclick={apply}
 				>{working ? 'Preparing…' : 'Crop and upload'}</button
 			>
 		</div>

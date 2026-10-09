@@ -4,5 +4,5 @@
 </script>
 
 <svelte:head><title>Testimonials | Configains CMS</title></svelte:head>
-<h1 class="mb-8 text-4xl font-black">Testimonials</h1>
+<h1>Testimonials</h1>
 <CollectionManager collection="testimonials" rows={data.rows} />

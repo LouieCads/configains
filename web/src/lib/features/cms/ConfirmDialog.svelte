@@ -3,6 +3,7 @@
 	"Keep editing" call `onCancel`. Focus starts on the safe (cancel) action.
 -->
 <script lang="ts">
+	import { dangerSolid, eyebrow, primary, secondary } from './styles';
 	let {
 		open,
 		title,
@@ -37,7 +38,7 @@
 
 <dialog
 	bind:this={dialog}
-	class="cms-dialog"
+	class="m-auto max-h-[calc(100vh-32px)] w-[min(440px,calc(100vw-32px))] rounded-xl border border-line bg-paper p-0 text-ink [box-shadow:0_24px_70px_#182a3040] backdrop:bg-[#182a30b8]"
 	aria-labelledby={`${id}-title`}
 	aria-describedby={`${id}-message`}
 	oncancel={(event) => {
@@ -45,15 +46,15 @@
 		onCancel();
 	}}
 >
-	<div class="cms-dialog-body">
-		<p class="cms-eyebrow">CONFIGAINS CONTENT STUDIO</p>
-		<h2 id={`${id}-title`}>{title}</h2>
-		<p id={`${id}-message`}>{message}</p>
-		<div class="cms-dialog-actions">
-			<button type="button" class="cms-secondary" bind:this={cancelButton} onclick={onCancel}
+	<div class="p-[30px]">
+		<p class={eyebrow}>CONFIGAINS CONTENT STUDIO</p>
+		<h2 id={`${id}-title`} class="mt-[10px] mb-4 text-[2.4rem] leading-none">{title}</h2>
+		<p id={`${id}-message`} class="m-0 text-muted">{message}</p>
+		<div class="mt-7 flex flex-wrap justify-end gap-[10px]">
+			<button type="button" class={secondary} bind:this={cancelButton} onclick={onCancel}
 				>Keep editing</button
 			>
-			<button type="button" class={danger ? 'cms-danger-button' : 'cms-primary'} onclick={onConfirm}
+			<button type="button" class={danger ? dangerSolid : primary} onclick={onConfirm}
 				>{confirmLabel}</button
 			>
 		</div>

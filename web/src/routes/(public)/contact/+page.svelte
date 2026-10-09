@@ -11,6 +11,23 @@
 		submitted = $state(false),
 		error = $state('');
 	let resultHeading = $state<HTMLHeadingElement>();
+	const focusRing =
+		'focus-visible:outline-3 focus-visible:outline-[#157f90] focus-visible:outline-offset-4';
+	const label = 'block text-[0.9rem] leading-[1.6] font-semibold';
+	/** Labels placed directly in a fieldset are spaced from the field above. */
+	const fieldsetLabel = `${label} [fieldset>&:not(legend+*)]:mt-5`;
+	const control = `mt-2 block min-h-12 w-full rounded-[4px] border border-[#b7c6c7] bg-[#fcfdfb] p-3 font-arial text-[1rem]/[1.5] font-normal text-[#182a30] ${focusRing}`;
+	const fieldGrid =
+		'grid grid-cols-2 gap-[18px] bp-767:grid-cols-1 [fieldset>&:not(legend+*)]:mt-5';
+	const fieldset = `mb-7 min-w-0 [border-width:0_0_1px] [border-style:none_none_solid] border-b-[#dce5e2] p-0 pb-[30px] ${focusRing}`;
+	const legend = 'mb-5 p-0 text-[1.18rem] font-bold';
+	const legendNumber = 'mr-[10px] text-[0.8rem] text-[#157f90]';
+	const note = 'text-[0.8rem] leading-[1.65] text-[#56676b]';
+	const marker = 'ml-[0.25em] font-bold text-[#157f90]';
+	const card =
+		'min-w-0 rounded-[4px] border border-[#dce5e2] border-t-4 border-t-[#59d9e8] bg-white p-[clamp(22px,4vw,42px)] bp-1100:[grid-area:form]';
+	const submit =
+		'inline-flex min-h-[52px] cursor-pointer items-center justify-center rounded-[4px] [border:0] bg-[#182a30] px-6 py-4 font-bold text-white no-underline [transition:background_0.2s] hover:bg-[#157f90] disabled:cursor-wait disabled:opacity-65 motion-reduce:[transition:none] bp-480:w-full';
 	async function submitAssessment(event: SubmitEvent) {
 		event.preventDefault();
 		if (submitting) return;
@@ -42,38 +59,71 @@
 </script>
 
 {#snippet question(name: string, content: Content)}
-	<label
-		>{content.label}<span class="required-marker" aria-hidden="true">*</span><select {name} required
+	<label class={fieldsetLabel}
+		>{content.label}<span class={marker} aria-hidden="true">*</span><select
+			class="{control} pr-9"
+			{name}
+			required
 			><option value="" disabled selected>{content.placeholder}</option
 			>{#each content.options as option, index (index)}<option>{option}</option>{/each}</select
 		></label
 	>
 {/snippet}
-<div class="assessment-page">
-	<div class="assessment-shell">
-		<a class="back-link" href={publicHref('/', data.preview)}>← {c.back}</a>
-		<header class="assessment-intro">
-			<h1 class="pre-line">{c.hero.title}</h1>
-			<p class="intro-copy">{c.intro}</p>
-			<p class="pre-line">{c.hero.copy}</p>
+<div class="bg-[#f7f8f5] px-6 pt-9 pb-[88px] text-[#182a30] bp-480:px-4">
+	<div class="m-auto max-w-[1160px]">
+		<a class="text-[0.875rem] font-semibold" href={publicHref('/', data.preview)}>← {c.back}</a>
+		<header class="max-w-[780px] pt-[clamp(36px,5vw,48px)] pb-[clamp(40px,5vw,56px)]">
+			<h1
+				class="mb-5 font-['Bebas_Neue',Impact,sans-serif] text-[clamp(3rem,7vw,5.8rem)] leading-none font-normal whitespace-pre-line"
+			>
+				{c.hero.title}
+			</h1>
+			<p class="mb-3 max-w-[650px] font-coustard text-[1.25rem]/[1.6] font-normal text-[#182a30]">
+				{c.intro}
+			</p>
+			<p class="max-w-[650px] leading-[1.8] whitespace-pre-line text-[#56676b]">{c.hero.copy}</p>
 		</header>
-		<div class="assessment-layout">
-			<aside aria-label="What happens next">
-				<ol>
-					{#each c.steps as step, index (index)}<li>
-							<strong>{step.title}</strong><span>{step.copy}</span>
+		<div
+			class="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1.6fr)] [align-items:start] gap-[clamp(32px,4vw,56px)] bp-1100:grid-cols-1 bp-1100:gap-9 bp-1100:[grid-template-areas:'form'_'steps']"
+		>
+			<aside
+				class="pt-4 bp-1100:border-t bp-1100:border-t-[#dce5e2] bp-1100:pt-7 bp-1100:[grid-area:steps]"
+				aria-label="What happens next"
+			>
+				<ol
+					class="my-7 list-none p-0 [counter-reset:steps] bp-1100:m-0 bp-1100:grid bp-1100:grid-cols-3 bp-1100:gap-6 bp-767:grid-cols-1 bp-767:gap-[18px]"
+				>
+					{#each c.steps as step, index (index)}<li
+							class="relative pb-[26px] pl-9 [counter-increment:steps] before:absolute before:left-0 before:text-[0.8rem] before:font-bold before:text-[#157f90] before:content-['0'_counter(steps)] bp-1100:min-w-0 bp-1100:pb-0"
+						>
+							<strong class="block">{step.title}</strong><span
+								class="mt-2 block text-[0.9rem] leading-[1.7] text-[#56676b]">{step.copy}</span
+							>
 						</li>{/each}
 				</ol>
-				<a href={'mailto:' + email}>{email}</a>
+				<a class="mt-5 inline-block wrap-anywhere underline bp-1100:mt-6" href={'mailto:' + email}
+					>{email}</a
+				>
 			</aside>
-			{#if submitted}<section class="assessment-card success" aria-labelledby="assessment-result">
-					<p class="eyebrow">{c.successEyebrow}</p>
-					<h2 id="assessment-result" tabindex="-1" bind:this={resultHeading}>{c.successTitle}</h2>
-					<p>{c.successCopy}</p>
-					<a class="submit-button" href={publicHref('/', data.preview)}>{c.back} ↗</a>
+			{#if submitted}<section class={card} aria-labelledby="assessment-result">
+					<p
+						class="mb-[26px] flex items-center gap-3 font-arial text-[0.75rem]/[1.6] font-bold tracking-[0.12em] text-[#157f90] bp-640:mb-[23px]"
+					>
+						{c.successEyebrow}
+					</p>
+					<h2
+						id="assessment-result"
+						class="my-5 font-coustard text-[2rem]/[1.2] font-normal {focusRing}"
+						tabindex="-1"
+						bind:this={resultHeading}
+					>
+						{c.successTitle}
+					</h2>
+					<p class="mb-7 leading-[1.8] text-[#56676b]">{c.successCopy}</p>
+					<a class={submit} href={publicHref('/', data.preview)}>{c.back} ↗</a>
 				</section>
 			{:else}<form
-					class="assessment-card"
+					class={card}
 					name="coaching-assessment"
 					method="POST"
 					action="/assessment-received"
@@ -82,24 +132,31 @@
 					onsubmit={submitAssessment}
 					aria-busy={submitting}
 				>
-					<input type="hidden" name="form-name" value="coaching-assessment" />
+					<input class={control} type="hidden" name="form-name" value="coaching-assessment" />
 					<p hidden>
-						<label
-							>Leave this empty<input name="bot-field" tabindex="-1" autocomplete="off" /></label
+						<label class={label}
+							>Leave this empty<input
+								class={control}
+								name="bot-field"
+								tabindex="-1"
+								autocomplete="off"
+							/></label
 						>
 					</p>
-					<fieldset disabled={submitting}>
-						<legend><span>01</span>{c.sectionOne}</legend>
-						<div class="field-grid">
-							<label
-								>{c.nameLabel}<span class="required-marker" aria-hidden="true">*</span><input
+					<fieldset class={fieldset} disabled={submitting}>
+						<legend class={legend}><span class={legendNumber}>01</span>{c.sectionOne}</legend>
+						<div class={fieldGrid}>
+							<label class={label}
+								>{c.nameLabel}<span class={marker} aria-hidden="true">*</span><input
+									class={control}
 									name="name"
 									autocomplete="name"
 									required
 									maxlength="100"
 								/></label
-							><label
-								>{c.emailLabel}<span class="required-marker" aria-hidden="true">*</span><input
+							><label class={label}
+								>{c.emailLabel}<span class={marker} aria-hidden="true">*</span><input
+									class={control}
 									name="email"
 									type="email"
 									autocomplete="email"
@@ -109,347 +166,70 @@
 								/></label
 							>
 						</div>
-						<p id="email-help" class="field-help">{c.emailHelp}</p>
+						<p id="email-help" class="mt-2 {note}">{c.emailHelp}</p>
 						{@render question('goal', c.goal)}
 					</fieldset>
-					<fieldset disabled={submitting}>
-						<legend><span>02</span>{c.sectionTwo}</legend>{@render question(
-							'training-experience',
-							c.trainingExperience
-						)}{@render question('fitness-knowledge', c.fitnessKnowledge)}
-						<div class="field-grid">
+					<fieldset class={fieldset} disabled={submitting}>
+						<legend class={legend}><span class={legendNumber}>02</span>{c.sectionTwo}</legend
+						>{@render question('training-experience', c.trainingExperience)}{@render question(
+							'fitness-knowledge',
+							c.fitnessKnowledge
+						)}
+						<div class={fieldGrid}>
 							{@render question('training-days', c.trainingDays)}{@render question(
 								'training-location',
 								c.trainingLocation
 							)}
 						</div>
 					</fieldset>
-					<fieldset disabled={submitting}>
-						<legend><span>03</span>{c.sectionThree}</legend>{@render question(
-							'nutrition-knowledge',
-							c.nutritionKnowledge
-						)}{@render question('nutrition-experience', c.nutritionExperience)}
-						<label
-							>{c.challengeLabel}<span class="required-marker" aria-hidden="true">*</span><textarea
+					<fieldset class={fieldset} disabled={submitting}>
+						<legend class={legend}><span class={legendNumber}>03</span>{c.sectionThree}</legend
+						>{@render question('nutrition-knowledge', c.nutritionKnowledge)}{@render question(
+							'nutrition-experience',
+							c.nutritionExperience
+						)}
+						<label class={fieldsetLabel}
+							>{c.challengeLabel}<span class={marker} aria-hidden="true">*</span><textarea
+								class="{control} resize-y"
 								name="biggest-challenge"
 								rows="3"
 								required
 								maxlength="1500"
 								placeholder={c.challengePlaceholder}></textarea></label
 						>
-						<label
-							>{c.contextLabel} <span class="optional">{c.optionalLabel}</span><textarea
+						<label class={fieldsetLabel}
+							>{c.contextLabel} <span class={note}>{c.optionalLabel}</span><textarea
+								class="{control} resize-y"
 								name="additional-context"
 								rows="3"
 								maxlength="1500"
 								placeholder={c.contextPlaceholder}></textarea></label
 						>
 					</fieldset>
-					<div class="form-footer">
-						<p>{c.privacy}</p>
-						<label class="consent"
+					<div>
+						<p class={note}>{c.privacy}</p>
+						<label
+							class="my-5 flex [align-items:start] gap-3 text-[0.9rem] leading-[1.6] font-normal"
 							><input
+								class="mt-[3px] size-5 shrink-0 accent-[#157f90] {focusRing}"
 								type="checkbox"
 								name="consent"
 								value={c.consent}
 								required
 								disabled={submitting}
-							/><span>{c.consent}<span class="required-marker" aria-hidden="true">*</span></span
-							></label
+							/><span>{c.consent}<span class={marker} aria-hidden="true">*</span></span></label
 						>
-						{#if error}<p class="form-error" role="alert">{error}</p>{/if}<button
-							class="submit-button"
-							type="submit"
-							disabled={submitting}>{submitting ? c.submitting : c.submit + ' ↗'}</button
+						{#if error}<p
+								class="mb-5 border border-[#efb8ac] bg-[#fff1ee] p-[14px] text-[0.8rem] leading-[1.65] text-[#962f24]"
+								role="alert"
+							>
+								{error}
+							</p>{/if}<button class={submit} type="submit" disabled={submitting}
+							>{submitting ? c.submitting : c.submit + ' ↗'}</button
 						>
-						{#if submitting}<p class="submit-note" aria-live="polite">{c.sendingNote}</p>{/if}
+						{#if submitting}<p class="mt-3 {note}" aria-live="polite">{c.sendingNote}</p>{/if}
 					</div>
 				</form>{/if}
 		</div>
 	</div>
 </div>
-
-<style>
-	.assessment-page {
-		background: #f7f8f5;
-		color: #182a30;
-		padding: 36px 24px 88px;
-	}
-	.assessment-shell {
-		max-width: 1160px;
-		margin: auto;
-	}
-	.back-link {
-		font-size: 0.875rem;
-		font-weight: 600;
-	}
-	.assessment-intro {
-		max-width: 780px;
-		padding: clamp(36px, 5vw, 48px) 0 clamp(40px, 5vw, 56px);
-	}
-	.eyebrow {
-		font:
-			700 0.75rem/1.6 Arial,
-			sans-serif;
-		letter-spacing: 0.12em;
-		color: #157f90;
-	}
-	h1 {
-		font:
-			400 clamp(3rem, 7vw, 5.8rem)/1 'Bebas Neue',
-			Impact,
-			sans-serif;
-		margin: 0 0 20px;
-	}
-	.assessment-intro > p {
-		max-width: 650px;
-		line-height: 1.8;
-		color: #56676b;
-	}
-	.assessment-intro .intro-copy {
-		font:
-			1.25rem/1.6 'Coustard',
-			Georgia,
-			serif;
-		color: #182a30;
-		margin-bottom: 12px;
-	}
-	.assessment-layout {
-		display: grid;
-		grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.6fr);
-		gap: clamp(32px, 4vw, 56px);
-		align-items: start;
-	}
-	aside {
-		padding-top: 16px;
-	}
-	ol {
-		padding: 0;
-		list-style: none;
-		counter-reset: steps;
-		margin: 28px 0;
-	}
-	li {
-		counter-increment: steps;
-		position: relative;
-		padding: 0 0 26px 36px;
-	}
-	li::before {
-		content: '0' counter(steps);
-		position: absolute;
-		left: 0;
-		color: #157f90;
-		font-weight: 700;
-		font-size: 0.8rem;
-	}
-	li strong,
-	li span {
-		display: block;
-	}
-	li span {
-		color: #56676b;
-		font-size: 0.9rem;
-		line-height: 1.7;
-		margin-top: 8px;
-	}
-	aside > a {
-		display: inline-block;
-		margin-top: 20px;
-		text-decoration: underline;
-		overflow-wrap: anywhere;
-	}
-	.assessment-card {
-		background: #fff;
-		border: 1px solid #dce5e2;
-		border-top: 4px solid #59d9e8;
-		padding: clamp(22px, 4vw, 42px);
-		border-radius: 4px;
-		min-width: 0;
-	}
-	.field-help,
-	.form-footer > p,
-	.optional {
-		font-size: 0.8rem;
-		color: #56676b;
-		line-height: 1.65;
-	}
-	fieldset {
-		border: 0;
-		padding: 0 0 30px;
-		margin: 0 0 28px;
-		border-bottom: 1px solid #dce5e2;
-		min-width: 0;
-	}
-	legend {
-		font-size: 1.18rem;
-		font-weight: 700;
-		padding: 0;
-		margin-bottom: 20px;
-	}
-	legend > span {
-		color: #157f90;
-		font-size: 0.8rem;
-		margin-right: 10px;
-	}
-	label {
-		display: block;
-		font-size: 0.9rem;
-		font-weight: 600;
-		line-height: 1.6;
-	}
-	.required-marker {
-		margin-left: 0.25em;
-		color: #157f90;
-		font-weight: 700;
-	}
-	fieldset > label,
-	fieldset > .field-grid {
-		margin-top: 20px;
-	}
-	fieldset > legend + label,
-	fieldset > legend + .field-grid {
-		margin-top: 0;
-	}
-	.field-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 18px;
-	}
-	input:not([type='checkbox']),
-	select,
-	textarea {
-		display: block;
-		width: 100%;
-		margin-top: 8px;
-		border: 1px solid #b7c6c7;
-		border-radius: 4px;
-		background-color: #fcfdfb;
-		color: #182a30;
-		font:
-			400 1rem/1.5 Arial,
-			sans-serif;
-		padding: 12px;
-		min-height: 48px;
-	}
-	select {
-		padding-right: 36px;
-	}
-	textarea {
-		resize: vertical;
-	}
-	.field-help {
-		margin-top: 8px;
-	}
-	.consent {
-		display: flex;
-		align-items: start;
-		gap: 12px;
-		margin: 20px 0;
-		font-weight: 400;
-	}
-	.consent input {
-		flex-shrink: 0;
-		width: 20px;
-		height: 20px;
-		margin-top: 3px;
-		accent-color: #157f90;
-	}
-	.submit-button {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: 16px 24px;
-		min-height: 52px;
-		background: #182a30;
-		color: white;
-		font-weight: 700;
-		border: 0;
-		border-radius: 4px;
-		cursor: pointer;
-		text-decoration: none;
-		transition: background 0.2s;
-	}
-	.submit-button:hover {
-		background: #157f90;
-	}
-	.submit-button:disabled {
-		cursor: wait;
-		opacity: 0.65;
-	}
-	.submit-note {
-		margin-top: 12px;
-	}
-	.form-footer .form-error {
-		padding: 14px;
-		margin-bottom: 20px;
-		background: #fff1ee;
-		color: #962f24;
-		border: 1px solid #efb8ac;
-	}
-	.success h2 {
-		font:
-			400 2rem/1.2 'Coustard',
-			Georgia,
-			serif;
-		margin: 20px 0;
-	}
-	.success > p:not(.eyebrow) {
-		line-height: 1.8;
-		color: #56676b;
-		margin-bottom: 28px;
-	}
-	:focus-visible {
-		outline: 3px solid #157f90;
-		outline-offset: 4px;
-	}
-	@media (max-width: 1100px) {
-		.assessment-layout {
-			grid-template-columns: 1fr;
-			grid-template-areas: 'form' 'steps';
-			gap: 36px;
-		}
-		.assessment-card {
-			grid-area: form;
-		}
-		aside {
-			grid-area: steps;
-			border-top: 1px solid #dce5e2;
-			padding-top: 28px;
-		}
-		ol {
-			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 24px;
-			margin: 0;
-		}
-		li {
-			min-width: 0;
-			padding-bottom: 0;
-		}
-		aside > a {
-			margin-top: 24px;
-		}
-	}
-	@media (max-width: 767px) {
-		.field-grid {
-			grid-template-columns: 1fr;
-		}
-		ol {
-			grid-template-columns: 1fr;
-			gap: 18px;
-		}
-	}
-	@media (max-width: 480px) {
-		.assessment-page {
-			padding-inline: 16px;
-		}
-		.submit-button {
-			width: 100%;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.submit-button {
-			transition: none;
-		}
-	}
-</style>

@@ -7,6 +7,7 @@
 	import ContentField from './ContentField.svelte';
 	import { editorPanels } from './editor-panels';
 	import { isQuestionField, type Content, type Field } from '$lib/content/schema';
+	import { help } from './styles';
 	let {
 		field,
 		value = $bindable(),
@@ -25,6 +26,8 @@
 	const panels = $derived(editorPanels(path, field));
 	const contentPanels = $derived(panels.filter((panel) => panel.group !== 'settings'));
 	const settingsPanels = $derived(panels.filter((panel) => panel.group === 'settings'));
+	const tab =
+		'min-h-11 shrink-0 rounded-[6px] border border-line bg-white px-[14px] py-[10px] text-muted hover:border-cyan-ink aria-selected:border-cyan-ink aria-selected:bg-[#d7f2f1] aria-selected:text-ink';
 	const selected = $derived(panels.find((panel) => panel.id === active) ?? panels[0]);
 
 	/** Object holding the field at `keys`, so the last key can be bound directly. */
@@ -45,16 +48,17 @@
 	}
 </script>
 
-<div class="editor-panel-heading">
-	<h2>{field.label}</h2>
+<div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+	<h2 class="mb-[6px]">{field.label}</h2>
 	{#if settingsPanels.length}
 		<div
-			class="editor-tabs editor-settings-tabs"
+			class="m-0 flex flex-wrap gap-[6px] pb-0 [border-bottom:0] bp-760:flex-nowrap bp-760:overflow-x-auto bp-760:px-1 bp-760:pt-1 bp-760:pb-3"
 			role="tablist"
 			aria-label={`${field.label} page settings`}
 		>
 			{#each settingsPanels as panel, index (panel.id)}
 				<button
+					class={tab}
 					type="button"
 					role="tab"
 					id={`tab-${panel.id}`}
@@ -69,11 +73,16 @@
 		</div>
 	{/if}
 </div>
-<p class="editor-help">Choose a section to edit.</p>
+<p class={help}>Choose a section to edit.</p>
 {#if contentPanels.length > 1}
-	<div class="editor-tabs" role="tablist" aria-label={`${field.label} sections`}>
+	<div
+		class="mt-[22px] mb-[26px] flex flex-wrap gap-[6px] border-b border-b-line pb-4 bp-760:flex-nowrap bp-760:overflow-x-auto bp-760:px-1 bp-760:pt-1 bp-760:pb-3"
+		role="tablist"
+		aria-label={`${field.label} sections`}
+	>
 		{#each contentPanels as panel, index (panel.id)}
 			<button
+				class={tab}
 				type="button"
 				role="tab"
 				id={`tab-${panel.id}`}
@@ -107,7 +116,7 @@
 
 {#if panels.length > 1}
 	<div
-		class="editor-tab-content"
+		class="mb-6 min-w-0"
 		id={`panel-${path}`}
 		role="tabpanel"
 		aria-labelledby={`tab-${selected.id}`}
@@ -116,5 +125,5 @@
 		{@render panelFields()}
 	</div>
 {:else}
-	<div class="editor-tab-content">{@render panelFields()}</div>
+	<div class="mb-6 min-w-0">{@render panelFields()}</div>
 {/if}

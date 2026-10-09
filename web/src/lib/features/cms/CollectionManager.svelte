@@ -7,6 +7,7 @@
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import { useLeaveGuard } from './leave-guard.svelte';
 	import { untrack } from 'svelte';
+	import { help, secondary } from './styles';
 	import type { CollectionName, CollectionRow } from '$lib/content/collections';
 
 	let { collection, rows }: { collection: CollectionName; rows: CollectionRow[] } = $props();
@@ -33,16 +34,18 @@
 	}
 </script>
 
-<p class="editor-help">
+<p class={help}>
 	Publish client stories and photos only with permission. Add photo descriptions for accessibility
 	and search.
 </p>
-{#if dirty}<p class="editor-help" role="status">
+{#if dirty}<p class={help} role="status">
 		You have unsaved changes or an operation in progress.
 	</p>{/if}
-<div class="collection-grid">
-	<details class="collection-add" bind:open={newItemOpen}>
-		<summary class="cms-secondary">{newItemOpen ? 'Hide new item' : '+ Add new item'}</summary>
+<div class="grid gap-6">
+	<details bind:open={newItemOpen}>
+		<summary class="{secondary} [[open]>&]:mb-4"
+			>{newItemOpen ? 'Hide new item' : '+ Add new item'}</summary
+		>
 		<CollectionEditor
 			{collection}
 			onSaved={saved}

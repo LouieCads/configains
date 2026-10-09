@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import AuthCard from '$lib/features/cms/AuthCard.svelte';
+	import { authLabel, authLink, authSubmit, error, primary } from '$lib/features/cms/styles';
 	let { form } = $props();
 	let busy = $state(false);
 </script>
@@ -9,7 +10,7 @@
 	title="Choose a new password."
 	intro="Use at least 12 characters. A few unrelated words make a useful passphrase."
 >
-	{#if form?.message}<p class="cms-error" role="alert">{form.message}</p>{/if}
+	{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 	{#if !form?.updated}
 		<form
 			method="POST"
@@ -21,7 +22,7 @@
 				};
 			}}
 		>
-			<label
+			<label class={authLabel}
 				>New password<input
 					name="password"
 					type="password"
@@ -31,7 +32,7 @@
 					required
 				/></label
 			>
-			<label
+			<label class={authLabel}
 				>Confirm new password<input
 					name="confirmation"
 					type="password"
@@ -41,11 +42,15 @@
 					required
 				/></label
 			>
-			<button class="cms-primary" disabled={busy}>{busy ? 'Updating…' : 'Update password'}</button>
+			<button class="{primary} {authSubmit}" disabled={busy}
+				>{busy ? 'Updating…' : 'Update password'}</button
+			>
 		</form>
 	{:else}
-		<form method="POST" action="/admin/logout"><button class="cms-primary">Sign out</button></form>
+		<form method="POST" action="/admin/logout">
+			<button class="{primary} {authSubmit}">Sign out</button>
+		</form>
 	{/if}
-	<a class="cms-auth-link" href="/admin/forgot-password">Request a new reset link</a>
-	<a class="cms-auth-link" href="/admin/login">Back to sign in</a>
+	<a class={authLink} href="/admin/forgot-password">Request a new reset link</a>
+	<a class={authLink} href="/admin/login">Back to sign in</a>
 </AuthCard>

@@ -11,6 +11,15 @@
 	import { cmsRequest, errorMessage } from '$lib/features/cms/api';
 	import { useLeaveGuard } from '$lib/features/cms/leave-guard.svelte';
 	import {
+		error as errorClass,
+		eyebrow,
+		help,
+		primary,
+		secondary,
+		subtle,
+		success
+	} from '$lib/features/cms/styles';
+	import {
 		validateWebsite,
 		websitePagePath,
 		websitePages,
@@ -166,8 +175,8 @@
 </script>
 
 <svelte:head><title>Website editor | Configains CMS</title></svelte:head>
-<div class="cms-page-heading">
-	<p class="cms-eyebrow">CONTENT STUDIO</p>
+<div class="mb-7 max-w-[800px]">
+	<p class={eyebrow}>CONTENT STUDIO</p>
 	<h1>Your website. Your words.</h1>
 </div>
 <ConfirmDialog
@@ -176,11 +185,13 @@
 	onCancel={closeDialog}
 	onConfirm={() => void confirmDialog()}
 />
-{#if data.unavailable}<p class="cms-error" role="alert">
+{#if data.unavailable}<p class={errorClass} role="alert">
 		The content database is unavailable. Saving requires a working CMS connection.
 	</p>{/if}
-<div class="editor-toolbar">
-	<span class="editor-status"
+<div
+	class="sticky top-3 z-[5] flex flex-wrap items-center gap-3 rounded-lg border border-line bg-paper p-4 [box-shadow:0_5px_20px_#183b360a] bp-760:static"
+>
+	<span class="mr-auto text-[0.85rem] bp-760:w-full"
 		>{pendingUploads
 			? 'Uploading image…'
 			: dirty
@@ -189,11 +200,11 @@
 					? 'Draft saved'
 					: 'Ready to edit'}</span
 	>
-	<button class="cms-secondary" disabled={locked || data.unavailable} onclick={save}
+	<button class={secondary} disabled={locked || data.unavailable} onclick={save}
 		>{busy ? 'Working…' : 'Save draft'}</button
 	>
 	<a
-		class="cms-secondary"
+		class={secondary}
 		href={`${previewPath}?preview=1`}
 		target="_blank"
 		rel="noopener"
@@ -203,31 +214,37 @@
 		}}>Preview saved draft ↗</a
 	>
 	<button
-		class="cms-primary"
+		class={primary}
 		disabled={locked || data.unavailable}
 		onclick={() => (dialogAction = 'publish')}>Publish website</button
 	>
 	<button
-		class="cms-subtle"
+		class={subtle}
 		disabled={locked || !dirty}
 		onclick={() => {
 			if (dirty) dialogAction = 'discard';
 		}}>Discard unsaved edits</button
 	>
 </div>
-{#if message}<p class="cms-success" role="status">{message}</p>{/if}
-{#if errors.length}<div class="cms-error" role="alert">
+{#if message}<p class={success} role="status">{message}</p>{/if}
+{#if errors.length}<div class={errorClass} role="alert">
 		<strong>Please review:</strong>
 		<ul>
 			{#each errors as error (error)}<li>{error}</li>{/each}
 		</ul>
 	</div>{/if}
-{#if publishedRevision}<p class="editor-help">
+{#if publishedRevision}<p class={help}>
 		Last published: {formatDateTime(publishedRevision)}
 	</p>{/if}
-<div class="website-editor">
-	<nav class="editor-sections" aria-label="Website sections">
-		<label class="editor-page-picker" for="editor-page-choice">
+<div class="mt-7 grid grid-cols-[210px_minmax(0,1fr)] gap-6 bp-1100:grid-cols-1">
+	<nav
+		class="flex flex-col gap-[6px] [align-self:start] bp-1100:flex-row bp-1100:flex-wrap"
+		aria-label="Website sections"
+	>
+		<label
+			class="hidden bp-760:grid bp-760:w-full bp-760:gap-2 bp-760:text-[0.875rem] bp-760:font-semibold"
+			for="editor-page-choice"
+		>
 			Page or shared content
 			<select id="editor-page-choice" bind:value={active} disabled={locked}>
 				{#each sectionGroups as group (group.label)}
@@ -240,12 +257,17 @@
 			</select>
 		</label>
 		{#each sectionGroups as group (group.label)}
-			<div class="editor-section-group">
-				<p class="cms-eyebrow">{group.label}</p>
+			<div
+				class="mb-[18px] grid gap-1 bp-1100:mb-0 bp-1100:flex bp-1100:flex-wrap bp-1100:gap-[6px] bp-760:hidden"
+			>
+				<p class="{eyebrow} mx-3 mt-0 mb-2 bp-1100:my-[6px] bp-1100:w-full">{group.label}</p>
 				{#each group.sections as [key, field] (key)}
 					<button
 						type="button"
-						class:active={active === key}
+						class={[
+							'rounded-[6px] p-3 text-left [border:0] hover:bg-[#e9f3ef]',
+							active === key ? 'bg-[#d7f2f1] text-ink' : 'bg-transparent text-muted'
+						]}
 						aria-pressed={active === key}
 						disabled={locked}
 						onclick={() => (active = key)}>{field.label}</button
@@ -255,7 +277,7 @@
 		{/each}
 	</nav>
 	<form
-		class="editor-panel"
+		class="min-w-0 rounded-[10px] border border-line bg-paper p-7 bp-760:p-5"
 		onsubmit={(event) => {
 			event.preventDefault();
 			void save();
@@ -268,7 +290,7 @@
 					path={key}
 					disabled={locked}
 					onUploadChange={trackUpload}
-				/>{/if}{/each}<button class="cms-primary" disabled={locked || data.unavailable}
+				/>{/if}{/each}<button class={primary} disabled={locked || data.unavailable}
 			>Save draft</button
 		>
 	</form>

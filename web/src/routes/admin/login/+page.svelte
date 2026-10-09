@@ -1,6 +1,19 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import '$lib/features/cms/cms.css';
+	import {
+		authCard,
+		authLabel,
+		authLink,
+		authSubmit,
+		brand,
+		error,
+		eyebrow,
+		help,
+		loginPage,
+		primary,
+		studio,
+		success
+	} from '$lib/features/cms/styles';
 	let { form, data } = $props();
 	let busy = $state(false);
 </script>
@@ -11,8 +24,9 @@
 		content="noindex, nofollow"
 	/></svelte:head
 >
-<main class="cms cms-login">
+<main class="{studio} {loginPage}">
 	<form
+		class={authCard}
 		method="POST"
 		use:enhance={() => {
 			busy = true;
@@ -22,19 +36,19 @@
 			};
 		}}
 	>
-		<a href="/" class="cms-brand">CONFIGAINS.</a>
-		<p class="cms-eyebrow">CONTENT STUDIO</p>
+		<a href="/" class={brand}>CONFIGAINS.</a>
+		<p class={eyebrow}>CONTENT STUDIO</p>
 		<h1>Welcome back.</h1>
 		<p>
 			{data.localAdminDemo
 				? 'Open the local content studio without credentials.'
 				: 'Sign in to update your website.'}
 		</p>
-		{#if form?.message}<p class="cms-error" role="alert">{form.message}</p>{/if}
-		{#if data.passwordUpdated}<p class="cms-success" role="status">
+		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
+		{#if data.passwordUpdated}<p class={success} role="status">
 				Password updated. Sign in with your new password.
 			</p>{/if}
-		{#if !data.localAdminDemo}<label
+		{#if !data.localAdminDemo}<label class={authLabel}
 				>Email address<input
 					name="email"
 					type="email"
@@ -43,7 +57,7 @@
 					value={form?.email ?? ''}
 				/></label
 			>
-			<label
+			<label class={authLabel}
 				>Password<input
 					name="password"
 					type="password"
@@ -52,11 +66,13 @@
 				/></label
 			>
 		{/if}
-		<button class="cms-primary" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
-		{#if !data.localAdminDemo}<a class="cms-auth-link" href="/admin/forgot-password"
+		<button class="{primary} {authSubmit}" disabled={busy}
+			>{busy ? 'Signing in…' : 'Sign in'}</button
+		>
+		{#if !data.localAdminDemo}<a class={authLink} href="/admin/forgot-password"
 				>Forgot your password?</a
 			>{/if}
-		{#if data.localAdminDemo}<p class="editor-help">
+		{#if data.localAdminDemo}<p class={help}>
 				Local demo: content changes stay on this device.
 			</p>{/if}
 	</form>

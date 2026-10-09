@@ -7,6 +7,7 @@
 	import ContentField from './ContentField.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import { cmsRequest, errorMessage } from './api';
+	import { card, primary, secondaryDanger } from './styles';
 	import { onDestroy, untrack } from 'svelte';
 	import {
 		collections,
@@ -91,19 +92,20 @@
 	}
 </script>
 
-<form class="cms-card" onsubmit={save}>
+<form class="{card} grid gap-4" onsubmit={save}>
 	{#each fields as field (field.name)}
 		{#if field.type === 'image'}<ContentField
 				field={{ label: field.label, kind: 'image' }}
 				bind:value={values[field.name]}
 				path={(row?.id || 'new') + '-' + field.name}
 				bucket={collection}
+				inCollection
 				disabled={busy}
 				onUploadChange={(uploading) => {
 					pendingUploads = Math.max(0, pendingUploads + (uploading ? 1 : -1));
 				}}
 			/>
-		{:else}<label
+		{:else}<label class="grid gap-[6px] text-[0.875rem] font-semibold"
 				>{field.label}
 				{#if field.type === 'textarea'}<textarea
 						bind:value={values[field.name]}
@@ -131,12 +133,12 @@
 			</label>{/if}
 	{/each}
 	{#if message}<p role="status">{message}</p>{/if}
-	<div class="collection-actions">
-		<button class="cms-primary" disabled={locked}
+	<div class="flex flex-wrap gap-3">
+		<button class={primary} disabled={locked}
 			>{busy ? 'Saving…' : row ? 'Save item' : 'Create item'}</button
 		>{#if row}<button
 				type="button"
-				class="cms-secondary danger"
+				class={secondaryDanger}
 				disabled={locked}
 				onclick={() => (deleteOpen = true)}>Delete item</button
 			>{/if}

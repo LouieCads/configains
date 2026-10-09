@@ -30,9 +30,20 @@
 	});
 </script>
 
-<div class="fitness-object" class:ready>
-	<div class="scene-host" bind:this={host} aria-hidden="true"></div>
-	<svg class="scene-fallback" viewBox="0 0 550 500" aria-hidden="true">
+<div class="absolute inset-0 size-full">
+	<div
+		class={[
+			'absolute inset-0 size-full [transition:opacity_0.5s_ease] motion-reduce:[transition:none] [&_canvas]:block [&_canvas]:size-full',
+			ready ? 'opacity-100' : 'opacity-0'
+		]}
+		bind:this={host}
+		aria-hidden="true"
+	></div>
+	<svg
+		class={['absolute inset-0 size-full', ready && 'hidden']}
+		viewBox="0 0 550 500"
+		aria-hidden="true"
+	>
 		<defs>
 			<linearGradient id="fitness-metal" x1="0" y1="0" x2="1" y2="1"
 				><stop stop-color="#fff" /><stop offset="1" stop-color="#aabcbf" /></linearGradient
@@ -71,40 +82,3 @@
 		</g>
 	</svg>
 </div>
-
-<style>
-	.fitness-object {
-		width: 100%;
-		height: 100%;
-		position: absolute;
-		inset: 0;
-	}
-	.scene-host,
-	.scene-fallback {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-	}
-	.scene-host {
-		opacity: 0;
-		transition: opacity 0.5s ease;
-	}
-	.ready .scene-host {
-		opacity: 1;
-	}
-	.ready .scene-fallback {
-		display: none;
-	}
-	.scene-host :global(canvas) {
-		display: block;
-		width: 100%;
-		height: 100%;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.scene-host {
-			transition: none;
-		}
-	}
-</style>

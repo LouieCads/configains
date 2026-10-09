@@ -2,28 +2,59 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
-:root {
-	font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-	color: #172019;
-	background: #f6f7f2;
-	font-synthesis: none;
+@theme {
+	--color-ink: #182a30;
+	--color-cyan: #59d9e8;
+	--color-cyan-ink: #157f90;
+	--color-muted: #56676b;
+	--color-line: #dce5e2;
+	--color-paper: #fcfdfb;
+	--color-floor: #f7f8f5;
+
+	--font-inter: Inter, ui-sans-serif, system-ui, sans-serif;
+	--font-coustard: 'Coustard', Georgia, serif;
+	--font-display: 'Bebas Neue', 'Arial Narrow', Impact, sans-serif;
+	--font-studio: 'Bebas Neue', 'Arial Narrow', sans-serif;
+	--font-arial: Arial, sans-serif;
+
+	--image-floor-grain: url('./lib/assets/white-gym-mat.svg');
+	--image-gym-mat: url('./lib/assets/gym-mat.svg');
 }
 
-html {
-	scroll-behavior: smooth;
-}
+/* Hover styles also apply after a tap on touch screens, as they always have here. */
+@custom-variant hover (&:hover);
 
-body {
-	margin: 0;
-	min-width: 320px;
-}
+/*
+ * Breakpoints are inclusive max-width queries, declared widest first so the
+ * narrowest matching breakpoint wins. Container variants override media ones.
+ */
+@custom-variant wide (@media (min-width: 1500px));
+@custom-variant bp-1100 (@media (max-width: 1100px));
+@custom-variant bp-1024 (@media (max-width: 1024px));
+@custom-variant bp-850 (@media (max-width: 850px));
+@custom-variant bp-767 (@media (max-width: 767px));
+@custom-variant bp-760 (@media (max-width: 760px));
+@custom-variant bp-640 (@media (max-width: 640px));
+@custom-variant bp-480 (@media (max-width: 480px));
+@custom-variant bp-360 (@media (max-width: 360px));
+@custom-variant cq-58 (@container (max-width: 58rem));
+@custom-variant cq-52 (@container (max-width: 52rem));
 
-a {
-	color: inherit;
-}
-
-button,
-input,
-textarea {
-	font: inherit;
-}
+/*
+ * Scoped element defaults, used on a page root (e.g. `on-p:text-muted`).
+ * They match with zero specificity, so utilities on the element always win.
+ */
+@custom-variant on-h1 (:where(&) h1);
+@custom-variant on-h2 (:where(&) h2);
+@custom-variant on-h3 (:where(&) h3);
+@custom-variant on-p (:where(&) p);
+@custom-variant on-text (:where(&) :where(h1, h2, h3, p, a));
+@custom-variant on-tap (:where(&) :where(a, button));
+@custom-variant on-link-focus (:where(&) :where(a, button):focus-visible);
+@custom-variant on-heading (:where(&) :where(h1, h2, legend));
+@custom-variant on-field (:where(&) :where(input:not([type='checkbox'], [type='file']), textarea, select));
+@custom-variant on-textarea (:where(&) :where(textarea));
+@custom-variant on-button (:where(&) :where(button));
+/* Disabled controls keep the old `.cms button:disabled` weight so they beat cursor utilities. */
+@custom-variant on-disabled (& :is(button:disabled, [aria-disabled='true']));
+@custom-variant on-focus (:where(&) :where(:focus-visible));

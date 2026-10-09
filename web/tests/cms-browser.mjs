@@ -355,13 +355,13 @@ try {
 	assert.equal(await page.getByLabel('First headline line').inputValue(), 'TEST YOUR STRENGTH.');
 	await page.getByRole('button', { name: 'Questions and answers', exact: true }).click();
 	await page.getByRole('tab', { name: 'Questions', exact: true }).click();
-	assert.equal(await page.locator('.editor-tab-content details[open]').count(), 0);
-	const faqEntry = page.locator('.editor-tab-content details').first();
+	assert.equal(await page.locator('[role=tabpanel] details[open]').count(), 0);
+	const faqEntry = page.locator('[role=tabpanel] details').first();
 	await faqEntry.locator('summary').click();
 	await faqEntry.getByLabel('Question', { exact: true }).fill('What is a tabbed CMS?');
 	await faqEntry.getByLabel('Answer', { exact: true }).fill('It keeps website sections organized.');
 	await faqEntry.getByRole('button', { name: 'Move Question and answer 1 down' }).click();
-	const movedFaq = page.locator('.editor-tab-content details').nth(1);
+	const movedFaq = page.locator('[role=tabpanel] details').nth(1);
 	assert.equal(
 		await movedFaq.getByLabel('Question', { exact: true }).inputValue(),
 		'What is a tabbed CMS?'
@@ -369,16 +369,16 @@ try {
 	assert.equal(await movedFaq.getAttribute('open'), '');
 	await movedFaq.getByRole('button', { name: 'Move Question and answer 2 up' }).click();
 	await page.getByRole('button', { name: '+ Add question and answer', exact: true }).click();
-	const newFaq = page.locator('.editor-tab-content details').last();
+	const newFaq = page.locator('[role=tabpanel] details').last();
 	assert.equal(await newFaq.getAttribute('open'), '');
 	await newFaq.getByLabel('Question', { exact: true }).fill('Temporary question');
 	await newFaq.getByRole('button', { name: 'Remove', exact: true }).click();
-	assert.equal(await page.locator('.editor-tab-content details').count(), 5);
+	assert.equal(await page.locator('[role=tabpanel] details').count(), 5);
 	await page.getByRole('button', { name: 'Assessment and contact page', exact: true }).click();
 	await page.getByRole('tab', { name: 'Training', exact: true }).click();
-	assert.equal(await page.locator('.editor-tab-content details').count(), 4);
-	assert.equal(await page.locator('.editor-tab-content details[open]').count(), 0);
-	const trainingEntry = page.locator('.editor-tab-content details').first();
+	assert.equal(await page.locator('[role=tabpanel] details').count(), 4);
+	assert.equal(await page.locator('[role=tabpanel] details[open]').count(), 0);
+	const trainingEntry = page.locator('[role=tabpanel] details').first();
 	await trainingEntry.locator('summary').click();
 	await trainingEntry
 		.getByLabel('Question', { exact: true })
@@ -459,8 +459,8 @@ try {
 	const cropDialog = page.getByRole('dialog', { name: 'Crop image' });
 	await cropDialog.waitFor();
 	assert.match(await cropDialog.innerText(), /960 × 664 px/);
-	const cropStage = await cropDialog.locator('.crop-stage').boundingBox();
-	const initialCrop = await cropDialog.locator('.crop-selection').boundingBox();
+	const cropStage = await cropDialog.getByRole('button', { name: /Photo crop area/ }).boundingBox();
+	const initialCrop = await cropDialog.locator('[data-selection]').boundingBox();
 	assert(cropStage && initialCrop);
 	await page.mouse.move(
 		cropStage.x + cropStage.width * 0.03,
@@ -473,7 +473,7 @@ try {
 		{ steps: 5 }
 	);
 	await page.mouse.up();
-	const freeCrop = await cropDialog.locator('.crop-selection').boundingBox();
+	const freeCrop = await cropDialog.locator('[data-selection]').boundingBox();
 	assert(
 		freeCrop && freeCrop.width < initialCrop.width,
 		'Dragging on the photo creates a free crop'
@@ -591,7 +591,7 @@ try {
 		false
 	);
 	assert(!(await (await fetch(origin + '/')).text()).includes('Consent test client'));
-	await page.locator('form.cms-card').last().getByLabel('Published', { exact: true }).check();
+	await page.locator('main form').last().getByLabel('Published', { exact: true }).check();
 	await page.getByRole('button', { name: 'Save item', exact: true }).click();
 	await page.getByRole('status').filter({ hasText: 'Saved.' }).last().waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));

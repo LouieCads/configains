@@ -4,6 +4,7 @@
 -->
 <script lang="ts">
 	import { homeSections, orderedHomeSections } from '$lib/content/home-sections';
+	import { help, secondaryCompact, visuallyHidden } from './styles';
 	let { value = $bindable(), disabled = false }: { value: string[]; disabled?: boolean } = $props();
 	let announcement = $state('');
 	let dragIndex = $state<number | null>(null);
@@ -54,40 +55,45 @@
 	}
 </script>
 
-<fieldset class="section-order" {disabled}>
-	<legend>Homepage section order</legend>
-	<p class="editor-help">
+<fieldset class="m-0 mb-6 min-w-0 p-0 [border:0]" {disabled}>
+	<legend class="text-[1.5rem]">Homepage section order</legend>
+	<p class={help}>
 		Drag a section to reorder it, or use the up/down buttons. Save your draft and preview the
 		arrangement before publishing. Sections switched off in their settings stay hidden.
 	</p>
-	<ol>
+	<ol class="mt-[18px] grid list-none gap-2 p-0">
 		{#each sections as id, index (id)}
 			{@const label = labelOf(id)}
 			<li
-				class:dragging={dragIndex === index}
-				class:drag-over={dragOverIndex === index && dragIndex !== index}
+				class={[
+					'flex items-center gap-2 rounded-lg border bg-white p-3',
+					dragIndex === index && 'opacity-50',
+					dragOverIndex === index && dragIndex !== index
+						? 'border-cyan-ink [box-shadow:0_0_0_1px_#157f90]'
+						: 'border-[#d4dfe0]'
+				]}
 				ondragover={(event) => handleDragOver(event, index)}
 				ondrop={(event) => handleDrop(event, index)}
 			>
 				<span
-					class="drag-handle"
+					class="cursor-grab touch-none p-1 text-[1rem] leading-none text-[#99a9ab]"
 					aria-hidden="true"
 					draggable={!disabled}
 					ondragstart={(event) => handleDragStart(event, index)}
 					ondragend={handleDragEnd}>⠿</span
 				>
-				<span class="section-order-number">{index + 1}</span>
-				<strong>{label}</strong>
+				<span class="min-w-6 text-[0.8rem] text-muted">{index + 1}</span>
+				<strong class="flex-1 text-[0.875rem]">{label}</strong>
 				<button
 					type="button"
-					class="cms-secondary"
+					class={secondaryCompact}
 					aria-label={`Move ${label} up`}
 					disabled={disabled || index === 0}
 					onclick={() => move(index, -1)}>↑</button
 				>
 				<button
 					type="button"
-					class="cms-secondary"
+					class={secondaryCompact}
 					aria-label={`Move ${label} down`}
 					disabled={disabled || index === sections.length - 1}
 					onclick={() => move(index, 1)}>↓</button
@@ -95,61 +101,5 @@
 			</li>
 		{/each}
 	</ol>
-	<p class="cms-visually-hidden" aria-live="polite">{announcement}</p>
+	<p class={visuallyHidden} aria-live="polite">{announcement}</p>
 </fieldset>
-
-<style>
-	.section-order {
-		border: 0;
-		padding: 0;
-		margin: 0 0 24px;
-		min-width: 0;
-	}
-	legend {
-		font-size: 1.5rem;
-	}
-	ol {
-		list-style: none;
-		padding: 0;
-		display: grid;
-		gap: 8px;
-		margin-top: 18px;
-	}
-	li {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 12px;
-		border: 1px solid #d4dfe0;
-		border-radius: 8px;
-		background: #fff;
-	}
-	li.dragging {
-		opacity: 0.5;
-	}
-	li.drag-over {
-		border-color: #157f90;
-		box-shadow: 0 0 0 1px #157f90;
-	}
-	strong {
-		flex: 1;
-		font-size: 0.875rem;
-	}
-	.drag-handle {
-		cursor: grab;
-		color: #99a9ab;
-		font-size: 1rem;
-		line-height: 1;
-		padding: 4px;
-		touch-action: none;
-	}
-	.section-order-number {
-		min-width: 24px;
-		color: #56676b;
-		font-size: 0.8rem;
-	}
-	li button {
-		padding: 8px;
-		min-width: 44px;
-	}
-</style>
