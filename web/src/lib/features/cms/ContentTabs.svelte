@@ -50,10 +50,14 @@
 {#if panels.length > 1}
 	<div class="editor-tabs" role="tablist" aria-label={`${field.label} sections`}>
 		{#each panels as panel, index (panel.id)}
+			{#if panel.group === 'settings' && panels[index - 1]?.group !== 'settings'}
+				<span class="editor-tabs-divider" aria-hidden="true">Page settings</span>
+			{/if}
 			<button
 				type="button"
 				role="tab"
 				id={`tab-${panel.id}`}
+				class:editor-tab-settings={panel.group === 'settings'}
 				aria-selected={selected.id === panel.id}
 				aria-controls={`panel-${path}`}
 				tabindex={selected.id === panel.id ? 0 : -1}

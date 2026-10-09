@@ -2,6 +2,8 @@
 	--ink: #182a30;
 	--cyan: #59d9e8;
 	--paper: #fcfdfb;
+	--cms-input-font-size: 16px;
+	--cms-input-line-height: 1.5;
 	color: var(--ink);
 	background: #f7f8f5;
 	min-height: 100vh;
@@ -40,9 +42,9 @@
 	color: var(--ink);
 	border-radius: 6px;
 	padding: 12px 14px;
-	font:
-		1rem/1.5 Arial,
-		sans-serif;
+	font-family: Arial, sans-serif;
+	font-size: var(--cms-input-font-size);
+	line-height: var(--cms-input-line-height);
 }
 .cms textarea {
 	resize: vertical;
@@ -97,6 +99,46 @@
 .cms-sidebar .cms-secondary {
 	color: white;
 	border-color: #506970;
+}
+.text-display-settings {
+	margin: 0 0 24px;
+}
+.text-display-settings summary {
+	list-style: none;
+}
+.text-display-settings summary::-webkit-details-marker {
+	display: none;
+}
+.text-display-controls {
+	display: grid;
+	gap: 10px;
+	margin-top: 12px;
+	padding: 12px;
+	border: 1px solid #506970;
+	border-radius: 6px;
+}
+.text-display-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.8rem;
+}
+.text-display-row span:first-child {
+	flex: 1;
+}
+.text-display-row button {
+	min-width: 32px;
+	min-height: 32px;
+	padding: 4px;
+	border-radius: 6px;
+	background: transparent;
+	color: white;
+	border: 1px solid #506970;
+}
+.text-display-value {
+	min-width: 34px;
+	text-align: center;
+	color: #a9c7cd;
 }
 .cms-main {
 	padding: 40px;
@@ -283,6 +325,22 @@
 	background: #d7f2f1;
 	border-color: #157f90;
 	color: var(--ink);
+}
+.editor-tabs-divider {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	padding-left: 10px;
+	margin-left: 4px;
+	border-left: 1px solid #dce5e2;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #56676b;
+}
+.editor-tabs button.editor-tab-settings {
+	border-style: dashed;
 }
 .editor-tab-content {
 	min-width: 0;

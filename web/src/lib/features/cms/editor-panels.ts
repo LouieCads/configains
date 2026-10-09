@@ -7,14 +7,26 @@
  */
 import type { Field } from '$lib/content/schema';
 
-type PanelDefinition = { label: string; paths: string[] };
+type PanelGroup = 'content' | 'settings';
+type PanelDefinition = { label: string; paths: string[]; group: PanelGroup };
 export type EditorPanel = {
 	id: string;
 	label: string;
+	group: PanelGroup;
 	fields: { path: string[]; field: Field }[];
 };
 
-const panel = (label: string, ...paths: string[]): PanelDefinition => ({ label, paths });
+const panel = (label: string, ...paths: string[]): PanelDefinition => ({
+	label,
+	paths,
+	group: 'content'
+});
+/** Page-level settings (SEO, section order) rather than a homepage section — kept visually separate in the tabs. */
+const settingsPanel = (label: string, ...paths: string[]): PanelDefinition => ({
+	label,
+	paths,
+	group: 'settings'
+});
 const layouts: Record<string, PanelDefinition[]> = {
 	brand: [
 		panel('Identity', 'name', 'wordmark', 'tagline'),
@@ -71,16 +83,20 @@ const layouts: Record<string, PanelDefinition[]> = {
 		panel('Products', 'products'),
 		panel('App', 'app'),
 		panel('Contact', 'contact'),
-		panel('Section order', 'sectionOrder'),
-		panel('SEO', 'seo')
+		settingsPanel('Section order', 'sectionOrder'),
+		settingsPanel('SEO', 'seo')
 	],
-	about: [panel('Introduction', 'hero', 'cta'), panel('Story', 'sections'), panel('SEO', 'seo')],
+	about: [
+		panel('Introduction', 'hero', 'cta'),
+		panel('Story', 'sections'),
+		settingsPanel('SEO', 'seo')
+	],
 	coaching: [
 		panel('Introduction', 'hero'),
 		panel('Next steps', 'closingTitle', 'closingCopy', 'cta'),
-		panel('SEO', 'seo')
+		settingsPanel('SEO', 'seo')
 	],
-	transformations: [panel('Introduction', 'hero', 'empty'), panel('SEO', 'seo')],
+	transformations: [panel('Introduction', 'hero', 'empty'), settingsPanel('SEO', 'seo')],
 	faq: [panel('Section settings', 'enabled', 'eyebrow', 'heading'), panel('Questions', 'items')],
 	contact: [
 		panel('Introduction', 'hero', 'intro', 'back'),
@@ -106,7 +122,7 @@ const layouts: Record<string, PanelDefinition[]> = {
 		panel('Privacy and consent', 'privacy', 'consent'),
 		panel('Submission', 'submit', 'submitting', 'sendingNote', 'previewError', 'error'),
 		panel('Success message', 'successEyebrow', 'successTitle', 'successCopy'),
-		panel('SEO', 'seo')
+		settingsPanel('SEO', 'seo')
 	]
 };
 
@@ -123,9 +139,10 @@ function leaves(field: Field, path: string[] = []): string[][] {
  */
 export function editorPanels(section: string, field: Field): EditorPanel[] {
 	const definitions = layouts[section] ?? [panel(field.label, '')];
-	const panels = definitions.map(({ label, paths }, index) => ({
+	const panels = definitions.map(({ label, paths, group }, index) => ({
 		id: `${section}-${index}`,
 		label,
+		group,
 		fields: paths.map((value) => {
 			const path = value ? value.split('.') : [];
 			let child = field;
@@ -146,6 +163,7 @@ export function editorPanels(section: string, field: Field): EditorPanel[] {
 		panels.push({
 			id: `${section}-other`,
 			label: 'Other settings',
+			group: 'content',
 			fields: remaining.map((path) => ({
 				path,
 				field: path.reduce((child, key) => child.fields![key], field)

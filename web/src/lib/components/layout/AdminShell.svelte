@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { adminNavigation } from '$lib/constants/navigation';
+	import TextDisplaySettings from '$lib/features/cms/TextDisplaySettings.svelte';
 	import '$lib/features/cms/cms.css';
 	let {
 		children,
@@ -20,6 +21,7 @@
 				>{/each}
 		</nav>
 		<a class="cms-secondary" href="/" target="_blank" rel="noopener">View website ↗</a>
+		<TextDisplaySettings />
 		<p class="editor-help">{email}</p>
 		<form method="POST" action="/admin/logout">
 			<button class="cms-secondary">Sign out</button>

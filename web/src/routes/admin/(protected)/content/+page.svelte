@@ -19,6 +19,21 @@
 		type WebsitePage
 	} from '$lib/content/schema';
 
+	/** Formats a timestamp in Philippine time as "October 09, 2026, 08:57 AM". */
+	function formatDateTime(value: string | number | Date): string {
+		const parts = new Intl.DateTimeFormat('en-US', {
+			timeZone: 'Asia/Manila',
+			year: 'numeric',
+			month: 'long',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: true
+		}).formatToParts(new Date(value));
+		const get = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+		return `${get('month')} ${get('day')}, ${get('year')}, ${get('hour')}:${get('minute')} ${get('dayPeriod')}`;
+	}
+
 	type DialogAction = 'publish' | 'discard' | 'leave';
 	const dialogs: Record<
 		DialogAction,
@@ -154,10 +169,6 @@
 <div class="cms-page-heading">
 	<p class="cms-eyebrow">CONTENT STUDIO</p>
 	<h1>Your website. Your words.</h1>
-	<p>
-		Choose a page and a section tab, save your draft, and preview it before publishing. Search
-		metadata and FAQs update alongside your pages.
-	</p>
 </div>
 <ConfirmDialog
 	open={dialog !== null}
@@ -212,7 +223,7 @@
 		</ul>
 	</div>{/if}
 {#if publishedRevision}<p class="editor-help">
-		Last published: {new Date(publishedRevision).toLocaleString()}
+		Last published: {formatDateTime(publishedRevision)}
 	</p>{/if}
 <div class="website-editor">
 	<nav class="editor-sections" aria-label="Website sections">

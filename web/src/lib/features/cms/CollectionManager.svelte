@@ -34,8 +34,8 @@
 </script>
 
 <p class="editor-help">
-	Only publish client stories and photos after receiving permission. Uploaded photos can be
-	described for accessibility and search.
+	Publish client stories and photos only with permission. Add photo descriptions for accessibility
+	and search.
 </p>
 {#if dirty}<p class="editor-help" role="status">
 		You have unsaved changes or an operation in progress.
