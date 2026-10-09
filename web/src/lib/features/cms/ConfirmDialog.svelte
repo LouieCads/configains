@@ -1,3 +1,7 @@
+<!--
+	Modal confirmation built on <dialog>. Controlled by `open`; Escape and
+	"Keep editing" call `onCancel`. Focus starts on the safe (cancel) action.
+-->
 <script lang="ts">
 	let {
 		open,
@@ -12,6 +16,7 @@
 		title: string;
 		message: string;
 		confirmLabel: string;
+		/** Styles the confirm button as destructive. */
 		danger?: boolean;
 		onConfirm: () => void;
 		onCancel: () => void;

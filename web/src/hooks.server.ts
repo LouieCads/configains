@@ -6,10 +6,12 @@ import { allowLocalDemo } from '$lib/server/local-demo-policy';
 import { createDemoClient, demoCookie, hasDemoSession } from '$lib/server/local-demo';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.localAdminDemo =
-		dev &&
-		env.LOCAL_ADMIN_DEMO === 'true' &&
-		allowLocalDemo(dev, env.LOCAL_ADMIN_DEMO, event.url.hostname, event.getClientAddress());
+	event.locals.localAdminDemo = allowLocalDemo(
+		dev,
+		env.LOCAL_ADMIN_DEMO,
+		event.url.hostname,
+		event.getClientAddress()
+	);
 	event.locals.supabase = event.locals.localAdminDemo
 		? createDemoClient(hasDemoSession(event.cookies.get(demoCookie)))
 		: createSupabaseServerClient(event.cookies);

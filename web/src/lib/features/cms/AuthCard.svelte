@@ -1,3 +1,4 @@
+<!-- Shared layout for the sign-in and password-recovery pages. -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import './cms.css';

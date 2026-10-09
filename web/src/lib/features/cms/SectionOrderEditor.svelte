@@ -1,15 +1,20 @@
+<!--
+	Reorders homepage sections with up/down buttons. Missing or unknown ids in
+	`value` are repaired on display; moves are announced to screen readers.
+-->
 <script lang="ts">
 	import { homeSections, orderedHomeSections } from '$lib/content/home-sections';
 	let { value = $bindable(), disabled = false }: { value: string[]; disabled?: boolean } = $props();
 	let announcement = $state('');
 	const sections = $derived(orderedHomeSections(value));
+	const labelOf = (id: string) => homeSections.find((section) => section.id === id)?.label ?? id;
 	function move(index: number, direction: number) {
 		const order = [...sections];
 		const target = index + direction;
 		if (disabled || target < 0 || target >= order.length) return;
 		[order[index], order[target]] = [order[target], order[index]];
 		value = order;
-		announcement = `${homeSections.find((section) => section.id === order[target])?.label} moved to position ${target + 1}.`;
+		announcement = `${labelOf(order[target])} moved to position ${target + 1}.`;
 	}
 </script>
 
@@ -21,7 +26,7 @@
 	</p>
 	<ol>
 		{#each sections as id, index (id)}
-			{@const label = homeSections.find((section) => section.id === id)!.label}
+			{@const label = labelOf(id)}
 			<li>
 				<span class="section-order-number">{index + 1}</span>
 				<strong>{label}</strong>

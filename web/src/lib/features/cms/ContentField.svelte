@@ -1,19 +1,28 @@
+<!--
+	Renders one schema field and its children recursively: groups become
+	fieldsets, lists get add/remove/reorder controls, images get crop-and-upload.
+	`path` must be unique per field; it builds input ids and picks image guides.
+-->
 <script lang="ts">
 	import ContentField from './ContentField.svelte';
-	import { defaultFor, type Field } from '$lib/content/schema';
+	import ImageCropper from './ImageCropper.svelte';
+	import SectionOrderEditor from './SectionOrderEditor.svelte';
+	import { cmsRequest, errorMessage } from './api';
+	import { defaultFor, MAX_LIST_ITEMS, type Field } from '$lib/content/schema';
 	import {
 		IMAGE_SIZE_LABEL,
 		IMAGE_MIME_TYPES,
 		MAX_SOURCE_IMAGE_BYTES,
-		SOURCE_IMAGE_SIZE_LABEL
+		SOURCE_IMAGE_SIZE_LABEL,
+		type UploadBucket
 	} from '$lib/content/uploads';
 	import { imageGuide } from '$lib/content/image-guides';
-	import ImageCropper from './ImageCropper.svelte';
-	import SectionOrderEditor from './SectionOrderEditor.svelte';
+
 	let {
 		field,
 		value = $bindable(),
 		path,
+		bucket = 'site',
 		disabled = false,
 		collapsible = false,
 		onUploadChange
@@ -21,13 +30,18 @@
 		field: Field;
 		value: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 		path: string;
+		/** Storage bucket for image uploads. */
+		bucket?: UploadBucket;
 		disabled?: boolean;
+		/** Render a group as a closed disclosure instead of an open fieldset. */
 		collapsible?: boolean;
+		/** Called with `true` when an image is chosen and `false` once its upload settles. */
 		onUploadChange?: (active: boolean) => void;
 	} = $props();
 	let uploading = $state(false),
 		message = $state(''),
 		selectedFile = $state<File | null>(null),
+		/** Open state of each list entry's disclosure, kept in step with reordering. */
 		expanded = $state<boolean[]>([]);
 	const id = $derived(`field-${path.replace(/[^a-z0-9-]/gi, '-')}`);
 	const guide = $derived(imageGuide(path));
@@ -42,6 +56,7 @@
 		];
 		expanded = open;
 	}
+	/** Summary label for a list entry: its first non-empty title-like field. */
 	function itemTitle(index: number): string {
 		const item = value[index];
 		return (
@@ -50,6 +65,7 @@
 				.find((text) => typeof text === 'string' && text.trim()) ?? 'Untitled item'
 		);
 	}
+	/** Checks the chosen file, then opens the cropper (upload happens after cropping). */
 	function selectImage(event: Event) {
 		const input = event.currentTarget as HTMLInputElement,
 			file = input.files?.[0];
@@ -68,19 +84,22 @@
 		selectedFile = null;
 		onUploadChange?.(false);
 	}
+	/** Uploads the cropped image and stores its public URL as the field value. */
 	async function upload(file: File) {
 		selectedFile = null;
 		uploading = true;
 		try {
 			const body = new FormData();
 			body.set('file', file);
-			body.set('bucket', 'site');
-			const response = await fetch('/api/uploads', { method: 'POST', body });
-			const result = await response.json();
-			if (!response.ok) throw new Error(result.message || 'Upload failed.');
+			body.set('bucket', bucket);
+			const result = await cmsRequest<{ url: string }>(
+				'/api/uploads',
+				{ method: 'POST', body },
+				'Upload failed.'
+			);
 			value = result.url;
 		} catch (error) {
-			message = error instanceof Error ? error.message : 'Upload failed. Please try again.';
+			message = errorMessage(error, 'Upload failed. Please try again.');
 		} finally {
 			uploading = false;
 			onUploadChange?.(false);
@@ -174,7 +193,7 @@
 		<button
 			type="button"
 			class="cms-secondary"
-			disabled={disabled || value.length >= 50}
+			disabled={disabled || value.length >= MAX_LIST_ITEMS}
 			onclick={() => {
 				expanded = [...value.map((_: unknown, index: number) => expanded[index] ?? false), true];
 				value = [...value, defaultFor(field.item!)];
@@ -204,7 +223,7 @@
 			<label class="cms-secondary upload-control"
 				>{uploading ? 'Uploading…' : 'Upload image'}<input
 					type="file"
-					accept="image/jpeg,image/png,image/webp,image/gif"
+					accept={IMAGE_MIME_TYPES.join(',')}
 					disabled={disabled || uploading}
 					onchange={selectImage}
 				/></label

@@ -1,3 +1,7 @@
+/**
+ * Homepage sections in their default order. Admins can reorder them; the
+ * public homepage renders whatever `orderedHomeSections` returns.
+ */
 export const homeSections = [
 	{ id: 'hero', label: 'Hero' },
 	{ id: 'principles', label: 'Principles strip' },
@@ -13,7 +17,10 @@ export const homeSections = [
 export type HomeSectionId = (typeof homeSections)[number]['id'];
 export const defaultSectionOrder = homeSections.map(({ id }) => id);
 
-// Preserve saved order while safely filling sections missing from older documents.
+/**
+ * Saved order with unknown ids and duplicates removed and any missing
+ * sections appended in default order (for documents saved before they existed).
+ */
 export function orderedHomeSections(value: unknown): HomeSectionId[] {
 	const saved = Array.isArray(value) ? value : [];
 	return [...new Set([...saved, ...defaultSectionOrder])].filter((id): id is HomeSectionId =>
@@ -21,6 +28,7 @@ export function orderedHomeSections(value: unknown): HomeSectionId[] {
 	);
 }
 
+/** True when `value` lists every homepage section exactly once. */
 export function validSectionOrder(value: unknown): boolean {
 	return (
 		Array.isArray(value) &&

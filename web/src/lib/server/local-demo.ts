@@ -1,3 +1,12 @@
+/**
+ * File-backed stand-in for Supabase used by the local admin demo
+ * (`LOCAL_ADMIN_DEMO=true`, see `local-demo-policy.ts`).
+ *
+ * Implements only the query-builder, RPC, auth, and storage calls the app
+ * makes, with the same visibility rules as the database policies: signed-out
+ * visitors see published rows and never the draft. State lives in
+ * `.local-cms/<instance>/content.json`; writes are serialized and atomic.
+ */
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { resolve, sep, dirname } from 'node:path';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
@@ -5,7 +14,9 @@ import { env } from '$env/dynamic/private';
 
 export const demoCookie = 'configains-local-demo';
 const demoId = '10000000-0000-0000-0000-000000000001';
+/** Demo session token → expiry timestamp (in memory; cleared on restart). */
 const sessions = new Map<string, number>();
+const SESSION_LIFETIME_MS = 8 * 60 * 60 * 1000;
 // Tests can use their own local store without touching the current preview.
 const instance = env.LOCAL_ADMIN_DEMO_INSTANCE || 'default';
 const root = resolve(
@@ -17,6 +28,7 @@ const stateFile = resolve(root, 'content.json');
 type Row = Record<string, unknown> & { id: string };
 type State = Record<string, Row[]>;
 type Result = { data: unknown; error: { message: string; code: string } | null; count?: number };
+/** Tail of the write queue; reads wait for it so they never see half-applied state. */
 let pendingWrite = Promise.resolve();
 const ok = (data: unknown, count?: number): Result => ({ data, error: null, count });
 const conflict = (): Result => ({
@@ -31,7 +43,7 @@ const denied = (): Result => ({
 export function startDemoSession() {
 	for (const [token, expiry] of sessions) if (expiry <= Date.now()) sessions.delete(token);
 	const token = crypto.randomUUID();
-	sessions.set(token, Date.now() + 8 * 60 * 60 * 1000);
+	sessions.set(token, Date.now() + SESSION_LIFETIME_MS);
 	return token;
 }
 export function hasDemoSession(token: string | undefined) {
@@ -49,6 +61,7 @@ async function readState(): Promise<State> {
 		return { site_content: [], testimonials: [], transformations: [] };
 	}
 }
+/** A timestamp later than every stored row, so revisions always increase. */
 function revision(state: State) {
 	return new Date(
 		Math.max(
@@ -59,6 +72,7 @@ function revision(state: State) {
 		) + 1
 	).toISOString();
 }
+/** Runs `operation` on fresh state and persists it unless it returned an error. */
 function mutate(operation: (state: State) => Result): Promise<Result> {
 	const result = pendingWrite.then(async () => {
 		const state = await readState(),
@@ -78,6 +92,7 @@ function mutate(operation: (state: State) => Result): Promise<Result> {
 	return result;
 }
 
+/** Minimal thenable mirror of Supabase's PostgREST query builder. */
 class Query {
 	private filters: [string, unknown][] = [];
 	private sorting?: { field: string; ascending: boolean };
@@ -142,13 +157,14 @@ class Query {
 					);
 		rows = rows.filter((row) => this.filters.every(([field, value]) => row[field] === value));
 		if (this.mode === 'insert') {
+			const timestamp = revision(state);
 			const row = {
 				id: crypto.randomUUID(),
 				is_published: false,
 				sort_order: 0,
 				...structuredClone(this.payload),
-				created_at: revision(state),
-				updated_at: revision(state)
+				created_at: timestamp,
+				updated_at: timestamp
 			};
 			(state[this.table] ??= []).push(row);
 			rows = [row];
@@ -182,6 +198,7 @@ class Query {
 	}
 }
 
+/** Resolves `<bucket>/<user>/<file>` inside the media folder, rejecting traversal. */
 function mediaPath(key: string) {
 	if (!/^(site|testimonials|transformations)\/[a-f0-9-]+\/[a-f0-9-]+\.[a-z0-9]+$/i.test(key))
 		throw new Error('Invalid local image path.');
@@ -199,6 +216,7 @@ export async function readDemoImage(key: string) {
 	return { body: new Uint8Array(body), type: JSON.parse(metadata).type as string };
 }
 
+/** A Supabase-compatible client backed by the local demo store. */
 export function createDemoClient(signedIn: boolean): SupabaseClient {
 	return {
 		auth: {
@@ -220,6 +238,7 @@ export function createDemoClient(signedIn: boolean): SupabaseClient {
 			})
 		},
 		from: (table: string) => new Query(table, signedIn),
+		// Mirrors the save_website_draft and publish_website_content database functions.
 		rpc: (name: string, args: Record<string, unknown>) => {
 			if (!signedIn) return Promise.resolve(denied());
 			return mutate((state) => {

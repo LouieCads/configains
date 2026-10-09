@@ -1,9 +1,19 @@
-import { requireAdmin } from '$lib/server/auth/admin';
+/**
+ * Image upload endpoint for the CMS.
+ *
+ * The editor crops images in the browser first, so files arriving here are
+ * already small. Each upload gets a random name under the admin's user ID and
+ * is never overwritten; the public URL is returned for the content field.
+ */
 import { json } from '@sveltejs/kit';
+import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
-import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL, IMAGE_MIME_TYPES } from '$lib/content/uploads';
-
-const buckets = ['site', 'testimonials', 'transformations'] as const;
+import {
+	MAX_IMAGE_BYTES,
+	IMAGE_SIZE_LABEL,
+	IMAGE_MIME_TYPES,
+	isUploadBucket
+} from '$lib/content/uploads';
 
 export const POST = async (event) => {
 	requireSameOrigin(event);
@@ -11,7 +21,7 @@ export const POST = async (event) => {
 	const form = await event.request.formData();
 	const file = form.get('file');
 	const bucket = String(form.get('bucket') ?? 'site');
-	if (!(file instanceof File) || !buckets.includes(bucket as (typeof buckets)[number]))
+	if (!(file instanceof File) || !isUploadBucket(bucket))
 		return json({ message: 'A file and valid bucket are required.' }, { status: 400 });
 	if (!IMAGE_MIME_TYPES.includes(file.type) || !file.size || file.size > MAX_IMAGE_BYTES)
 		return json(

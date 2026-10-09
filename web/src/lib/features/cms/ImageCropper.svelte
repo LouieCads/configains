@@ -1,9 +1,16 @@
+<!--
+	Modal cropper shown before an image upload. The admin drags a selection
+	(free or locked to the field's recommended shape); `apply` renders it to a
+	WebP file and passes it to `onApply`. The original file never leaves the browser.
+-->
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { ImageGuide } from '$lib/content/image-guides';
 	import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL } from '$lib/content/uploads';
 
+	/** Selection in fractions (0–1) of the source image's width and height. */
 	type Crop = { x: number; y: number; width: number; height: number };
+	/** Corner being dragged: north/south + west/east. */
 	type Handle = 'nw' | 'ne' | 'sw' | 'se';
 	type Interaction = {
 		pointerId: number;
@@ -37,6 +44,10 @@
 	);
 	const selectedWidth = $derived(picture ? Math.round(crop.width * picture.naturalWidth) : 0);
 	const selectedHeight = $derived(picture ? Math.round(crop.height * picture.naturalHeight) : 0);
+	/** Longest edge of a free-crop upload, in pixels. */
+	const MAX_OUTPUT_EDGE = 1600;
+	/** Smallest selection edge, as a fraction of the image. */
+	const MIN_SELECTION = 0.06;
 	const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 	onMount(() => {
@@ -49,6 +60,7 @@
 		return () => URL.revokeObjectURL(url);
 	});
 
+	/** Pointer position as fractions of the stage. */
 	function point(event: PointerEvent) {
 		const rect = stage!.getBoundingClientRect();
 		return {
@@ -57,6 +69,11 @@
 		};
 	}
 
+	/**
+	 * Crop spanning from a fixed `anchor` corner towards `current`, growing in the
+	 * direction of `signX`/`signY`. In website shape the aspect ratio is locked and
+	 * the box shrinks to stay inside the image.
+	 */
 	function rectangle(
 		anchor: { x: number; y: number },
 		current: { x: number; y: number },
@@ -65,8 +82,12 @@
 	): Crop {
 		const maxWidth = signX > 0 ? 1 - anchor.x : anchor.x;
 		const maxHeight = signY > 0 ? 1 - anchor.y : anchor.y;
-		let width = clamp(Math.abs(current.x - anchor.x), Math.min(0.06, maxWidth), maxWidth);
-		let height = clamp(Math.abs(current.y - anchor.y), Math.min(0.06, maxHeight), maxHeight);
+		let width = clamp(Math.abs(current.x - anchor.x), Math.min(MIN_SELECTION, maxWidth), maxWidth);
+		let height = clamp(
+			Math.abs(current.y - anchor.y),
+			Math.min(MIN_SELECTION, maxHeight),
+			maxHeight
+		);
 		if (shape === 'website' && picture) {
 			const ratio = (guide.width / guide.height) * (picture.naturalHeight / picture.naturalWidth);
 			if (width / ratio > height) height = width / ratio;
@@ -83,6 +104,7 @@
 		};
 	}
 
+	/** Begins creating, moving, or resizing depending on where the pointer lands. */
 	function start(event: PointerEvent) {
 		if (!picture || working || event.button !== 0) return;
 		const target = event.target as HTMLElement;
@@ -136,6 +158,7 @@
 		if (interaction?.pointerId === event.pointerId) interaction = null;
 	}
 
+	/** Arrow keys nudge the selection; Shift moves it further. */
 	function keyboard(event: KeyboardEvent) {
 		const step = event.shiftKey ? 0.05 : 0.01;
 		let x = crop.x;
@@ -149,6 +172,7 @@
 		event.preventDefault();
 	}
 
+	/** Switching to website shape recentres an aspect-locked selection. */
 	function chooseShape(next: 'free' | 'website') {
 		shape = next;
 		if (next === 'free' || !picture) return;
@@ -158,13 +182,14 @@
 		crop = { x: (1 - width) / 2, y: (1 - height) / 2, width, height };
 	}
 
+	/** Draws the selection to a canvas and hands back a WebP file within the upload limit. */
 	async function apply() {
 		if (!picture || selectedWidth < 1 || selectedHeight < 1) return;
 		working = true;
 		error = '';
 		try {
 			const output = document.createElement('canvas');
-			const scale = Math.min(1, 1600 / Math.max(selectedWidth, selectedHeight));
+			const scale = Math.min(1, MAX_OUTPUT_EDGE / Math.max(selectedWidth, selectedHeight));
 			output.width =
 				shape === 'website' ? guide.width : Math.max(1, Math.round(selectedWidth * scale));
 			output.height =
@@ -253,7 +278,7 @@
 					class="crop-selection"
 					style={`left: ${crop.x * 100}%; top: ${crop.y * 100}%; width: ${crop.width * 100}%; height: ${crop.height * 100}%;`}
 				>
-					{#each ['nw', 'ne', 'sw', 'se'] as handle}<span
+					{#each ['nw', 'ne', 'sw', 'se'] as handle (handle)}<span
 							class={`crop-handle ${handle}`}
 							data-handle={handle}
 						></span>{/each}

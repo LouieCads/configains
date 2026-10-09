@@ -1,61 +1,31 @@
-import { requireAdmin } from '$lib/server/auth/admin';
-import { isCmsCollection } from '$lib/utils/cms';
+/**
+ * CRUD API for item collections (testimonials, transformations).
+ *
+ * Writable columns and their rules come from `$lib/content/collections`.
+ * Row-level security in the database is the final authority; these checks
+ * give admins clear messages and keep unexpected columns out.
+ */
 import { error, json } from '@sveltejs/kit';
+import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
-import { isSafeUrl } from '$lib/content/schema';
+import { readJsonObject } from '$lib/server/request';
+import {
+	isCollectionName,
+	validateCollectionItem,
+	type CollectionName
+} from '$lib/content/collections';
 
-const fields = {
-	site_content: ['key', 'title', 'body', 'metadata'],
-	testimonials: ['name', 'role', 'quote', 'image_url', 'image_alt', 'is_published', 'sort_order'],
-	transformations: [
-		'title',
-		'summary',
-		'story',
-		'before_image_url',
-		'after_image_url',
-		'before_image_alt',
-		'after_image_alt',
-		'is_published',
-		'sort_order'
-	]
-} as const;
-
-function collectionOf(value: string | undefined) {
-	if (!value || !isCmsCollection(value)) error(404, 'Unknown CMS collection.');
+function collectionOf(value: string | undefined): CollectionName {
 	if (value === 'site_content') error(400, 'Use the website editor to change site content.');
+	if (!value || !isCollectionName(value)) error(404, 'Unknown CMS collection.');
 	return value;
 }
 
-function allowedPayload(collection: keyof typeof fields, input: Record<string, unknown>) {
-	const allowed = fields[collection] as readonly string[];
-	const result = Object.fromEntries(Object.entries(input).filter(([key]) => allowed.includes(key)));
-	for (const [key, value] of Object.entries(result)) {
-		if (key === 'is_published') {
-			if (typeof value !== 'boolean') error(400, 'Publication status must be on or off.');
-		} else if (key === 'sort_order') {
-			if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0 || value > 10000)
-				error(400, 'Use a sort order between 0 and 10000.');
-		} else if (typeof value !== 'string' || value.length > 12000)
-			error(400, 'Content is invalid or too long.');
-		if (key.endsWith('_url') && value && (typeof value !== 'string' || !isSafeUrl(value)))
-			error(400, 'Image addresses must use HTTPS or a local path.');
-	}
-	const required = collection === 'testimonials' ? ['name', 'quote'] : ['title'];
-	if (required.some((key) => typeof result[key] !== 'string' || !String(result[key]).trim()))
-		error(400, 'Please fill in the required title or client name and quote.');
-	return result;
-}
-
-async function requestBody(request: Request): Promise<Record<string, unknown>> {
-	let body;
-	try {
-		body = await request.json();
-	} catch {
-		error(400, 'Invalid content request.');
-	}
-	if (!body || typeof body !== 'object' || Array.isArray(body))
-		error(400, 'Invalid content request.');
-	return body;
+/** Sanitized item values from the request body, or a 400 response. */
+function itemValues(collection: CollectionName, body: Record<string, unknown>) {
+	const result = validateCollectionItem(collection, body);
+	if ('error' in result) error(400, result.error);
+	return result.values;
 }
 
 export const GET = async (event) => {
@@ -73,10 +43,10 @@ export const POST = async (event) => {
 	requireSameOrigin(event);
 	await requireAdmin(event);
 	const collection = collectionOf(event.params.collection);
-	const input = allowedPayload(collection, await requestBody(event.request));
+	const values = itemValues(collection, await readJsonObject(event.request));
 	const { data, error: queryError } = await event.locals.supabase
 		.from(collection)
-		.insert(input)
+		.insert(values)
 		.select()
 		.single();
 	if (queryError) return json({ message: queryError.message }, { status: 400 });
@@ -87,12 +57,12 @@ export const PATCH = async (event) => {
 	requireSameOrigin(event);
 	await requireAdmin(event);
 	const collection = collectionOf(event.params.collection);
-	const body = await requestBody(event.request);
+	const body = await readJsonObject(event.request);
 	const id = String(body.id ?? '');
 	if (!id) return json({ message: 'An item id is required.' }, { status: 400 });
 	const { data, error: queryError } = await event.locals.supabase
 		.from(collection)
-		.update(allowedPayload(collection, body))
+		.update(itemValues(collection, body))
 		.eq('id', id)
 		.select()
 		.single();

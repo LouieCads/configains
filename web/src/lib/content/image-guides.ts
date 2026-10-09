@@ -1,5 +1,11 @@
+/** Recommended output size (px) for an image field, plus an optional hint. */
 export type ImageGuide = { width: number; height: number; note?: string };
 
+/**
+ * Picks the guide for an editor field path (e.g. `brand-portrait`). Checks run
+ * most specific first because suffixes overlap: `before_image_url` also ends
+ * in `image_url`.
+ */
 export function imageGuide(path: string): ImageGuide {
 	if (path.endsWith('before_image_url') || path.endsWith('after_image_url'))
 		return { width: 800, height: 800, note: 'Both photos use the same square frame.' };
@@ -12,6 +18,5 @@ export function imageGuide(path: string): ImageGuide {
 		return { width: 1200, height: 630, note: 'Social sharing preview.' };
 	if (path.endsWith('hero-image')) return { width: 1200, height: 800 };
 	if (path.endsWith('previewImage')) return { width: 1000, height: 720 };
-	if (path.endsWith('image')) return { width: 800, height: 800 };
 	return { width: 800, height: 800 };
 }

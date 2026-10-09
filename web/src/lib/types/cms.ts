@@ -1,4 +1,4 @@
-export type CmsCollection = 'site_content' | 'testimonials' | 'transformations';
+/** Row shapes of the CMS tables in `supabase/migrations`. */
 
 export interface SiteContent {
 	id: string;

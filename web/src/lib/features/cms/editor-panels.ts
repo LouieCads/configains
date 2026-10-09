@@ -1,3 +1,10 @@
+/**
+ * Tab layout for each top-level website section in the content editor.
+ *
+ * Each tab lists dot-separated paths relative to its section; a group path
+ * includes all of its children. Any field not assigned to a tab is appended
+ * to an "Other settings" tab, so new schema fields are never hidden.
+ */
 import type { Field } from '$lib/content/schema';
 
 type PanelDefinition = { label: string; paths: string[] };
@@ -103,12 +110,17 @@ const layouts: Record<string, PanelDefinition[]> = {
 	]
 };
 
+/** Paths of every non-group field beneath `field`. */
 function leaves(field: Field, path: string[] = []): string[][] {
 	return field.kind === 'group'
 		? Object.entries(field.fields ?? {}).flatMap(([key, child]) => leaves(child, [...path, key]))
 		: [path];
 }
 
+/**
+ * Resolves the tabs for `section`. Sections without a layout get a single tab.
+ * Throws if a layout names a field missing from the schema.
+ */
 export function editorPanels(section: string, field: Field): EditorPanel[] {
 	const definitions = layouts[section] ?? [panel(field.label, '')];
 	const panels = definitions.map(({ label, paths }, index) => ({

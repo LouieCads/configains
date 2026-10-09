@@ -1,6 +1,10 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 
+/**
+ * Ensures the request comes from a signed-in user listed in `admin_profiles`.
+ * API routes get 401/403; pages redirect to the sign-in screen.
+ */
 export async function requireAdmin(event: RequestEvent) {
 	const { user } = await event.locals.safeGetUser();
 	if (!user) {

@@ -1,45 +1,28 @@
+<!--
+	Admin page body for an item collection: an "add new" form plus one editor
+	per existing row. Guards navigation while any editor has unsaved changes.
+-->
 <script lang="ts">
 	import CollectionEditor from './CollectionEditor.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
+	import { useLeaveGuard } from './leave-guard.svelte';
 	import { untrack } from 'svelte';
-	import { beforeNavigate, goto } from '$app/navigation';
-	type Row = Record<string, unknown> & { id: string };
-	type Field = {
-		name: string;
-		label: string;
-		type?: 'text' | 'textarea' | 'number' | 'checkbox' | 'image';
-	};
-	let { collection, rows, fields }: { collection: string; rows: Row[]; fields: Field[] } = $props();
-	let items = $state<Row[]>(untrack(() => structuredClone(rows)));
+	import type { CollectionName, CollectionRow } from '$lib/content/collections';
+
+	let { collection, rows }: { collection: CollectionName; rows: CollectionRow[] } = $props();
+	let items = $state<CollectionRow[]>(untrack(() => structuredClone(rows)));
 	let newItemOpen = $state(false);
+	/** Dirty state per editor, keyed by row id (`new` for the add form). */
 	let dirtyItems = $state<Record<string, boolean>>({});
-	let leaveTarget = $state<string | null>(null);
-	let allowLeave = false;
 	const dirty = $derived(Object.values(dirtyItems).some(Boolean));
-	beforeNavigate(({ cancel, to, willUnload }) => {
-		if (dirty && !willUnload && !allowLeave && to?.url) {
-			cancel();
-			leaveTarget = to.url.href;
-		}
-	});
-	async function leave() {
-		const target = leaveTarget;
-		leaveTarget = null;
-		if (!target) return;
-		allowLeave = true;
-		try {
-			// This URL came from SvelteKit's own beforeNavigate event.
-			// eslint-disable-next-line svelte/no-navigation-without-resolve
-			await goto(target);
-		} finally {
-			allowLeave = false;
-		}
-	}
+	const guard = useLeaveGuard(() => dirty);
+
 	function cancelLeave() {
-		leaveTarget = null;
+		guard.cancel();
+		// Reopen the add form so its unsaved draft stays visible.
 		if (dirtyItems.new) newItemOpen = true;
 	}
-	function saved(row: Row) {
+	function saved(row: CollectionRow) {
 		items = items.some((item) => item.id === row.id)
 			? items.map((item) => (item.id === row.id ? row : item))
 			: [...items, row];
@@ -49,15 +32,6 @@
 		items = items.filter((item) => item.id !== id);
 	}
 </script>
-
-<svelte:window
-	onbeforeunload={(event) => {
-		if (dirty) {
-			event.preventDefault();
-			event.returnValue = '';
-		}
-	}}
-/>
 
 <p class="editor-help">
 	Only publish client stories and photos after receiving permission. Uploaded photos can be
@@ -71,7 +45,6 @@
 		<summary class="cms-secondary">{newItemOpen ? 'Hide new item' : '+ Add new item'}</summary>
 		<CollectionEditor
 			{collection}
-			{fields}
 			onSaved={saved}
 			onDeleted={deleted}
 			onDirtyChange={(dirty) => (dirtyItems.new = dirty)}
@@ -79,7 +52,6 @@
 	</details>
 	{#each items as row (row.id)}<CollectionEditor
 			{collection}
-			{fields}
 			{row}
 			onSaved={saved}
 			onDeleted={deleted}
@@ -87,11 +59,11 @@
 		/>{/each}
 </div>
 <ConfirmDialog
-	open={leaveTarget !== null}
+	open={guard.pending}
 	title="Leave this page?"
 	message="You have unsaved changes. Leaving now will discard them."
 	confirmLabel="Leave page"
 	danger
 	onCancel={cancelLeave}
-	onConfirm={() => void leave()}
+	onConfirm={() => void guard.leave()}
 />

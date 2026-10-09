@@ -1,16 +1,41 @@
+/**
+ * Website content schema.
+ *
+ * `websiteSchema` describes every editable piece of public copy. The same tree
+ * drives the admin editor (labels, inputs, list templates), the default content
+ * for a new project, normalization of stored documents, and server validation.
+ *
+ * To add content: add a field below, read it from `Content` in the page that
+ * renders it, and (optionally) assign it to a tab in `features/cms/editor-panels.ts`.
+ * Untabbed fields still appear under "Other settings".
+ */
 import { defaultSectionOrder, validSectionOrder } from './home-sections';
+
+/** Longest single-line value accepted by text, URL, email, and image fields. */
+export const MAX_TEXT_LENGTH = 2000;
+/** Longest multi-line value accepted by textarea fields. */
+export const MAX_TEXTAREA_LENGTH = 12000;
+/** Most entries any editable list may hold. */
+export const MAX_LIST_ITEMS = 50;
 
 export type Field = {
 	label: string;
 	kind: 'text' | 'textarea' | 'image' | 'url' | 'email' | 'boolean' | 'group' | 'list';
+	/** Value used for new documents and to replace invalid stored values. */
 	defaultValue?: string | boolean;
+	/** Child fields of a `group`. */
 	fields?: Record<string, Field>;
+	/** Template for each entry of a `list`. */
 	item?: Field;
+	/** Default entries of a `list`. */
 	items?: unknown[];
+	/** Guidance shown beneath the field in the editor. */
 	help?: string;
+	/** Replaces the generic input with a purpose-built editor component. */
 	editor?: 'sectionOrder';
 };
 
+// Field builders keep the schema below readable.
 const text = (label: string, defaultValue = '', help?: string): Field => ({
 	label,
 	kind: 'text',
@@ -23,6 +48,7 @@ const area = (label: string, defaultValue = ''): Field => ({
 	defaultValue
 });
 const url = (label: string, defaultValue = ''): Field => ({ label, kind: 'url', defaultValue });
+const email = (label: string, defaultValue = ''): Field => ({ label, kind: 'email', defaultValue });
 const image = (label: string, defaultValue = ''): Field => ({ label, kind: 'image', defaultValue });
 const toggle = (label: string, defaultValue = true): Field => ({
 	label,
@@ -84,12 +110,27 @@ export const serviceDefaults = [
 	}
 ];
 
+/** A multiple-choice assessment question on the contact page. */
 const question = (label: string, options: string[]): Field =>
 	group(label, {
 		label: text('Question', label),
 		placeholder: text('Selection prompt', 'Choose what fits you best'),
 		options: list('Answer options', text('Option', 'New option'), options)
 	});
+
+/** True for groups built with `question()`; the editor collapses these. */
+export function isQuestionField(field: Field): boolean {
+	return field.kind === 'group' && field.fields?.options?.kind === 'list';
+}
+
+/** Top-level schema keys that render as their own public page. */
+export const websitePages = ['home', 'about', 'coaching', 'transformations', 'contact'] as const;
+export type WebsitePage = (typeof websitePages)[number];
+
+/** Public URL path of a page key, e.g. `about` → `/about`. */
+export function websitePagePath(page: WebsitePage): string {
+	return page === 'home' ? '/' : `/${page}`;
+}
 
 export const websiteSchema: Field = group('Website', {
 	brand: group(
@@ -110,7 +151,7 @@ export const websiteSchema: Field = group('Website', {
 			logo: image('Logo (optional)'),
 			logoAlt: text('Logo description', 'Configains'),
 			favicon: image('Browser icon', '/favicon.svg'),
-			email: { label: 'Public contact email', kind: 'email', defaultValue: 'configains@gmail.com' },
+			email: email('Public contact email', 'configains@gmail.com'),
 			canonicalUrl: url('Public website URL', 'https://configains.fundrstudio.com'),
 			socialImage: image('Default social preview image', '/og-image.png'),
 			socialImageAlt: text(
@@ -540,6 +581,18 @@ export const websiteSchema: Field = group('Website', {
 	})
 });
 
+/** Contact-page keys holding assessment questions, derived from the schema. */
+const assessmentQuestionKeys = Object.entries(websiteSchema.fields!.contact.fields!)
+	.filter(([, field]) => isQuestionField(field))
+	.map(([key]) => key);
+
+/**
+ * Website content shaped like `websiteSchema`. Typed loosely because the
+ * shape is defined at runtime; `normalizeContent` guarantees it on read.
+ */
+export type Content = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+/** Default value for a field: groups recurse, lists clone their default items. */
 export function defaultFor(field: Field): unknown {
 	if (field.kind === 'group')
 		return Object.fromEntries(
@@ -549,12 +602,16 @@ export function defaultFor(field: Field): unknown {
 	return field.defaultValue ?? '';
 }
 
-// The shared schema drives the editor, defaults, and server validation.
-export type Content = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+/** A fresh copy of the complete default website. */
 export function defaultWebsite(): Content {
 	return defaultFor(websiteSchema) as Content;
 }
 
+/**
+ * Coerces stored data into the schema's shape. Missing or mistyped values and
+ * unsafe URLs fall back to defaults; unknown keys are dropped. This lets older
+ * documents load safely after the schema gains fields.
+ */
 export function normalizeContent(field: Field, value: unknown): unknown {
 	if (field.kind === 'group') {
 		const object =
@@ -578,6 +635,10 @@ export function normalizeContent(field: Field, value: unknown): unknown {
 	return value;
 }
 
+/**
+ * Structural validation: types, lengths, list sizes, email and URL formats.
+ * Returns readable messages prefixed with the field's label path.
+ */
 export function validateContent(field: Field, value: unknown, path = 'Website'): string[] {
 	if (field.kind === 'group') {
 		if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -587,14 +648,16 @@ export function validateContent(field: Field, value: unknown, path = 'Website'):
 		);
 	}
 	if (field.kind === 'list') {
-		if (!Array.isArray(value) || value.length > 50) return [`${path}: use up to 50 items.`];
+		if (!Array.isArray(value) || value.length > MAX_LIST_ITEMS)
+			return [`${path}: use up to ${MAX_LIST_ITEMS} items.`];
 		return value.flatMap((item, index) =>
 			validateContent(field.item!, item, `${path} ${index + 1}`)
 		);
 	}
 	if (field.kind === 'boolean')
 		return typeof value === 'boolean' ? [] : [`${path}: expected on or off.`];
-	if (typeof value !== 'string' || value.length > (field.kind === 'textarea' ? 12000 : 2000))
+	const maxLength = field.kind === 'textarea' ? MAX_TEXTAREA_LENGTH : MAX_TEXT_LENGTH;
+	if (typeof value !== 'string' || value.length > maxLength)
 		return [`${path}: text is invalid or too long.`];
 	if (value && field.kind === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
 		return [`${path}: enter a valid email.`];
@@ -603,6 +666,10 @@ export function validateContent(field: Field, value: unknown, path = 'Website'):
 	return [];
 }
 
+/**
+ * Allows same-site paths (`/about`) and credential-free HTTPS URLs. Rejects
+ * script/data URLs, protocol-relative URLs, and backslash path tricks.
+ */
 export function isSafeUrl(value: string): boolean {
 	if (/^\/(?!\/)[^\\\s]*$/.test(value)) return true;
 	try {
@@ -613,59 +680,60 @@ export function isSafeUrl(value: string): boolean {
 	}
 }
 
+/** Checks whether an absolute URL is a bare HTTPS origin (no path, query, or hash). */
+function isHttpsOrigin(value: string): boolean {
+	try {
+		const parsed = new URL(value);
+		return (
+			parsed.protocol === 'https:' && parsed.pathname === '/' && !parsed.search && !parsed.hash
+		);
+	} catch {
+		return false;
+	}
+}
+
+const isBlank = (value: string) => !value.trim();
+
+/**
+ * Full validation run before saving or publishing: structure first, then the
+ * content rules the public site depends on (required copy, usable questions).
+ */
 export function validateWebsite(value: Content): string[] {
 	const errors = validateContent(websiteSchema, value);
 	if (errors.length) return errors;
+
 	if (!validSectionOrder(value.home.sectionOrder))
 		errors.push('Home: include every homepage section exactly once in the section order.');
+
 	for (const key of ['name', 'founder', 'email'])
-		if (!value.brand[key].trim()) errors.push(`Brand: ${key} is required.`);
-	if (!value.brand.socialImage.trim())
+		if (isBlank(value.brand[key])) errors.push(`Brand: ${key} is required.`);
+	if (isBlank(value.brand.socialImage))
 		errors.push('Brand: a default social preview image is required.');
-	if (value.brand.canonicalUrl) {
-		try {
-			const parsed = new URL(value.brand.canonicalUrl);
-			if (parsed.protocol !== 'https:' || parsed.pathname !== '/' || parsed.search || parsed.hash)
-				errors.push('Public website URL must be an HTTPS origin without a path.');
-		} catch {
-			errors.push('Public website URL must be an HTTPS origin.');
-		}
-	}
-	for (const page of ['home', 'about', 'coaching', 'transformations', 'contact']) {
-		if (!value[page].seo.title.trim() || !value[page].seo.description.trim())
+	if (value.brand.canonicalUrl && !isHttpsOrigin(value.brand.canonicalUrl))
+		errors.push('Public website URL must be an HTTPS origin without a path.');
+
+	for (const page of websitePages) {
+		if (isBlank(value[page].seo.title) || isBlank(value[page].seo.description))
 			errors.push(`${page}: search title and description are required.`);
-		if (page !== 'home' && !value[page].hero.title.trim())
+		if (page !== 'home' && isBlank(value[page].hero.title))
 			errors.push(`${page}: page heading is required.`);
 	}
-	if (!value.home.hero.firstLine.trim()) errors.push('Home: the headline is required.');
-	if (
-		!value.home.hero.rotatingWords.length ||
-		value.home.hero.rotatingWords.some((word: string) => !word.trim())
-	)
+
+	if (isBlank(value.home.hero.firstLine)) errors.push('Home: the headline is required.');
+	const words: string[] = value.home.hero.rotatingWords;
+	if (!words.length || words.some(isBlank))
 		errors.push('Hero: add at least one non-empty headline word.');
-	for (const key of [
-		'goal',
-		'trainingExperience',
-		'fitnessKnowledge',
-		'trainingDays',
-		'trainingLocation',
-		'nutritionKnowledge',
-		'nutritionExperience'
-	]) {
-		if (
-			!value.contact[key].label.trim() ||
-			!value.contact[key].options.length ||
-			value.contact[key].options.some((option: string) => !option.trim())
-		)
+
+	for (const key of assessmentQuestionKeys) {
+		const { label, options } = value.contact[key] as { label: string; options: string[] };
+		if (isBlank(label) || !options.length || options.some(isBlank))
 			errors.push(`Assessment: ${key} needs a question and non-empty answer options.`);
 	}
-	if (
-		value.faq.enabled &&
-		value.faq.items.some(
-			(item: { question: string; answer: string }) => !item.question.trim() || !item.answer.trim()
-		)
-	)
+
+	const faqItems: { question: string; answer: string }[] = value.faq.items;
+	if (value.faq.enabled && faqItems.some((item) => isBlank(item.question) || isBlank(item.answer)))
 		errors.push('FAQ: every question needs an answer.');
+
 	if (value.home.app.enabled && value.home.app.ready && !value.home.app.url)
 		errors.push('App: a ready app needs a destination URL.');
 	return errors;

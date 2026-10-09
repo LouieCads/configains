@@ -1,7 +1,12 @@
+<!--
+	Splits one top-level website section into accessible tabs (see editor-panels.ts)
+	and renders the active tab's fields. `active` is bindable so the parent can
+	remember the last tab per section.
+-->
 <script lang="ts">
 	import ContentField from './ContentField.svelte';
 	import { editorPanels } from './editor-panels';
-	import type { Content, Field } from '$lib/content/schema';
+	import { isQuestionField, type Content, type Field } from '$lib/content/schema';
 	let {
 		field,
 		value = $bindable(),
@@ -20,9 +25,11 @@
 	const panels = $derived(editorPanels(path, field));
 	const selected = $derived(panels.find((panel) => panel.id === active) ?? panels[0]);
 
+	/** Object holding the field at `keys`, so the last key can be bound directly. */
 	function parentAt(keys: string[]): Content {
 		return keys.slice(0, -1).reduce((parent, key) => parent[key], value);
 	}
+	/** WAI-ARIA tabs keyboard pattern: arrows cycle, Home/End jump. */
 	function navigateTabs(event: KeyboardEvent, index: number) {
 		let next: number;
 		if (event.key === 'ArrowRight') next = (index + 1) % panels.length;
@@ -65,7 +72,7 @@
 				field={entry.field}
 				bind:value={parent[entry.path[entry.path.length - 1]]}
 				path={`${path}-${entry.path.join('-')}`}
-				collapsible={entry.field.kind === 'group' && entry.field.fields?.options?.kind === 'list'}
+				collapsible={isQuestionField(entry.field)}
 				{disabled}
 				{onUploadChange}
 			/>
