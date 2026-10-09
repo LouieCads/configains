@@ -23,47 +23,66 @@
 		onUploadChange?: (active: boolean) => void;
 	} = $props();
 	const panels = $derived(editorPanels(path, field));
+	const contentPanels = $derived(panels.filter((panel) => panel.group !== 'settings'));
+	const settingsPanels = $derived(panels.filter((panel) => panel.group === 'settings'));
 	const selected = $derived(panels.find((panel) => panel.id === active) ?? panels[0]);
 
 	/** Object holding the field at `keys`, so the last key can be bound directly. */
 	function parentAt(keys: string[]): Content {
 		return keys.slice(0, -1).reduce((parent, key) => parent[key], value);
 	}
-	/** WAI-ARIA tabs keyboard pattern: arrows cycle, Home/End jump. */
-	function navigateTabs(event: KeyboardEvent, index: number) {
+	/** WAI-ARIA tabs keyboard pattern: arrows cycle, Home/End jump, scoped to one tablist. */
+	function navigateTabs(event: KeyboardEvent, list: typeof panels, index: number) {
 		let next: number;
-		if (event.key === 'ArrowRight') next = (index + 1) % panels.length;
-		else if (event.key === 'ArrowLeft') next = (index - 1 + panels.length) % panels.length;
+		if (event.key === 'ArrowRight') next = (index + 1) % list.length;
+		else if (event.key === 'ArrowLeft') next = (index - 1 + list.length) % list.length;
 		else if (event.key === 'Home') next = 0;
-		else if (event.key === 'End') next = panels.length - 1;
+		else if (event.key === 'End') next = list.length - 1;
 		else return;
 		event.preventDefault();
-		active = panels[next].id;
+		active = list[next].id;
 		document.getElementById(`tab-${active}`)?.focus();
 	}
 </script>
 
 <div class="editor-panel-heading">
 	<h2>{field.label}</h2>
-	<p class="editor-help">Choose a section to edit. Save draft keeps changes from every section.</p>
+	{#if settingsPanels.length}
+		<div
+			class="editor-tabs editor-settings-tabs"
+			role="tablist"
+			aria-label={`${field.label} page settings`}
+		>
+			{#each settingsPanels as panel, index (panel.id)}
+				<button
+					type="button"
+					role="tab"
+					id={`tab-${panel.id}`}
+					aria-selected={selected.id === panel.id}
+					aria-controls={`panel-${path}`}
+					tabindex={selected.id === panel.id ? 0 : -1}
+					{disabled}
+					onclick={() => (active = panel.id)}
+					onkeydown={(event) => navigateTabs(event, settingsPanels, index)}>{panel.label}</button
+				>
+			{/each}
+		</div>
+	{/if}
 </div>
-{#if panels.length > 1}
+<p class="editor-help">Choose a section to edit.</p>
+{#if contentPanels.length > 1}
 	<div class="editor-tabs" role="tablist" aria-label={`${field.label} sections`}>
-		{#each panels as panel, index (panel.id)}
-			{#if panel.group === 'settings' && panels[index - 1]?.group !== 'settings'}
-				<span class="editor-tabs-divider" aria-hidden="true">Page settings</span>
-			{/if}
+		{#each contentPanels as panel, index (panel.id)}
 			<button
 				type="button"
 				role="tab"
 				id={`tab-${panel.id}`}
-				class:editor-tab-settings={panel.group === 'settings'}
 				aria-selected={selected.id === panel.id}
 				aria-controls={`panel-${path}`}
 				tabindex={selected.id === panel.id ? 0 : -1}
 				{disabled}
 				onclick={() => (active = panel.id)}
-				onkeydown={(event) => navigateTabs(event, index)}>{panel.label}</button
+				onkeydown={(event) => navigateTabs(event, contentPanels, index)}>{panel.label}</button
 			>
 		{/each}
 	</div>
