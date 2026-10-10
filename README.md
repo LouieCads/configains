@@ -71,7 +71,9 @@ Deploy the repository through Netlify's Git integration. The root `netlify.toml`
 
 Leave the package directory and functions directory unset; the SvelteKit Netlify adapter generates the server function and routing automatically. Do not add an SPA catch-all redirect to `index.html`.
 
-Before the first deploy, add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Netlify's environment variable settings, using your Supabase project values from `web/.env`. Make them available during builds for production and any deploy previews you enable. These variables are imported through SvelteKit's static environment module, so changing them requires rebuilding the site. Use the publishable key, never a service-role key, and do not commit `.env`.
+Before the first deploy, add `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Netlify's environment variable settings, using your Supabase project values from `web/.env`. Make them available during builds for production and any deploy previews you enable. These variables are imported through SvelteKit's static environment module, so changing them requires rebuilding the site. Use the publishable key for `PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Client invitations also need `SUPABASE_SERVICE_ROLE_KEY`, which is a server-only secret: add it in Netlify's secret environment variables, never give it a `PUBLIC_` prefix, and do not commit `.env`.
+
+AI Coaching needs `AI_API_KEY` (Gemini) as a server-only Netlify secret. Without it, clients still get a program from rules-only matching. Set `AI_MODEL` to the current Flash-Lite model ID once confirmed. Clients may submit at most three assessments per day.
 
 Add `configains.fundrstudio.com` in Netlify's domain settings, configure the DNS record supplied by Netlify at the Studio DNS provider, and wait for HTTPS provisioning. Verify that the domain resolves before checking live routes and canonical URLs. The earlier DNS review covered a different domain and does not establish this domain's status.
 

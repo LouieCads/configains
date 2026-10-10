@@ -10,5 +10,8 @@ export const adminNavigation = [
 	{ href: '/admin/dashboard', label: 'Dashboard' },
 	{ href: '/admin/content', label: 'Content' },
 	{ href: '/admin/testimonials', label: 'Testimonials' },
-	{ href: '/admin/transformations', label: 'Transformations' }
+	{ href: '/admin/transformations', label: 'Transformations' },
+	{ href: '/admin/clients', label: 'Clients' },
+	{ href: '/admin/templates', label: 'Templates' },
+	{ href: '/admin/assessments', label: 'Assessments' }
 ] as const;
