@@ -22,6 +22,9 @@
 >
 <main class="mx-auto grid max-w-[640px] gap-6 p-6">
 	<h1>{data.displayName ? `Welcome, ${data.displayName}.` : 'Welcome.'}</h1>
+	{#if data.coachingMode === 'human'}
+		<p><a class={primary} href="/app/coach">Check-ins and messages with Cash</a></p>
+	{/if}
 
 	{#if !data.program}
 		<section class={card}>

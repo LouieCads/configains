@@ -36,10 +36,12 @@ export function phasesFromRows(rows: PhaseRow[] | null | undefined) {
 	}));
 }
 
+/** Library templates only. Client-owned copies from customisation are not listed. */
 export async function listTemplates(supabase: SupabaseClient) {
 	const { data, error } = await supabase
 		.from('program_templates')
 		.select('id, kind, goal, name, is_archived, updated_at')
+		.is('owner_client_id', null)
 		.order('name');
 	if (error) throw error;
 	return data ?? [];
@@ -101,7 +103,7 @@ export async function assignProgram(
 }
 
 const programColumns = `id, source, assessment_id, current_phase_id,
-	workout:program_templates!workout_template_id(id, name, description, template_phases(${phaseColumns})),
+	workout:program_templates!workout_template_id(id, name, description, owner_client_id, template_phases(${phaseColumns})),
 	nutrition:program_templates!nutrition_template_id(id, name, description, template_phases(${phaseColumns}))`;
 
 export async function loadActiveProgram(supabase: SupabaseClient, clientId: string) {
@@ -142,10 +144,14 @@ export async function loadActiveProgram(supabase: SupabaseClient, clientId: stri
 		explanation = recommendation?.explanation ?? null;
 	}
 
+	const workoutOwner = (data.workout as { owner_client_id?: string | null } | null)
+		?.owner_client_id;
+
 	return {
 		id: data.id,
 		source: data.source as 'ai' | 'coach',
 		explanation,
+		customised: Boolean(workoutOwner),
 		currentPhaseId: data.current_phase_id as string | null,
 		workout: shape(data.workout as never),
 		nutrition: shape(data.nutrition as never)

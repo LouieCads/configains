@@ -28,6 +28,7 @@ export const load: PageServerLoad = async (event) => {
 		.from('program_templates')
 		.select('id, kind, name')
 		.eq('is_archived', false)
+		.is('owner_client_id', null)
 		.order('name');
 	const active = templates ?? [];
 	return {

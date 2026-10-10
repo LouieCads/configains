@@ -78,7 +78,9 @@
 		<ul>
 			{#each data.clients as client (client.id)}
 				<li>
-					<strong>{client.display_name ?? 'Unnamed client'}</strong>
+					<a class="font-semibold underline" href="/admin/clients/{client.id}"
+						>{client.display_name ?? 'Unnamed client'}</a
+					>
 					<span class={help}>
 						{client.coaching_mode === 'human' ? 'Human coaching' : 'AI coaching'} · joined {dateFormat.format(
 							new Date(client.created_at)
