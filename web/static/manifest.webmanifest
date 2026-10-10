@@ -1,0 +1,11 @@
+{
+	"name": "Configains",
+	"short_name": "Configains",
+	"description": "Your Configains coaching: programs, workout logs and progress.",
+	"start_url": "/app",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#f6f7f2",
+	"theme_color": "#172019",
+	"icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

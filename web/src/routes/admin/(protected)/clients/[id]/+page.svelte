@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { card, error, help, primary, secondary, success } from '$lib/features/cms/styles';
+	import { progressMetrics } from '$lib/coaching/progress';
 	let { data, form } = $props();
 
 	const when = (value: string) =>
@@ -59,6 +60,28 @@
 			</form>
 		{/if}
 	{/if}
+</section>
+
+<section class={card}>
+	<h2>Progress</h2>
+	<p class={help}>Last 12 weeks, from the client's logs and measurements.</p>
+	<p>Completed workouts this week: {data.progress.weekly[0]?.workouts ?? 0}</p>
+	{#each progressMetrics as metric (metric.key)}
+		{#if data.progress.weekly[0]?.averages[metric.key] !== undefined}
+			<p>{metric.label} this week: {data.progress.weekly[0].averages[metric.key]} {metric.unit}</p>
+		{/if}
+	{/each}
+	<h3>Recent workouts</h3>
+	{#if data.progress.logs.length === 0}<p>No workouts logged yet.</p>{/if}
+	<ul class="grid gap-1">
+		{#each data.progress.logs.slice(0, 10) as log (log.id)}
+			<li>
+				{when(log.logged_on)} · {log.completed ? 'Completed' : 'Not completed'}{log.duration_minutes
+					? ` · ${log.duration_minutes} min`
+					: ''}
+			</li>
+		{/each}
+	</ul>
 </section>
 
 <section class={card}>

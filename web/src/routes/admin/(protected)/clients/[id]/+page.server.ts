@@ -4,6 +4,7 @@ import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
 import { loadActiveProgram } from '$lib/server/coaching/templates';
 import { loadCoachingThread, saveCheckInFeedback, sendMessage } from '$lib/server/coaching/human';
+import { loadProgress } from '$lib/server/coaching/progress';
 import type { Actions, PageServerLoad } from './$types';
 
 const messageLimit = 2000;
@@ -27,7 +28,13 @@ export const load: PageServerLoad = async (event) => {
 		loadCoachingThread(event.locals.supabase, clientId)
 	]);
 
-	return { client: profile, program, ...thread };
+	const progress = await loadProgress(
+		event.locals.supabase,
+		clientId,
+		new Date().toISOString().slice(0, 10)
+	);
+
+	return { client: profile, program, ...thread, progress };
 };
 
 /** Actions run only against the client's own active program, so an id from another client is rejected. */

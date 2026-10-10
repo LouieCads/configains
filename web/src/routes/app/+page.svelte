@@ -26,6 +26,13 @@
 		<p><a class={primary} href="/app/coach">Check-ins and messages with Cash</a></p>
 	{/if}
 
+	{#if data.program}
+		<p>
+			<a class={secondary} href="/app/log">Log training</a>
+			<a class={secondary} href="/app/progress">Progress</a>
+		</p>
+	{/if}
+
 	{#if !data.program}
 		<section class={card}>
 			{#if needsReview || humanRouted}
