@@ -134,7 +134,7 @@
 					{/each}
 				</select>
 			</label>
-			<div class="flex flex-wrap items-end gap-2">
+			<div class="grid grid-cols-2 gap-x-4 bp-480:grid-cols-1">
 				<label class="my-2 grid gap-1"
 					>Minimum days a week
 					<input type="number" min="2" max="6" step="1" bind:value={template.rules.days_min} />
@@ -149,8 +149,8 @@
 
 	{#each template.phases as phase, p (p)}
 		<section class={card}>
-			<div class="flex flex-wrap items-end gap-2">
-				<h2>Phase {p + 1}</h2>
+			<div class="flex flex-wrap items-center gap-2">
+				<h2 class="mr-auto mb-0">Phase {p + 1}</h2>
 				<button
 					type="button"
 					class={subtle}

@@ -1,6 +1,17 @@
 <script lang="ts">
 	import { goals, experienceLevels, trainingLocations } from '$lib/coaching/options';
-	import { card, error, flow, help, primary, secondary, success } from '$lib/features/cms/styles';
+	import {
+		badgeNeutral,
+		badgeOk,
+		badgeWarn,
+		card,
+		error,
+		flow,
+		help,
+		primary,
+		secondary,
+		success
+	} from '$lib/features/cms/styles';
 	let { data, form } = $props();
 
 	const label = (options: readonly { value: string; label: string }[], value: string) =>
@@ -10,6 +21,12 @@
 		ai_matched: 'AI Coaching plan',
 		needs_human_review: 'Needs Cash review',
 		human_assigned: 'Human coaching'
+	};
+	const statusBadge: Record<string, string> = {
+		submitted: badgeNeutral,
+		ai_matched: badgeOk,
+		needs_human_review: badgeWarn,
+		human_assigned: badgeNeutral
 	};
 </script>
 
@@ -30,20 +47,28 @@
 	{/if}
 
 	{#each data.assessments as row (row.id)}
-		<section class={card}>
-			<h2>{row.client?.display_name ?? 'Unnamed client'}</h2>
+		<section class="{card} {flow}">
+			<header class="flex flex-wrap items-center justify-between gap-3">
+				<h2 class="mb-0">{row.client?.display_name ?? 'Unnamed client'}</h2>
+				<span class={statusBadge[row.status] ?? badgeNeutral}>
+					{statusLabel[row.status] ?? row.status}
+				</span>
+			</header>
 			<p class={help}>
-				{statusLabel[row.status] ?? row.status} · {new Date(row.created_at).toLocaleDateString(
-					'en-GB'
-				)}
-				{row.client?.coaching_mode === 'human' ? ' · Human coaching' : ''}
+				Submitted {new Date(row.created_at).toLocaleDateString('en-GB')} ·
+				{row.client?.coaching_mode === 'human' ? 'Human coaching' : 'AI coaching'}
 			</p>
-			<ul class="grid gap-1">
-				<li>Goal: {label(goals, row.answers.goal)}</li>
-				<li>Experience: {label(experienceLevels, row.answers.experience)}</li>
-				<li>Location: {label(trainingLocations, row.answers.training_location)}</li>
-				<li>Days a week: {row.answers.days_per_week}</li>
-			</ul>
+
+			<dl class="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
+				<dt class="font-semibold">Goal</dt>
+				<dd>{label(goals, row.answers.goal)}</dd>
+				<dt class="font-semibold">Experience</dt>
+				<dd>{label(experienceLevels, row.answers.experience)}</dd>
+				<dt class="font-semibold">Location</dt>
+				<dd>{label(trainingLocations, row.answers.training_location)}</dd>
+				<dt class="font-semibold">Days a week</dt>
+				<dd>{row.answers.days_per_week}</dd>
+			</dl>
 
 			{#if row.red_flags.length > 0}
 				<p class={error}>
@@ -52,41 +77,48 @@
 			{/if}
 
 			{#if row.recommendation}
-				<p><strong>AI explanation:</strong> {row.recommendation.explanation}</p>
-				<p class={help}>Model: {row.recommendation.model}</p>
+				<div>
+					<p><strong>AI explanation:</strong> {row.recommendation.explanation}</p>
+					<p class={help}>Model: {row.recommendation.model}</p>
+				</div>
 			{/if}
 
-			<div class="flex flex-wrap items-end gap-2">
+			<div class="grid gap-5 border-t border-line pt-5">
 				{#if row.client?.coaching_mode !== 'human'}
-					<form method="POST" action="?/human">
+					<form method="POST" action="?/human" class="grid gap-2">
 						<input type="hidden" name="client_id" value={row.client_id} />
 						<input type="hidden" name="assessment_id" value={row.id} />
+						<p class="font-semibold">Coaching mode</p>
+						<p class={help}>
+							Switches this client to human coaching: check-ins and messages open with Cash.
+						</p>
 						<button class={secondary}>Move to human coaching</button>
 					</form>
 				{/if}
-			</div>
 
-			<form method="POST" action="?/assign" class="mt-5">
-				<input type="hidden" name="client_id" value={row.client_id} />
-				<label
-					>Assign a different workout
-					<select name="workout_template_id" required>
-						{#each data.workoutTemplates as template (template.id)}
-							<option value={template.id}>{template.name}</option>
-						{/each}
-					</select>
-				</label>
-				<label
-					>Nutrition (optional)
-					<select name="nutrition_template_id">
-						<option value="">None</option>
-						{#each data.nutritionTemplates as template (template.id)}
-							<option value={template.id}>{template.name}</option>
-						{/each}
-					</select>
-				</label>
-				<button class={primary}>Assign as coach</button>
-			</form>
+				<form method="POST" action="?/assign" class="grid gap-2">
+					<input type="hidden" name="client_id" value={row.client_id} />
+					<p class="font-semibold">Assign program</p>
+					<label>
+						Workout
+						<select name="workout_template_id" required>
+							{#each data.workoutTemplates as template (template.id)}
+								<option value={template.id}>{template.name}</option>
+							{/each}
+						</select>
+					</label>
+					<label>
+						Nutrition (optional)
+						<select name="nutrition_template_id">
+							<option value="">None</option>
+							{#each data.nutritionTemplates as template (template.id)}
+								<option value={template.id}>{template.name}</option>
+							{/each}
+						</select>
+					</label>
+					<button class={primary}>Assign as coach</button>
+				</form>
+			</div>
 		</section>
 	{/each}
 </div>

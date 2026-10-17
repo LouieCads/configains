@@ -66,6 +66,18 @@ export const success =
 
 export const card = 'min-w-0 rounded-[10px] border border-line bg-paper p-7 bp-760:p-5';
 
+/** Status pills, e.g. the assessment status on the coaching admin cards. */
+const pill = 'inline-flex items-center rounded-full border px-3 py-1 text-[0.8rem] font-semibold';
+export const badgeNeutral = `${pill} border-[#b7c6c7] bg-[#eef3f3] text-ink`;
+export const badgeOk = `${pill} border-[#a5d9ca] bg-[#edf9f5] text-[#175e4d]`;
+export const badgeWarn = `${pill} border-[#efb8ac] bg-[#fff1ee] text-[#962f24]`;
+
+/** Phase tabs on the client program view. */
+const tab =
+	'inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 py-2 font-semibold';
+export const tabSelected = `${tab} border-ink bg-ink text-white`;
+export const tabIdle = `${tab} border-[#b7c6c7] bg-transparent text-ink`;
+
 /** Sign-in and recovery pages. */
 export const loginPage = 'grid place-items-center bg-ink p-6';
 export const authCard = 'w-[min(100%,440px)] rounded-xl bg-paper p-9 bp-760:p-6';

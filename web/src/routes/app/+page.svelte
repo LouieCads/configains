@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { card, help, primary, secondary } from '$lib/features/cms/styles';
+	import {
+		card,
+		clientPage,
+		help,
+		primary,
+		secondary,
+		tabIdle,
+		tabSelected
+	} from '$lib/features/cms/styles';
 	import { aiDisclosureVersion } from '$lib/coaching/disclosure';
 	let { data } = $props();
 
@@ -9,6 +17,7 @@
 		phases.find((phase) => phase.id === (chosenPhaseId ?? data.program?.currentPhaseId)) ??
 			phases[0]
 	);
+	const isCurrent = $derived(selected?.id === data.program?.currentPhaseId);
 	const pending = $derived(data.assessmentStatus === 'submitted');
 	const needsReview = $derived(data.assessmentStatus === 'needs_human_review');
 	const humanRouted = $derived(data.assessmentStatus === 'human_assigned');
@@ -20,17 +29,19 @@
 		content="noindex, nofollow"
 	/></svelte:head
 >
-<main class="mx-auto grid max-w-[640px] gap-6 p-6">
+<main class="{clientPage} mx-auto grid max-w-[640px] gap-6 p-6">
 	<h1>{data.displayName ? `Welcome, ${data.displayName}.` : 'Welcome.'}</h1>
-	{#if data.coachingMode === 'human'}
-		<p><a class={primary} href="/app/coach">Check-ins and messages with Cash</a></p>
-	{/if}
 
-	{#if data.program}
-		<p>
-			<a class={secondary} href="/app/log">Log training</a>
-			<a class={secondary} href="/app/progress">Progress</a>
-		</p>
+	{#if data.coachingMode === 'human' || data.program}
+		<nav class="flex flex-wrap gap-3" aria-label="Your coaching">
+			{#if data.coachingMode === 'human'}
+				<a class={primary} href="/app/coach">Check-ins and messages with Cash</a>
+			{/if}
+			{#if data.program}
+				<a class={secondary} href="/app/log">Log training</a>
+				<a class={secondary} href="/app/progress">Progress</a>
+			{/if}
+		</nav>
 	{/if}
 
 	{#if !data.program}
@@ -68,43 +79,48 @@
 				<h2>{data.program.workout.name}</h2>
 				{#if data.program.workout.description}<p>{data.program.workout.description}</p>{/if}
 
-				<div class="my-4 flex flex-wrap gap-2" role="tablist" aria-label="Program phases">
-					{#each phases as phase (phase.id)}
-						<button
-							type="button"
-							role="tab"
-							aria-selected={selected?.id === phase.id}
-							class={selected?.id === phase.id ? primary : secondary}
-							onclick={() => (chosenPhaseId = phase.id)}
-						>
-							{phase.name}{phase.id === data.program.currentPhaseId ? ' (current)' : ''}
-						</button>
-					{/each}
-				</div>
+				{#if phases.length > 0}
+					<div class="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Program phases">
+						{#each phases as phase (phase.id)}
+							<button
+								type="button"
+								role="tab"
+								aria-selected={selected?.id === phase.id}
+								class={selected?.id === phase.id ? tabSelected : tabIdle}
+								onclick={() => (chosenPhaseId = phase.id)}
+							>
+								{phase.name}
+							</button>
+						{/each}
+					</div>
+					{#if isCurrent}<p class={help}>This is your current phase.</p>{/if}
+				{/if}
 
 				{#if selected}
-					{#if selected.instructions}<p>{selected.instructions}</p>{/if}
-					{#if selected.exercises.length === 0}
-						<p class={help}>No exercises in this phase yet.</p>
-					{:else}
-						<ol class="grid gap-3">
-							{#each selected.exercises as exercise (exercise.id)}
-								<li class="rounded-lg border border-line p-3">
-									<strong>{exercise.name}</strong>
-									<p class={help}>
-										{[
-											exercise.sets ? `${exercise.sets} sets` : null,
-											exercise.reps ? `${exercise.reps} reps` : null,
-											exercise.rest_seconds !== null ? `${exercise.rest_seconds}s rest` : null
-										]
-											.filter(Boolean)
-											.join(' · ')}
-									</p>
-									{#if exercise.notes}<p>{exercise.notes}</p>{/if}
-								</li>
-							{/each}
-						</ol>
-					{/if}
+					<div class="mt-4">
+						{#if selected.instructions}<p>{selected.instructions}</p>{/if}
+						{#if selected.exercises.length === 0}
+							<p class={help}>No exercises in this phase yet.</p>
+						{:else}
+							<ol class="mt-3 grid gap-3">
+								{#each selected.exercises as exercise (exercise.id)}
+									<li class="rounded-lg border border-line p-4">
+										<strong>{exercise.name}</strong>
+										<p class={help}>
+											{[
+												exercise.sets ? `${exercise.sets} sets` : null,
+												exercise.reps ? `${exercise.reps} reps` : null,
+												exercise.rest_seconds !== null ? `${exercise.rest_seconds}s rest` : null
+											]
+												.filter(Boolean)
+												.join(' · ')}
+										</p>
+										{#if exercise.notes}<p>{exercise.notes}</p>{/if}
+									</li>
+								{/each}
+							</ol>
+						{/if}
+					</div>
 				{/if}
 			</section>
 		{/if}
@@ -114,8 +130,8 @@
 				<h2>{data.program.nutrition.name}</h2>
 				{#if data.program.nutrition.description}<p>{data.program.nutrition.description}</p>{/if}
 				{#each data.program.nutrition.phases as phase (phase.id)}
-					<div class="my-3">
-						<h3>{phase.name}</h3>
+					<div class="mt-4">
+						<p class="font-semibold">{phase.name}</p>
 						{#if phase.instructions}<p>{phase.instructions}</p>{/if}
 					</div>
 				{/each}
