@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { experienceLevels, goals, trainingLocations, dayRange } from '$lib/coaching/options';
 	import { clientSexOptions, healthFlags } from '$lib/coaching/assessment';
-	import { card, error, help, primary } from '$lib/features/cms/styles';
+	import { card, clientPage, error, help, primary } from '$lib/features/cms/styles';
 	let { form } = $props();
 	let busy = $state(false);
 	const days = Array.from({ length: dayRange[1] - dayRange[0] + 1 }, (_, i) => dayRange[0] + i);
@@ -14,7 +14,7 @@
 		content="noindex, nofollow"
 	/></svelte:head
 >
-<main class="mx-auto grid max-w-[640px] gap-6 p-6">
+<main class="{clientPage} mx-auto grid max-w-[640px] gap-6 p-6">
 	<h1>Coaching assessment</h1>
 	<p>
 		Your answers choose from Cash's approved programs. Health answers mean Cash reviews your plan

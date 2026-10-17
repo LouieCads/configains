@@ -16,12 +16,36 @@ export const studio = [
 	'on-focus:outline-3 on-focus:outline-cyan-ink on-focus:outline-offset-[3px]'
 ].join(' ');
 
+/**
+ * Vertical rhythm for the coaching admin pages: wrap a page's content in
+ * `flow`. Cards, forms, labels and lists get spacing and weight here instead of
+ * per-element utilities.
+ */
+export const flow = [
+	'on-section:mb-6',
+	'on-p:my-3',
+	'on-form:grid on-form:gap-4',
+	'on-label:grid on-label:gap-2 on-label:font-semibold',
+	'on-list:my-3',
+	'on-button:justify-self-start'
+].join(' ');
+
+/** Client-facing coaching pages (no studio chrome). */
+export const clientPage = [
+	'font-arial text-base/[1.65] text-ink',
+	'on-h1:text-[2rem] on-h1:leading-tight on-h1:font-bold',
+	'on-h2:text-xl on-h2:font-bold',
+	'on-legend:float-left on-legend:mb-4 on-legend:w-full on-legend:text-lg on-legend:font-semibold',
+	'after-legend:clear-both',
+	'on-button:justify-self-start on-button:font-semibold'
+].join(' ');
+
 export const brand = 'font-studio text-[2rem] font-normal text-cyan';
 export const eyebrow = 'text-[0.7rem] font-bold tracking-[1.5px] text-cyan-ink';
 export const help = 'my-[10px] text-[0.8rem] text-muted';
 
 const action =
-	'inline-flex cursor-pointer items-center justify-center gap-[10px] rounded-[6px] border no-underline';
+	'inline-flex cursor-pointer items-center justify-center gap-[10px] rounded-[6px] border font-semibold no-underline';
 const actionSize = 'min-h-11 px-[18px] py-[11px]';
 export const primary = `${action} ${actionSize} border-transparent bg-cyan text-ink`;
 export const secondary = `${action} ${actionSize} border-[#b7c6c7] bg-transparent text-ink`;

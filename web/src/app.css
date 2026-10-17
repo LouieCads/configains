@@ -54,6 +54,12 @@
 @custom-variant on-heading (:where(&) :where(h1, h2, legend));
 @custom-variant on-field (:where(&) :where(input:not([type='checkbox'], [type='file']), textarea, select));
 @custom-variant on-textarea (:where(&) :where(textarea));
+@custom-variant on-section (:where(&) :where(section));
+@custom-variant on-form (:where(&) :where(form));
+@custom-variant on-label (:where(&) :where(label));
+@custom-variant on-list (:where(&) :where(ul, ol));
+@custom-variant on-legend (:where(&) :where(legend));
+@custom-variant after-legend (:where(&) :where(legend + *));
 @custom-variant on-button (:where(&) :where(button));
 /* Disabled controls keep the old `.cms button:disabled` weight so they beat cursor utilities. */
 @custom-variant on-disabled (& :is(button:disabled, [aria-disabled='true']));
