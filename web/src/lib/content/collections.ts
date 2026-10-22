@@ -16,6 +16,10 @@ export type CollectionField = {
 	label: string;
 	type: CollectionFieldType;
 	required?: boolean;
+	/** Short guidance shown under the input. */
+	help?: string;
+	/** Example text shown inside an empty text input. */
+	placeholder?: string;
 };
 
 export type CollectionDefinition = {
@@ -33,21 +37,40 @@ const field = (
 	name: string,
 	label: string,
 	type: CollectionFieldType = 'text',
-	required = false
-): CollectionField => ({ name, label, type, required });
+	required = false,
+	hints: Pick<CollectionField, 'help' | 'placeholder'> = {}
+): CollectionField => ({ name, label, type, required, ...hints });
 
-const sortOrder = field('sort_order', 'Sort order', 'number');
-const published = field('is_published', 'Published', 'checkbox');
+const sortOrder = field('sort_order', 'Sort order', 'number', false, {
+	help: 'Lowest number shows first.'
+});
+const published = field('is_published', 'Published', 'checkbox', false, {
+	help: 'Untick to hide this on the website.'
+});
+const altHelp = 'Describes the photo for screen readers and Google. It does not show on the page.';
 
 export const collections = {
 	testimonials: {
 		itemLabel: 'testimonial',
 		fields: [
-			field('name', 'Client name', 'text', true),
-			field('role', 'Role or result'),
-			field('quote', 'Quote', 'textarea', true),
-			field('image_url', 'Client photo', 'image'),
-			field('image_alt', 'Photo description'),
+			field('name', 'Client name', 'text', true, {
+				help: 'A first name or initials is fine.'
+			}),
+			field('role', 'Short label', 'text', false, {
+				help: 'Small line under the name: their result or role.',
+				placeholder: 'Lost 8kg in 12 weeks'
+			}),
+			field('quote', 'Quote', 'textarea', true, {
+				help: "The client's own words, one or two sentences.",
+				placeholder: 'I finally found a routine I can stick to.'
+			}),
+			field('image_url', 'Client photo', 'image', false, {
+				help: 'One photo only. For before and after photos, use Transformations.'
+			}),
+			field('image_alt', 'Photo caption (optional)', 'text', false, {
+				help: altHelp,
+				placeholder: 'Client smiling at the gym'
+			}),
 			sortOrder,
 			published
 		]
@@ -55,13 +78,24 @@ export const collections = {
 	transformations: {
 		itemLabel: 'transformation',
 		fields: [
-			field('title', 'Title', 'text', true),
-			field('summary', 'Summary', 'textarea'),
-			field('story', 'Full story', 'textarea'),
+			field('title', 'Title', 'text', true, {
+				help: 'A display name or initials.',
+				placeholder: 'J.R., 12-week strength program'
+			}),
+			field('summary', 'Summary', 'textarea', false, {
+				help: 'Short version: starting point and progress.'
+			}),
+			field('story', 'Full story', 'textarea', false, {
+				help: 'Starting point, what changed, timeframe and a quote.'
+			}),
 			field('before_image_url', 'Before photo', 'image'),
-			field('before_image_alt', 'Before photo description'),
+			field('before_image_alt', 'Before photo caption (optional)', 'text', false, {
+				help: altHelp
+			}),
 			field('after_image_url', 'After photo', 'image'),
-			field('after_image_alt', 'After photo description'),
+			field('after_image_alt', 'After photo caption (optional)', 'text', false, {
+				help: altHelp
+			}),
 			sortOrder,
 			published
 		]

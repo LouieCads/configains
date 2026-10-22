@@ -7,7 +7,7 @@
 	import ContentField from './ContentField.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import { cmsRequest, errorMessage } from './api';
-	import { card, primary, secondaryDanger } from './styles';
+	import { card, help as helpClass, primary, secondaryDanger } from './styles';
 	import { onDestroy, untrack } from 'svelte';
 	import {
 		collections,
@@ -94,43 +94,53 @@
 
 <form class="{card} grid gap-4" onsubmit={save}>
 	{#each fields as field (field.name)}
-		{#if field.type === 'image'}<ContentField
-				field={{ label: field.label, kind: 'image' }}
-				bind:value={values[field.name]}
-				path={(row?.id || 'new') + '-' + field.name}
-				bucket={collection}
-				inCollection
-				disabled={busy}
-				onUploadChange={(uploading) => {
-					pendingUploads = Math.max(0, pendingUploads + (uploading ? 1 : -1));
-				}}
-			/>
-		{:else}<label class="grid gap-[6px] text-[0.875rem] font-semibold"
-				>{field.label}
-				{#if field.type === 'textarea'}<textarea
-						bind:value={values[field.name]}
-						rows="4"
-						disabled={busy}></textarea>
-				{:else if field.type === 'checkbox'}<input
-						type="checkbox"
-						bind:checked={values[field.name]}
-						disabled={busy}
-					/>
-				{:else if field.type === 'number'}<input
-						type="number"
-						bind:value={values[field.name]}
-						min="0"
-						max={MAX_SORT_ORDER}
-						step="1"
-						disabled={busy}
-					/>
-				{:else}<input
-						type="text"
-						bind:value={values[field.name]}
-						disabled={busy}
-						required={field.required}
-					/>{/if}
-			</label>{/if}
+		{@const helpId = `${row?.id || 'new'}-${field.name}-help`}
+		<div class="grid gap-[6px]">
+			{#if field.type === 'image'}<ContentField
+					field={{ label: field.label, kind: 'image' }}
+					bind:value={values[field.name]}
+					path={(row?.id || 'new') + '-' + field.name}
+					bucket={collection}
+					inCollection
+					disabled={busy}
+					onUploadChange={(uploading) => {
+						pendingUploads = Math.max(0, pendingUploads + (uploading ? 1 : -1));
+					}}
+				/>
+			{:else}<label class="grid gap-[6px] text-[0.875rem] font-semibold"
+					>{field.label}
+					{#if field.type === 'textarea'}<textarea
+							bind:value={values[field.name]}
+							rows="4"
+							placeholder={field.placeholder}
+							aria-describedby={field.help ? helpId : undefined}
+							disabled={busy}></textarea>
+					{:else if field.type === 'checkbox'}<input
+							type="checkbox"
+							bind:checked={values[field.name]}
+							aria-describedby={field.help ? helpId : undefined}
+							disabled={busy}
+						/>
+					{:else if field.type === 'number'}<input
+							type="number"
+							bind:value={values[field.name]}
+							min="0"
+							max={MAX_SORT_ORDER}
+							step="1"
+							aria-describedby={field.help ? helpId : undefined}
+							disabled={busy}
+						/>
+					{:else}<input
+							type="text"
+							bind:value={values[field.name]}
+							placeholder={field.placeholder}
+							aria-describedby={field.help ? helpId : undefined}
+							disabled={busy}
+							required={field.required}
+						/>{/if}
+				</label>{/if}
+			{#if field.help}<p id={helpId} class={helpClass}>{field.help}</p>{/if}
+		</div>
 	{/each}
 	{#if message}<p role="status">{message}</p>{/if}
 	<div class="flex flex-wrap gap-3">
