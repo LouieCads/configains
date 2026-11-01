@@ -2,39 +2,59 @@ import { fail } from '@sveltejs/kit';
 import { requireAdmin } from '$lib/server/auth/admin';
 import { inviteClient, validInviteEmail } from '$lib/server/auth/invites';
 import { requireSameOrigin } from '$lib/server/auth/origin';
-import { assignProgram } from '$lib/server/coaching/templates';
 import { createServiceClient } from '$lib/server/supabase-admin';
 import type { Actions, PageServerLoad } from './$types';
 
+type ClientSummary = {
+	id: string;
+	display_name: string | null;
+	coaching_mode: string;
+	created_at: string;
+	/** Name of the client's active workout, or null without a program. */
+	program: string | null;
+	/** Check-ins still waiting for coach feedback. */
+	pendingCheckIns: number;
+};
+
 export const load: PageServerLoad = async (event) => {
 	await requireAdmin(event);
-	if (event.locals.localAdminDemo)
-		return { clients: [], workoutTemplates: [], nutritionTemplates: [], loadError: null };
+	if (event.locals.localAdminDemo) return { clients: [] as ClientSummary[], loadError: null };
 
-	const { data, error } = await event.locals.supabase
+	const supabase = event.locals.supabase;
+	const { data, error } = await supabase
 		.from('client_profiles')
 		.select('id, display_name, coaching_mode, created_at')
 		.order('created_at', { ascending: false });
 	if (error)
 		return {
-			clients: [],
-			workoutTemplates: [],
-			nutritionTemplates: [],
+			clients: [] as ClientSummary[],
 			loadError: 'Clients could not be loaded. Please try again.'
 		};
 
-	// Only active (non-archived) templates can be assigned.
-	const { data: templates } = await event.locals.supabase
-		.from('program_templates')
-		.select('id, kind, name')
-		.eq('is_archived', false)
-		.is('owner_client_id', null)
-		.order('name');
-	const active = templates ?? [];
+	// Extras for the list; missing ones just leave the column blank.
+	const [programs, checkIns] = await Promise.all([
+		supabase
+			.from('client_programs')
+			.select('client_id, workout:program_templates!workout_template_id(name)')
+			.eq('status', 'active'),
+		supabase.from('check_ins').select('client_id').is('coach_feedback', null)
+	]);
+	const programOf = new Map<string, string>();
+	for (const row of programs.data ?? []) {
+		const workout = row.workout as { name?: string } | { name?: string }[] | null;
+		const name = Array.isArray(workout) ? workout[0]?.name : workout?.name;
+		if (name) programOf.set(row.client_id as string, name);
+	}
+	const pending = new Map<string, number>();
+	for (const row of checkIns.data ?? [])
+		pending.set(row.client_id as string, (pending.get(row.client_id as string) ?? 0) + 1);
+
 	return {
-		clients: data ?? [],
-		workoutTemplates: active.filter((template) => template.kind === 'workout'),
-		nutritionTemplates: active.filter((template) => template.kind === 'nutrition'),
+		clients: (data ?? []).map((client): ClientSummary => ({
+			...client,
+			program: programOf.get(client.id) ?? null,
+			pendingCheckIns: pending.get(client.id) ?? 0
+		})),
 		loadError: null
 	};
 };
@@ -75,22 +95,5 @@ export const actions = {
 		});
 		if (!result.ok) return fail(400, { message: result.message, email, displayName });
 		return { invited: true, email };
-	},
-	assign: async (event) => {
-		requireSameOrigin(event);
-		await requireAdmin(event);
-		if (event.locals.localAdminDemo)
-			return fail(400, { assignMessage: 'Programs cannot be assigned in the local demo.' });
-
-		const form = await event.request.formData();
-		const clientId = String(form.get('client_id') ?? '');
-		const workoutId = String(form.get('workout_template_id') ?? '');
-		const nutritionId = String(form.get('nutrition_template_id') ?? '') || null;
-		if (!clientId || !workoutId)
-			return fail(400, { assignMessage: 'Choose a client and a workout template.' });
-
-		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
-		if (!result.ok) return fail(400, { assignMessage: result.message });
-		return { assigned: true };
 	}
 } satisfies Actions;

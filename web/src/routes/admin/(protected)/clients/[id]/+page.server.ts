@@ -2,7 +2,7 @@ import { error, fail, type RequestEvent } from '@sveltejs/kit';
 import { cleanText, isUuid } from '$lib/coaching/text';
 import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
-import { loadActiveProgram } from '$lib/server/coaching/templates';
+import { assignProgram, loadActiveProgram } from '$lib/server/coaching/templates';
 import { loadCoachingThread, saveCheckInFeedback, sendMessage } from '$lib/server/coaching/human';
 import { loadProgress } from '$lib/server/coaching/progress';
 import type { Actions, PageServerLoad } from './$types';
@@ -23,18 +23,28 @@ export const load: PageServerLoad = async (event) => {
 	if (profileError) error(500, 'The client could not be loaded.');
 	if (!profile) error(404, 'Client not found.');
 
-	const [program, thread] = await Promise.all([
+	const [program, thread, progress, templates] = await Promise.all([
 		loadActiveProgram(event.locals.supabase, clientId),
-		loadCoachingThread(event.locals.supabase, clientId)
+		loadCoachingThread(event.locals.supabase, clientId),
+		loadProgress(event.locals.supabase, clientId, new Date().toISOString().slice(0, 10)),
+		// Only active (non-archived) library templates can be assigned.
+		event.locals.supabase
+			.from('program_templates')
+			.select('id, kind, name')
+			.eq('is_archived', false)
+			.is('owner_client_id', null)
+			.order('name')
 	]);
+	const active = templates.data ?? [];
 
-	const progress = await loadProgress(
-		event.locals.supabase,
-		clientId,
-		new Date().toISOString().slice(0, 10)
-	);
-
-	return { client: profile, program, ...thread, progress };
+	return {
+		client: profile,
+		program,
+		...thread,
+		progress,
+		workoutTemplates: active.filter((template) => template.kind === 'workout'),
+		nutritionTemplates: active.filter((template) => template.kind === 'nutrition')
+	};
 };
 
 /** Actions run only against the client's own active program, so an id from another client is rejected. */
@@ -44,6 +54,21 @@ async function ownActiveProgram(event: RequestEvent, clientId: string, programId
 }
 
 export const actions = {
+	assign: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		const form = await event.request.formData();
+		const workoutId = String(form.get('workout_template_id') ?? '');
+		const nutritionId = String(form.get('nutrition_template_id') ?? '') || null;
+		if (!isUuid(clientId) || !workoutId)
+			return fail(400, { message: 'Choose a workout template.' });
+
+		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
+		if (!result.ok) return fail(400, { message: result.message });
+		return { updated: 'assign' };
+	},
+
 	phase: async (event) => {
 		requireSameOrigin(event);
 		await requireAdmin(event);

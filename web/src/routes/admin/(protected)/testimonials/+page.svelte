@@ -6,8 +6,5 @@
 
 <svelte:head><title>Testimonials | Configains CMS</title></svelte:head>
 <h1>Testimonials</h1>
-<p class={help}>
-	Each published entry is a client quote with one photo. For before-and-after photos, use
-	<a href="/admin/transformations">Transformations</a>.
-</p>
+<p class={help}>Client quotes with one photo.</p>
 <CollectionManager collection="testimonials" rows={data.rows} />

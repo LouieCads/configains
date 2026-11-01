@@ -6,12 +6,23 @@ export const publicNavigation = [
 	{ href: '/contact', label: 'Contact' }
 ] as const;
 
+/** Admin sidebar, in groups. A group without a heading sits at the top. */
 export const adminNavigation = [
-	{ href: '/admin/dashboard', label: 'Dashboard' },
-	{ href: '/admin/content', label: 'Content' },
-	{ href: '/admin/testimonials', label: 'Testimonials' },
-	{ href: '/admin/transformations', label: 'Transformations' },
-	{ href: '/admin/clients', label: 'Clients' },
-	{ href: '/admin/templates', label: 'Templates' },
-	{ href: '/admin/assessments', label: 'Assessments' }
+	{ heading: '', items: [{ href: '/admin/dashboard', label: 'Dashboard' }] },
+	{
+		heading: 'Website',
+		items: [
+			{ href: '/admin/content', label: 'Content' },
+			{ href: '/admin/testimonials', label: 'Testimonials' },
+			{ href: '/admin/transformations', label: 'Transformations' }
+		]
+	},
+	{
+		heading: 'Coaching',
+		items: [
+			{ href: '/admin/clients', label: 'Clients' },
+			{ href: '/admin/assessments', label: 'Assessments' },
+			{ href: '/admin/templates', label: 'Templates' }
+		]
+	}
 ] as const;

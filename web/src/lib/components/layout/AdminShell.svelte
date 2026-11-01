@@ -17,17 +17,24 @@
 	>
 		<a href="/" class={brand}>CONFIGAINS.</a>
 		<p class="text-[0.7rem] font-bold tracking-[1.5px] text-[#a9c7cd]">CONTENT STUDIO</p>
-		<nav
-			class="my-9 grid gap-2 bp-760:my-4 bp-760:flex bp-760:flex-wrap"
-			aria-label="Admin navigation"
-		>
-			{#each adminNavigation as item (item.href)}<a
-					class={[
-						'rounded-[6px] p-3 hover:bg-[#2b444b] hover:text-cyan',
-						page.url.pathname === item.href && 'bg-[#2b444b] text-cyan'
-					]}
-					href={item.href}>{item.label}</a
-				>{/each}
+		<nav class="my-8 grid gap-5 bp-760:my-4 bp-760:gap-2" aria-label="Admin navigation">
+			{#each adminNavigation as group (group.heading)}
+				<div class="grid gap-1 bp-760:flex bp-760:flex-wrap bp-760:items-center">
+					{#if group.heading}<p
+							class="m-0 px-3 text-[0.7rem] font-bold tracking-[1.5px] text-[#a9c7cd] uppercase bp-760:w-full"
+						>
+							{group.heading}
+						</p>{/if}
+					{#each group.items as item (item.href)}<a
+							class={[
+								'rounded-[6px] px-3 py-2 hover:bg-[#2b444b] hover:text-cyan',
+								page.url.pathname.startsWith(item.href) && 'bg-[#2b444b] text-cyan'
+							]}
+							aria-current={page.url.pathname.startsWith(item.href) ? 'page' : undefined}
+							href={item.href}>{item.label}</a
+						>{/each}
+				</div>
+			{/each}
 		</nav>
 		<a class={secondaryOnDark} href="/" target="_blank" rel="noopener">View website ↗</a>
 		<p class={help}>{email}</p>

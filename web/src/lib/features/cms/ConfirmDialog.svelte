@@ -1,6 +1,6 @@
 <!--
 	Modal confirmation built on <dialog>. Controlled by `open`; Escape and
-	"Keep editing" call `onCancel`. Focus starts on the safe (cancel) action.
+	the cancel button call `onCancel`. Focus starts on the safe (cancel) action.
 -->
 <script lang="ts">
 	import { dangerSolid, eyebrow, primary, secondary } from './styles';
@@ -9,6 +9,7 @@
 		title,
 		message,
 		confirmLabel,
+		cancelLabel = 'Keep editing',
 		danger = false,
 		onConfirm,
 		onCancel
@@ -17,6 +18,8 @@
 		title: string;
 		message: string;
 		confirmLabel: string;
+		/** Label of the safe action; defaults to "Keep editing". */
+		cancelLabel?: string;
 		/** Styles the confirm button as destructive. */
 		danger?: boolean;
 		onConfirm: () => void;
@@ -52,7 +55,7 @@
 		<p id={`${id}-message`} class="m-0 text-muted">{message}</p>
 		<div class="mt-7 flex flex-wrap justify-end gap-[10px]">
 			<button type="button" class={secondary} bind:this={cancelButton} onclick={onCancel}
-				>Keep editing</button
+				>{cancelLabel}</button
 			>
 			<button type="button" class={danger ? dangerSolid : primary} onclick={onConfirm}
 				>{confirmLabel}</button

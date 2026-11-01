@@ -559,7 +559,7 @@ try {
 	);
 
 	await page.goto(origin + '/admin/testimonials');
-	await page.getByText('+ Add new item', { exact: true }).click();
+	await page.getByText('+ Add testimonial', { exact: true }).click();
 	await page.getByLabel('Client name', { exact: true }).fill('Consent test client');
 	await page.getByLabel('Quote', { exact: true }).fill('A locally tested story.');
 	await page
@@ -602,19 +602,30 @@ try {
 	await story.getByRole('button', { name: 'Save item', exact: true }).click();
 	await story.getByRole('status').filter({ hasText: 'Saved.' }).waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
-	await story.getByRole('button', { name: 'Delete item', exact: true }).click();
-	await page.getByRole('dialog', { name: 'Delete testimonial?' }).waitFor();
-	await page.getByRole('button', { name: 'Keep editing' }).click();
+	const storySwitch = story.getByRole('switch', {
+		name: 'Show Consent test client on the website'
+	});
+	assert.equal(await storySwitch.getAttribute('aria-checked'), 'true');
+	await storySwitch.click();
+	await page.getByText('Consent test client is hidden from the website.').waitFor();
+	assert(!(await (await fetch(origin + '/')).text()).includes('Consent test client'));
+	assert.equal(await story.getByLabel('Published', { exact: true }).isChecked(), false);
+	await storySwitch.click();
+	await page.getByText('Consent test client is now on the website.').waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
-	await story.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await story.getByRole('button', { name: 'Delete Consent test client', exact: true }).click();
+	await page.getByRole('dialog', { name: 'Delete testimonial?' }).waitFor();
+	await page.getByRole('button', { name: 'Cancel' }).click();
+	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
+	await story.getByRole('button', { name: 'Delete Consent test client', exact: true }).click();
 	await page
 		.getByRole('dialog', { name: 'Delete testimonial?' })
-		.getByRole('button', { name: 'Delete item' })
+		.getByRole('button', { name: 'Delete', exact: true })
 		.click();
 	await story.waitFor({ state: 'detached' });
 	assert(!(await (await fetch(origin + '/')).text()).includes('Consent test client'));
 	notes.push(
-		'Client stories remain unpublished until enabled; create, publish, and delete reflect on the public site.'
+		'Client stories remain unpublished until enabled; create, publish, the row show/hide switch, and delete reflect on the public site.'
 	);
 
 	const orderApi = (method, path, data) =>
@@ -667,7 +678,7 @@ try {
 	);
 
 	await page.goto(origin + '/admin/transformations');
-	await page.getByText('+ Add new item', { exact: true }).click();
+	await page.getByText('+ Add transformation', { exact: true }).click();
 	await page.getByLabel('Title', { exact: true }).fill('Unsaved transformation');
 	await page
 		.getByText('You have unsaved changes or an operation in progress.', { exact: true })
@@ -682,13 +693,13 @@ try {
 	await page
 		.getByText('You have unsaved changes or an operation in progress.', { exact: true })
 		.waitFor({ state: 'hidden' });
-	await slide.locator('button[aria-expanded]').click();
-	await slide.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await slide.getByRole('button', { name: 'Delete Unsaved transformation', exact: true }).click();
 	await page
 		.getByRole('dialog', { name: 'Delete transformation?' })
-		.getByRole('button', { name: 'Delete item' })
+		.getByRole('button', { name: 'Delete', exact: true })
 		.click();
 	await slide.waitFor({ state: 'detached' });
+	await page.getByText('+ Add transformation', { exact: true }).click();
 	await page
 		.locator('main details')
 		.getByLabel('Title', { exact: true })
