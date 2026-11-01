@@ -580,10 +580,16 @@ try {
 		true
 	);
 	await page.getByRole('button', { name: 'Create item', exact: true }).click();
-	await page.getByRole('button', { name: 'Save item', exact: true }).waitFor();
+	const story = page.locator('ol > li', { hasText: 'Consent test client' });
+	await story.waitFor();
 	await page
 		.getByText('You have unsaved changes or an operation in progress.', { exact: true })
 		.waitFor({ state: 'hidden' });
+	assert.equal(
+		await story.getByRole('button', { name: 'Save item', exact: true }).isHidden(),
+		true,
+		'Saved entries start collapsed'
+	);
 	assert.equal(
 		await page.evaluate(
 			() => !window.dispatchEvent(new Event('beforeunload', { cancelable: true }))
@@ -591,24 +597,75 @@ try {
 		false
 	);
 	assert(!(await (await fetch(origin + '/')).text()).includes('Consent test client'));
-	await page.locator('main form').last().getByLabel('Published', { exact: true }).check();
-	await page.getByRole('button', { name: 'Save item', exact: true }).click();
-	await page.getByRole('status').filter({ hasText: 'Saved.' }).last().waitFor();
+	await story.locator('button[aria-expanded]').click();
+	await story.getByLabel('Published', { exact: true }).check();
+	await story.getByRole('button', { name: 'Save item', exact: true }).click();
+	await story.getByRole('status').filter({ hasText: 'Saved.' }).waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
-	await page.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await story.getByRole('button', { name: 'Delete item', exact: true }).click();
 	await page.getByRole('dialog', { name: 'Delete testimonial?' }).waitFor();
 	await page.getByRole('button', { name: 'Keep editing' }).click();
 	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
-	await page.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await story.getByRole('button', { name: 'Delete item', exact: true }).click();
 	await page
 		.getByRole('dialog', { name: 'Delete testimonial?' })
 		.getByRole('button', { name: 'Delete item' })
 		.click();
-	await page.getByRole('button', { name: 'Save item', exact: true }).waitFor({ state: 'detached' });
+	await story.waitFor({ state: 'detached' });
 	assert(!(await (await fetch(origin + '/')).text()).includes('Consent test client'));
 	notes.push(
 		'Client stories remain unpublished until enabled; create, publish, and delete reflect on the public site.'
 	);
+
+	const orderApi = (method, path, data) =>
+		page.evaluate(
+			async ({ method, path, data }) => {
+				const response = await fetch(path, {
+					method,
+					headers: { 'Content-Type': 'application/json' },
+					...(data ? { body: JSON.stringify(data) } : {})
+				});
+				if (!response.ok) throw new Error(method + ' ' + path + ' failed: ' + response.status);
+				return response.status === 204 ? null : response.json();
+			},
+			{ method, path, data }
+		);
+	const orderNames = ['Order first', 'Order second', 'Order third'];
+	const orderIds = [];
+	for (const [index, name] of orderNames.entries())
+		orderIds.push(
+			(
+				await orderApi('POST', '/api/cms/testimonials', {
+					name,
+					quote: name + ' quote.',
+					sort_order: index,
+					is_published: true
+				})
+			).id
+		);
+	const listed = () => page.locator('ol > li strong').allInnerTexts();
+	const published = async () => {
+		const html = await (await fetch(origin + '/')).text();
+		return orderNames.toSorted((a, b) => html.indexOf(a) - html.indexOf(b));
+	};
+	await page.reload();
+	assert.deepEqual(await listed(), orderNames);
+	await page
+		.locator('ol > li')
+		.nth(2)
+		.getByText('⠿', { exact: true })
+		.dragTo(page.locator('ol > li').first());
+	await page.getByText('Order updated.').waitFor();
+	const reordered = ['Order third', 'Order first', 'Order second'];
+	assert.deepEqual(await listed(), reordered);
+	assert.deepEqual(await published(), reordered, 'Dragging changes the public order');
+	await page.reload();
+	assert.deepEqual(await listed(), reordered, 'The new order survives a reload');
+	for (const id of orderIds) await orderApi('DELETE', '/api/cms/testimonials?id=' + id);
+	notes.push(
+		'Dragging entries in the admin list saves the new order and the public site follows it.'
+	);
+
 	await page.goto(origin + '/admin/transformations');
 	await page.getByText('+ Add new item', { exact: true }).click();
 	await page.getByLabel('Title', { exact: true }).fill('Unsaved transformation');
@@ -620,17 +677,20 @@ try {
 	await page.getByRole('button', { name: 'Keep editing' }).click();
 	assert.equal(new URL(page.url()).pathname, '/admin/transformations');
 	await page.getByRole('button', { name: 'Create item', exact: true }).click();
+	const slide = page.locator('ol > li', { hasText: 'Unsaved transformation' });
+	await slide.waitFor();
 	await page
 		.getByText('You have unsaved changes or an operation in progress.', { exact: true })
 		.waitFor({ state: 'hidden' });
-	await page.getByRole('button', { name: 'Delete item', exact: true }).click();
+	await slide.locator('button[aria-expanded]').click();
+	await slide.getByRole('button', { name: 'Delete item', exact: true }).click();
 	await page
 		.getByRole('dialog', { name: 'Delete transformation?' })
 		.getByRole('button', { name: 'Delete item' })
 		.click();
-	await page.getByRole('button', { name: 'Save item', exact: true }).waitFor({ state: 'detached' });
+	await slide.waitFor({ state: 'detached' });
 	await page
-		.locator('.collection-add')
+		.locator('main details')
 		.getByLabel('Title', { exact: true })
 		.fill('Discarded transformation');
 	await page.getByRole('link', { name: 'Content', exact: true }).click();

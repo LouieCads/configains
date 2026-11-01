@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { emptyValues, isCollectionName, validateCollectionItem, collections } from './collections';
+import {
+	emptyValues,
+	isCollectionName,
+	validateCollectionItem,
+	validateOrder,
+	collections,
+	MAX_REORDER_ITEMS
+} from './collections';
 
 const testimonial = { name: 'Alex', quote: 'Great coaching.', sort_order: 1, is_published: true };
 
@@ -21,6 +28,15 @@ describe('CMS item collections', () => {
 			sort_order: 0,
 			is_published: false
 		});
+	});
+
+	it('points the admin list at real columns and keeps sort order out of the form', () => {
+		for (const { fields, titleField, detailField, imageField } of Object.values(collections)) {
+			const columns = fields.map(({ name }) => name);
+			for (const column of [titleField, detailField, imageField].filter(Boolean))
+				expect(columns).toContain(column);
+			expect(fields.filter(({ hidden }) => hidden).map(({ name }) => name)).toEqual(['sort_order']);
+		}
 	});
 
 	it('drops unknown columns and keeps valid values', () => {
@@ -48,5 +64,24 @@ describe('CMS item collections', () => {
 		]
 	])('rejects invalid input %#', (input, error) => {
 		expect(validateCollectionItem('testimonials', input)).toEqual({ error });
+	});
+});
+
+describe('display order', () => {
+	it('accepts distinct item ids, including none', () => {
+		expect(validateOrder(['a', 'b', 'c'])).toEqual({ order: ['a', 'b', 'c'] });
+		expect(validateOrder([])).toEqual({ order: [] });
+	});
+
+	it.each([
+		['not a list', 'a,b'],
+		['missing', undefined],
+		['a repeated id', ['a', 'b', 'a']],
+		['an empty id', ['a', '']],
+		['a non-text id', ['a', 2]],
+		['an oversized id', ['x'.repeat(65)]],
+		['too many ids', Array.from({ length: MAX_REORDER_ITEMS + 1 }, (_, index) => String(index))]
+	])('rejects %s', (_, input) => {
+		expect(validateOrder(input)).toEqual({ error: 'The new order is invalid.' });
 	});
 });

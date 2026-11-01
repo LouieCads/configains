@@ -20,11 +20,19 @@ export type CollectionField = {
 	help?: string;
 	/** Example text shown inside an empty text input. */
 	placeholder?: string;
+	/** Editable through the API but not typed into the form (the list manages it). */
+	hidden?: boolean;
 };
 
 export type CollectionDefinition = {
 	/** Singular, human-readable item name used in dialogs. */
 	itemLabel: string;
+	/** Column shown as each item's heading in the admin list. */
+	titleField: string;
+	/** Column shown as a second line under the heading, if any. */
+	detailField?: string;
+	/** Image column shown as a thumbnail in the admin list, if any. */
+	imageField?: string;
 	fields: readonly CollectionField[];
 };
 
@@ -32,18 +40,19 @@ export type CollectionDefinition = {
 export type CollectionRow = Record<string, unknown> & { id: string };
 
 export const MAX_SORT_ORDER = 10000;
+/** Most items one reorder request may carry; keeps every position under `MAX_SORT_ORDER`. */
+export const MAX_REORDER_ITEMS = 500;
 
 const field = (
 	name: string,
 	label: string,
 	type: CollectionFieldType = 'text',
 	required = false,
-	hints: Pick<CollectionField, 'help' | 'placeholder'> = {}
+	hints: Pick<CollectionField, 'help' | 'placeholder' | 'hidden'> = {}
 ): CollectionField => ({ name, label, type, required, ...hints });
 
-const sortOrder = field('sort_order', 'Sort order', 'number', false, {
-	help: 'Lowest number shows first.'
-});
+// Positions are set by dragging items in the admin list, not by typing a number.
+const sortOrder = field('sort_order', 'Sort order', 'number', false, { hidden: true });
 const published = field('is_published', 'Published', 'checkbox', false, {
 	help: 'Untick to hide this on the website.'
 });
@@ -52,6 +61,9 @@ const altHelp = 'Describes the photo for screen readers and Google. It does not 
 export const collections = {
 	testimonials: {
 		itemLabel: 'testimonial',
+		titleField: 'name',
+		detailField: 'role',
+		imageField: 'image_url',
 		fields: [
 			field('name', 'Client name', 'text', true, {
 				help: 'A first name or initials is fine.'
@@ -77,6 +89,9 @@ export const collections = {
 	},
 	transformations: {
 		itemLabel: 'transformation',
+		titleField: 'title',
+		detailField: 'summary',
+		imageField: 'after_image_url',
 		fields: [
 			field('title', 'Title', 'text', true, {
 				help: 'A display name or initials.',
@@ -113,6 +128,21 @@ export function emptyValues(fields: readonly CollectionField[]): Record<string, 
 	return Object.fromEntries(
 		fields.map(({ name, type }) => [name, type === 'checkbox' ? false : type === 'number' ? 0 : ''])
 	);
+}
+
+/**
+ * Checks a requested display order: distinct item ids, first shown first.
+ * Returns the ids or a user-facing error message.
+ */
+export function validateOrder(input: unknown): { order: string[] } | { error: string } {
+	if (
+		!Array.isArray(input) ||
+		input.length > MAX_REORDER_ITEMS ||
+		!input.every((id) => typeof id === 'string' && id.length > 0 && id.length <= 64) ||
+		new Set(input).size !== input.length
+	)
+		return { error: 'The new order is invalid.' };
+	return { order: input };
 }
 
 /**

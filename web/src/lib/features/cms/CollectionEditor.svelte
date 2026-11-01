@@ -1,6 +1,8 @@
 <!--
-	Form for one collection item. Without `row` it creates a new item and
-	resets after saving; with `row` it updates or deletes that item.
+	Form for one collection item. Without `row` it creates a new item (at
+	`sortOrder`) and resets after saving; with `row` it updates or deletes that
+	item. An item's position is set by the list, so saving never sends it.
+	`embedded` drops the card frame for a form inside an item card.
 	Reports unsaved edits and in-flight work through `onDirtyChange`.
 -->
 <script lang="ts">
@@ -21,18 +23,23 @@
 	let {
 		collection,
 		row,
+		sortOrder,
+		embedded = false,
 		onSaved,
 		onDeleted,
 		onDirtyChange
 	}: {
 		collection: CollectionName;
 		row?: CollectionRow;
+		sortOrder?: number;
+		embedded?: boolean;
 		onSaved: (row: CollectionRow) => void;
 		onDeleted: (id: string) => void;
 		onDirtyChange: (dirty: boolean) => void;
 	} = $props();
 
-	const { fields, itemLabel } = untrack(() => collections[collection]);
+	const { fields: allFields, itemLabel } = untrack(() => collections[collection]);
+	const fields = allFields.filter((field) => !field.hidden);
 	const endpoint = untrack(() => `/api/cms/${collection}`);
 	let values = $state<Content>(
 		untrack(() => {
@@ -59,7 +66,10 @@
 		try {
 			const saved = await cmsRequest<CollectionRow>(
 				endpoint,
-				{ method: row ? 'PATCH' : 'POST', json: row ? { id: row.id, ...values } : values },
+				{
+					method: row ? 'PATCH' : 'POST',
+					json: row ? { id: row.id, ...values } : { ...values, sort_order: sortOrder }
+				},
 				'The change could not be saved.'
 			);
 			onSaved(saved);
@@ -92,7 +102,10 @@
 	}
 </script>
 
-<form class="{card} grid gap-4" onsubmit={save}>
+<form
+	class={embedded ? 'grid gap-4 border-t border-line p-5 bp-760:p-4' : `${card} grid gap-4`}
+	onsubmit={save}
+>
 	{#each fields as field (field.name)}
 		{@const helpId = `${row?.id || 'new'}-${field.name}-help`}
 		<div class="grid gap-[6px]">

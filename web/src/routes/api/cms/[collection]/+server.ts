@@ -1,5 +1,5 @@
 /**
- * CRUD API for item collections (testimonials, transformations).
+ * CRUD and reorder API for item collections (testimonials, transformations).
  *
  * Writable columns and their rules come from `$lib/content/collections`.
  * Row-level security in the database is the final authority; these checks
@@ -12,6 +12,7 @@ import { readJsonObject } from '$lib/server/request';
 import {
 	isCollectionName,
 	validateCollectionItem,
+	validateOrder,
 	type CollectionName
 } from '$lib/content/collections';
 
@@ -68,6 +69,23 @@ export const PATCH = async (event) => {
 		.single();
 	if (queryError) return json({ message: queryError.message }, { status: 400 });
 	return json(data);
+};
+
+/** Saves a new display order: `{ order: [id, …] }`, first id shown first. */
+export const PUT = async (event) => {
+	requireSameOrigin(event);
+	await requireAdmin(event);
+	const collection = collectionOf(event.params.collection);
+	const result = validateOrder((await readJsonObject(event.request)).order);
+	if ('error' in result) error(400, result.error);
+	const updates = await Promise.all(
+		result.order.map((id, position) =>
+			event.locals.supabase.from(collection).update({ sort_order: position }).eq('id', id)
+		)
+	);
+	const failed = updates.find((update) => update.error);
+	if (failed?.error) return json({ message: failed.error.message }, { status: 400 });
+	return new Response(null, { status: 204 });
 };
 
 export const DELETE = async (event) => {
