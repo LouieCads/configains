@@ -458,14 +458,6 @@ export const websiteSchema: Field = group('Website', {
 			'Fitness & Nutrition Assessment | Configains',
 			'Share your fitness and nutrition starting point with Configains. Cash Fuerte personally reviews your assessment and recommends coaching next steps.'
 		),
-		hero: group('Page introduction', {
-			title: area('Heading', 'YOUR STARTING POINT.\nYOUR WAY FORWARD.'),
-			copy: area(
-				'Introduction',
-				'Tell us what you know, what you’ve tried, and where you want to go. There are no right or wrong answers. Cash Fuerte, our founder and coach, will personally review your responses.'
-			)
-		}),
-		intro: text('Short introduction', 'A quick fitness & nutrition assessment.'),
 		back: text('Back link', 'Back to Configains'),
 		steps: list(
 			'What happens next',
@@ -715,7 +707,8 @@ export function validateWebsite(value: Content): string[] {
 	for (const page of websitePages) {
 		if (isBlank(value[page].seo.title) || isBlank(value[page].seo.description))
 			errors.push(`${page}: search title and description are required.`);
-		if (page !== 'home' && isBlank(value[page].hero.title))
+		// Home and contact have no single page heading field.
+		if (page !== 'home' && page !== 'contact' && isBlank(value[page].hero.title))
 			errors.push(`${page}: page heading is required.`);
 	}
 

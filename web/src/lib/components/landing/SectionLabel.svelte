@@ -10,7 +10,7 @@
 
 <p class="{labelText} {labelSpacing} {tone === 'dark' ? 'text-[#b6cdd1]' : 'text-ink'}">
 	{#if number}<span class={tone === 'dark' ? 'text-cyan' : 'text-cyan-deep'}>{number}</span><span
-			class="h-px w-9 bg-current opacity-40"
+			class="h-[0.85em] w-px [transform:rotate(22deg)] bg-current opacity-35"
 			aria-hidden="true"
 		></span>{/if}{@render children()}
 </p>

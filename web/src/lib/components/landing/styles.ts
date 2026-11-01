@@ -36,9 +36,13 @@ export const labelText =
 	'flex items-center gap-3 font-display text-[1.0625rem]/none tracking-[0.2em] uppercase';
 export const labelSpacing = 'mb-6 bp-640:mb-5';
 
-/** The cyan highlighter swipe behind a word. Colour via `--mark`, extent via `--mark-size`. */
+/**
+ * The cyan highlighter swipe behind a word: a low, slightly translucent band
+ * with feathered edges so it sits under the letters instead of boxing them.
+ * Colour via `--mark`, extent via `--mark-size`.
+ */
 export const mark =
-	'[-webkit-box-decoration-break:clone] [box-decoration-break:clone] bg-[linear-gradient(transparent_58%,var(--mark,var(--color-cyan))_58%,var(--mark,var(--color-cyan))_92%,transparent_92%)] bg-size-[var(--mark-size,100%_100%)] bg-no-repeat px-[0.06em] -mx-[0.06em]';
+	'[--mark-tint:color-mix(in_oklab,var(--mark,var(--color-cyan))_72%,transparent)] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] bg-[linear-gradient(180deg,transparent_60%,var(--mark-tint)_65%,var(--mark-tint)_87%,transparent_92%)] bg-size-[var(--mark-size,100%_100%)] bg-no-repeat px-[0.08em] -mx-[0.08em]';
 
 /** Pulse dot; add its background colour where used. */
 export const statusDot =

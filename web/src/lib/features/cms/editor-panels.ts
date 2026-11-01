@@ -99,7 +99,7 @@ const layouts: Record<string, PanelDefinition[]> = {
 	transformations: [panel('Introduction', 'hero', 'empty'), settingsPanel('SEO', 'seo')],
 	faq: [panel('Section settings', 'enabled', 'eyebrow', 'heading'), panel('Questions', 'items')],
 	contact: [
-		panel('Introduction', 'hero', 'intro', 'back'),
+		panel('Introduction', 'back'),
 		panel('Next steps', 'steps'),
 		panel('Personal details', 'sectionOne', 'nameLabel', 'emailLabel', 'emailHelp', 'goal'),
 		panel(

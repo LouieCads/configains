@@ -1,0 +1,72 @@
+[   54212ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5199/@vite/client:1030
+[   57035ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/.svelte-kit/generated/client/nodes/4.js:0
+[   57037ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/__data.json?x-sveltekit-trailing-slash=1&x-sveltekit-invalidated=001#home:0
+[   57038ms] [WARNING] The next HMR update will cause the page to reload @ http://localhost:5199/@vite/client:298
+[   57041ms] [ERROR] TypeError: Failed to fetch
+    at window.fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:67:10)
+    at dev_fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:151:16)
+    at load_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:3123:20)
+    at load_route (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:1239:25)
+    at _preload_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:623:13)
+    at preload (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:2168:10) @ http://localhost:5199/@vite/client:298
+[   57047ms] [WARNING] Preloading data for / failed with the following error: Internal Error
+If this error is transient, you can ignore it. Otherwise, consider disabling preloading for this route. This route was preloaded due to a data-sveltekit-preload-data attribute. See https://svelte.dev/docs/kit/link-options for more info @ http://localhost:5199/@vite/client:298
+[   57060ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/__data.json?x-sveltekit-trailing-slash=1&x-sveltekit-invalidated=001#home:0
+[   57060ms] [WARNING] The next HMR update will cause the page to reload @ http://localhost:5199/@vite/client:298
+[   57060ms] [ERROR] TypeError: Failed to fetch
+    at window.fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:67:10)
+    at dev_fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:151:16)
+    at load_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:3123:20)
+    at load_route (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:1239:25)
+    at _preload_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:623:13)
+    at preload (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:2168:10) @ http://localhost:5199/@vite/client:298
+[   57060ms] [WARNING] Preloading data for / failed with the following error: Internal Error
+If this error is transient, you can ignore it. Otherwise, consider disabling preloading for this route. This route was preloaded due to a data-sveltekit-preload-data attribute. See https://svelte.dev/docs/kit/link-options for more info @ http://localhost:5199/@vite/client:298
+[   57060ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/.svelte-kit/generated/client/nodes/4.js:0
+[   57098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/__data.json?x-sveltekit-trailing-slash=1&x-sveltekit-invalidated=001#home:0
+[   57098ms] [WARNING] The next HMR update will cause the page to reload @ http://localhost:5199/@vite/client:298
+[   57098ms] [ERROR] TypeError: Failed to fetch
+    at window.fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:67:10)
+    at dev_fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:151:16)
+    at load_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:3123:20)
+    at load_route (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:1239:25)
+    at _preload_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:623:13)
+    at preload (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:2168:10) @ http://localhost:5199/@vite/client:298
+[   57098ms] [WARNING] Preloading data for / failed with the following error: Internal Error
+If this error is transient, you can ignore it. Otherwise, consider disabling preloading for this route. This route was preloaded due to a data-sveltekit-preload-data attribute. See https://svelte.dev/docs/kit/link-options for more info @ http://localhost:5199/@vite/client:298
+[   57099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/.svelte-kit/generated/client/nodes/4.js:0
+[   57150ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/.svelte-kit/generated/client/nodes/4.js:0
+[   57150ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/__data.json?x-sveltekit-trailing-slash=1&x-sveltekit-invalidated=001#home:0
+[   57150ms] [WARNING] The next HMR update will cause the page to reload @ http://localhost:5199/@vite/client:298
+[   57150ms] [ERROR] TypeError: Failed to fetch
+    at window.fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:67:10)
+    at dev_fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:151:16)
+    at load_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:3123:20)
+    at load_route (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:1239:25)
+    at _preload_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:623:13)
+    at preload (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:2168:10) @ http://localhost:5199/@vite/client:298
+[   57150ms] [WARNING] Preloading data for / failed with the following error: Internal Error
+If this error is transient, you can ignore it. Otherwise, consider disabling preloading for this route. This route was preloaded due to a data-sveltekit-preload-data attribute. See https://svelte.dev/docs/kit/link-options for more info @ http://localhost:5199/@vite/client:298
+[   57173ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/__data.json?x-sveltekit-trailing-slash=1&x-sveltekit-invalidated=001#home:0
+[   57173ms] [WARNING] The next HMR update will cause the page to reload @ http://localhost:5199/@vite/client:298
+[   57173ms] [ERROR] TypeError: Failed to fetch
+    at window.fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:67:10)
+    at dev_fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:151:16)
+    at load_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:3123:20)
+    at load_route (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:1239:25)
+    at _preload_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:623:13)
+    at preload (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:2168:10) @ http://localhost:5199/@vite/client:298
+[   57173ms] [WARNING] Preloading data for / failed with the following error: Internal Error
+If this error is transient, you can ignore it. Otherwise, consider disabling preloading for this route. This route was preloaded due to a data-sveltekit-preload-data attribute. See https://svelte.dev/docs/kit/link-options for more info @ http://localhost:5199/@vite/client:298
+[   57173ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/.svelte-kit/generated/client/nodes/4.js:0
+[   57240ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/.svelte-kit/generated/client/nodes/4.js:0
+[   57240ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/__data.json?x-sveltekit-trailing-slash=1&x-sveltekit-invalidated=001#home:0
+[   57240ms] [WARNING] The next HMR update will cause the page to reload @ http://localhost:5199/@vite/client:298
+[   57240ms] [ERROR] TypeError: Failed to fetch
+    at window.fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:67:10)
+    at dev_fetch (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/fetcher.js?v=a772f2de:151:16)
+    at load_data (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:3123:20)
+    at load_route (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:1239:25)
+    at navigate (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:1761:43)
+    at async HTMLHtmlElement.<anonymous> (http://localhost:5199/node_modules/.pnpm/@sveltejs+kit@2.70.3_@svelt_4900fe5088d2d5354a8d0a0316a79930/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=a772f2de:2813:3) @ http://localhost:5199/@vite/client:298
+[   57244ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5199/__data.json?x-sveltekit-trailing-slash=1&x-sveltekit-invalidated=1#home:0

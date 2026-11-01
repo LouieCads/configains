@@ -162,6 +162,15 @@
 			class="{container} grid grid-cols-[minmax(0,5fr)_minmax(0,6fr)] items-center gap-x-[clamp(48px,8vw,128px)] gap-y-16 cq-58:grid-cols-[minmax(0,1fr)]"
 		>
 			<figure class="m-0 cq-58:max-w-[30rem]" use:reveal>
+				<figcaption class="mb-8">
+					<span class="block font-display text-[1rem]/none tracking-[0.2em] text-cyan-deep"
+						>{c.about.portraitLabel}</span
+					>
+					<strong
+						class="mt-3 block font-display text-[clamp(2.5rem,4vw,3.25rem)]/none font-normal text-ink"
+						>{site.brand.founder}.</strong
+					>
+				</figcaption>
 				<div class="relative isolate">
 					<div
 						class="absolute inset-0 -z-10 translate-x-4 translate-y-4 bg-cyan"
@@ -187,15 +196,6 @@
 							>
 						</div>{/if}
 				</div>
-				<figcaption class="mt-8">
-					<span class="block font-display text-[1rem]/none tracking-[0.2em] text-cyan-deep"
-						>{c.about.portraitLabel}</span
-					>
-					<strong
-						class="mt-3 block font-display text-[clamp(2.5rem,4vw,3.25rem)]/none font-normal text-ink"
-						>{site.brand.founder}.</strong
-					><span class="mt-2 block text-[0.875rem]/[1.5] text-ink-soft">{site.brand.role}</span>
-				</figcaption>
 			</figure>
 			<div use:reveal={100}>
 				<SectionLabel number={sectionNumber('about')}>{c.about.eyebrow}</SectionLabel>
@@ -231,11 +231,14 @@
 		aria-labelledby="transformations-title"
 	>
 		<div class={container}>
-			<div class="mb-14 bp-640:mb-10" use:reveal>
-				<SectionLabel number={sectionNumber('transformations')}>{proof.eyebrow}</SectionLabel>
-				<SectionTitle id="transformations-title" heading={proof.heading} />
-			</div>
-			<TransformationCarousel items={data.transformations} {proof} />
+			<TransformationCarousel items={data.transformations} {proof}>
+				{#snippet header()}
+					<div class="mb-14 bp-640:mb-10" use:reveal>
+						<SectionLabel number={sectionNumber('transformations')}>{proof.eyebrow}</SectionLabel>
+						<SectionTitle id="transformations-title" heading={proof.heading} />
+					</div>
+				{/snippet}
+			</TransformationCarousel>
 		</div>
 	</section>
 {/snippet}

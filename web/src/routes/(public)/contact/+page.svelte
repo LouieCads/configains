@@ -4,7 +4,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import Arrow from '$lib/components/landing/Arrow.svelte';
 	import SectionLabel from '$lib/components/landing/SectionLabel.svelte';
-	import { container, section as sectionSpacing } from '$lib/components/landing/styles';
+	import { container } from '$lib/components/landing/styles';
 	import { publicHref } from '$lib/content/links';
 	import type { Content } from '$lib/content/schema';
 	let { data } = $props();
@@ -72,30 +72,23 @@
 		></label
 	>
 {/snippet}
-<div class="{sectionSpacing} text-ink">
+<div class="pt-[clamp(12px,2vw,24px)] pb-[clamp(72px,9vw,136px)] text-ink">
 	<div class={container}>
 		<a
-			class="inline-flex min-h-11 items-center text-[0.9375rem] hover:text-cyan-deep"
+			class="mb-[clamp(12px,2vw,20px)] inline-flex min-h-11 items-center text-[0.9375rem] hover:text-cyan-deep"
 			href={publicHref('/', data.preview)}>← {c.back}</a
 		>
-		<header class="max-w-[780px] pt-[clamp(24px,4vw,40px)] pb-[clamp(40px,5vw,64px)]">
-			<h1 class="mb-6 text-[clamp(3.5rem,8vw,7rem)] whitespace-pre-line">
-				{c.hero.title}
-			</h1>
-			<p class="mb-3 max-w-[650px] text-[1.25rem]/[1.6] text-ink">
-				{c.intro}
-			</p>
-			<p class="max-w-[650px] leading-[1.8] whitespace-pre-line text-ink-soft">{c.hero.copy}</p>
-		</header>
+		<!-- The page keeps one heading for screen readers and search; the visible intro was removed. -->
+		<h1 class="sr-only">{c.seo.title}</h1>
 		<div
 			class="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1.6fr)] [align-items:start] gap-[clamp(32px,4vw,56px)] bp-1100:grid-cols-1 bp-1100:gap-9 bp-1100:[grid-template-areas:'form'_'steps']"
 		>
 			<aside
-				class="pt-4 bp-1100:border-t bp-1100:border-t-ink/15 bp-1100:pt-7 bp-1100:[grid-area:steps]"
+				class="bp-1100:border-t bp-1100:border-t-ink/15 bp-1100:pt-7 bp-1100:[grid-area:steps]"
 				aria-label="What happens next"
 			>
 				<ol
-					class="my-7 list-none p-0 [counter-reset:steps] bp-1100:m-0 bp-1100:grid bp-1100:grid-cols-3 bp-1100:gap-6 bp-767:grid-cols-1 bp-767:gap-[18px]"
+					class="mt-0 mb-7 list-none p-0 [counter-reset:steps] bp-1100:m-0 bp-1100:grid bp-1100:grid-cols-3 bp-1100:gap-6 bp-767:grid-cols-1 bp-767:gap-[18px]"
 				>
 					{#each c.steps as step, index (index)}<li
 							class="relative pb-[26px] pl-12 [counter-increment:steps] before:absolute before:left-0 before:font-display before:text-[1.5rem] before:leading-none before:text-cyan-deep before:content-['0'_counter(steps)] bp-1100:min-w-0 bp-1100:pb-0"
