@@ -72,8 +72,8 @@
 			items: [
 				{ name: 'nutrition-knowledge', label: c.nutritionKnowledge.label },
 				{ name: 'nutrition-experience', label: c.nutritionExperience.label },
-				{ name: 'biggest-challenge', label: c.challengeLabel },
-				{ name: 'additional-context', label: c.contextLabel }
+				{ name: 'biggest-challenge', label: c.challengeLabel, wide: true },
+				{ name: 'additional-context', label: c.contextLabel, wide: true }
 			]
 		}
 	]);
@@ -97,23 +97,25 @@
 		'focus-visible:outline-3 focus-visible:outline-cyan-ink focus-visible:outline-offset-4';
 	const label = 'block text-[0.95rem] leading-[1.6] text-ink';
 	/** Labels placed directly in a fieldset are spaced from the field above. */
-	const fieldsetLabel = `${label} [fieldset>&:not(legend+*)]:mt-5`;
-	const control = `mt-2 block min-h-12 w-full rounded-[3px] border border-ink/35 bg-white p-3 text-[1rem]/[1.5] text-ink aria-invalid:border-[#962f24] aria-invalid:[box-shadow:0_0_0_1px_#962f24] ${focusRing}`;
+	const fieldsetLabel = `${label} [fieldset>&:not(legend+*)]:mt-4`;
+	// scroll-mb keeps a focused field clear of the pinned button bar.
+	const control = `mt-1.5 block min-h-11 w-full scroll-mb-32 rounded-[3px] border border-ink/35 bg-white px-3 py-2 text-[1rem]/[1.5] text-ink aria-invalid:border-[#962f24] aria-invalid:[box-shadow:0_0_0_1px_#962f24] ${focusRing}`;
 	const fieldGrid =
-		'grid grid-cols-2 gap-[18px] bp-767:grid-cols-1 [fieldset>&:not(legend+*)]:mt-5';
-	const fieldset =
-		'mb-7 min-w-0 [border-width:0_0_1px] [border-style:none_none_solid] border-b-ink/15 p-0 pb-[30px]';
+		'grid grid-cols-2 gap-x-4 gap-y-4 bp-767:grid-cols-1 [fieldset>&:not(legend+*)]:mt-4';
+	const fieldset = 'm-0 min-w-0 p-0 pb-5';
 	const legend =
-		'mb-5 p-0 font-display text-[1.875rem]/none font-normal text-ink focus:outline-hidden';
+		'mb-4 p-0 font-display text-[1.75rem]/none font-normal text-ink focus:outline-hidden';
 	const legendNumber = 'mr-3 text-[1.25rem] tracking-[0.1em] text-cyan-deep';
 	const note = 'text-[0.8125rem] leading-[1.65] text-ink-soft';
 	const marker = 'ml-[0.25em] text-cyan-deep';
+	const alertBox =
+		'mb-4 scroll-my-32 border border-[#efb8ac] bg-[#fff1ee] px-3.5 py-2.5 text-[0.8rem] leading-[1.6] text-[#962f24]';
 	const card =
-		'min-w-0 scroll-mt-28 rounded-[3px] border border-ink/15 border-t-4 border-t-cyan bg-white p-[clamp(22px,4vw,42px)] bp-1100:[grid-area:form]';
+		'min-w-0 scroll-mt-24 rounded-[3px] border border-ink/15 border-t-4 border-t-cyan bg-white [--pad:clamp(18px,3vw,30px)] p-(--pad) bp-1100:[grid-area:form]';
 	const buttonBase =
-		'group inline-flex min-h-[56px] cursor-pointer items-center justify-center gap-4 rounded-[3px] px-7 pt-[0.95rem] pb-[0.8rem] font-display text-[1.3rem]/none tracking-[0.09em] no-underline [transition:background-color_0.25s,color_0.25s] disabled:cursor-wait disabled:opacity-65 motion-reduce:[transition:none] bp-480:w-full';
-	const submit = `${buttonBase} [border:0] bg-ink text-bone hover:bg-cyan hover:text-ink`;
-	const ghost = `${buttonBase} border border-ink/35 bg-transparent text-ink hover:bg-ink hover:text-bone`;
+		'group inline-flex min-h-[52px] cursor-pointer items-center justify-center gap-3 rounded-[3px] px-7 pt-[0.85rem] pb-[0.7rem] font-display text-[1.3rem]/none tracking-[0.09em] no-underline [transition:background-color_0.25s,color_0.25s] disabled:cursor-wait disabled:opacity-65 motion-reduce:[transition:none]';
+	const submit = `${buttonBase} [border:0] bg-ink text-bone hover:bg-cyan hover:text-ink bp-480:flex-1 bp-480:gap-2 bp-480:px-3 bp-480:text-[1.1rem] bp-480:tracking-[0.05em]`;
+	const ghost = `${buttonBase} border border-ink/35 bg-transparent text-ink hover:bg-ink hover:text-bone bp-480:w-[52px] bp-480:flex-none bp-480:px-0`;
 
 	const invalid = (name: string) => (flow.errors[name] ? 'true' : undefined);
 	const described = (name: string, extra?: string) =>
@@ -149,6 +151,11 @@
 		flow.edit(index);
 		await moved();
 	}
+	/** Brings the send error into view, clear of the pinned button bar. */
+	async function showError() {
+		await tick();
+		form?.querySelector('[data-alert]')?.scrollIntoView({ block: 'nearest' });
+	}
 	async function clearAnswers() {
 		if (!window.confirm(f.clearConfirm)) return;
 		flow.reset();
@@ -176,7 +183,7 @@
 		}
 		if (dev || data.preview) {
 			error = c.previewError.replaceAll('{email}', email);
-			return;
+			return showError();
 		}
 		const body = new SvelteURLSearchParams();
 		for (const [name, value] of new FormData(event.currentTarget as HTMLFormElement))
@@ -195,6 +202,7 @@
 			resultHeading?.focus();
 		} catch {
 			error = c.error.replaceAll('{email}', email);
+			await showError();
 		} finally {
 			submitting = false;
 		}
@@ -232,10 +240,10 @@
 		>{@render fieldError(name)}</label
 	>
 {/snippet}
-<div class="pt-[clamp(12px,2vw,24px)] pb-[clamp(72px,9vw,136px)] text-ink">
+<div class="pt-[clamp(4px,1vw,12px)] pb-[clamp(72px,9vw,136px)] text-ink">
 	<div class={container}>
 		<a
-			class="mb-[clamp(12px,2vw,20px)] inline-flex min-h-11 items-center text-[0.9375rem] hover:text-cyan-deep"
+			class="mb-1 inline-flex min-h-11 items-center text-[0.9375rem] hover:text-cyan-deep"
 			href={publicHref('/', data.preview)}>← {c.back}</a
 		>
 		<!-- The page keeps one heading for screen readers and search; the visible intro was removed. -->
@@ -300,11 +308,8 @@
 						stepsLabel={f.stepsLabel}
 						onselect={jump}
 					/>
-					<div class="mb-6 min-h-6">
-						<SaveStatus status={flow.status} savingText={f.saving} savedText={f.saved} />
-					</div>
 					{#if flow.restored}<p
-							class="mb-7 border-l-4 border-l-cyan bg-mist p-3.5 text-[0.9rem] leading-[1.6] text-ink"
+							class="mb-4 border-l-4 border-l-cyan bg-mist px-3.5 py-2 text-[0.875rem] leading-[1.5] text-ink"
 							role="status"
 						>
 							{f.restored}
@@ -353,7 +358,7 @@
 								/>{@render fieldError('email')}</label
 							>
 						</div>
-						<p id="email-help" class="mt-2 {note}">{c.emailHelp}</p>
+						<p id="email-help" class="mt-1 {note}">{c.emailHelp}</p>
 						{@render question('goal', c.goal)}
 					</fieldset>
 					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 1} data-step="1">
@@ -381,7 +386,7 @@
 							>{c.challengeLabel}<span class={marker} aria-hidden="true">*</span><textarea
 								class="{control} resize-y"
 								name="biggest-challenge"
-								rows="3"
+								rows="2"
 								required
 								maxlength="1500"
 								placeholder={c.challengePlaceholder}
@@ -395,7 +400,7 @@
 							>{c.contextLabel} <span class={note}>{c.optionalLabel}</span><textarea
 								class="{control} resize-y"
 								name="additional-context"
-								rows="3"
+								rows="2"
 								maxlength="1500"
 								placeholder={c.contextPlaceholder}
 								bind:value={flow.values['additional-context']}></textarea></label
@@ -405,11 +410,11 @@
 						<legend class={legend} tabindex="-1"
 							><span class={legendNumber}>04</span>{f.reviewTitle}</legend
 						>
-						<p class="mb-6 {note}">{f.reviewCopy}</p>
+						<p class="mb-3 {note}">{f.reviewCopy}</p>
 						{#each review as group, index (index)}
-							<section class="border-t border-t-ink/15 py-5" aria-labelledby="review-{index}">
+							<section class="border-t border-t-ink/15 py-2" aria-labelledby="review-{index}">
 								<div class="flex items-center justify-between gap-4">
-									<h2 id="review-{index}" class="text-[1.5rem]/none">
+									<h2 id="review-{index}" class="text-[1.375rem]/none">
 										{group.title}
 									</h2>
 									<button
@@ -419,12 +424,12 @@
 										>{f.edit}<span class="sr-only"> {group.title}</span></button
 									>
 								</div>
-								<dl class="m-0 mt-3 grid gap-3">
+								<dl class="m-0 mt-1 mb-2 grid grid-cols-2 gap-x-6 gap-y-2 bp-640:grid-cols-1">
 									{#each group.items as item (item.name)}
-										<div>
-											<dt class={note}>{item.label}</dt>
+										<div class={item.wide ? 'col-span-2 bp-640:col-span-1' : ''}>
+											<dt class="{note} leading-[1.4]">{item.label}</dt>
 											<dd
-												class="m-0 mt-0.5 text-[0.95rem]/[1.6] wrap-anywhere whitespace-pre-wrap text-ink"
+												class="m-0 text-[0.9375rem]/[1.5] wrap-anywhere whitespace-pre-wrap text-ink"
 											>
 												{flow.values[item.name]?.trim() || f.notAnswered}
 											</dd>
@@ -433,9 +438,9 @@
 								</dl>
 							</section>
 						{/each}
-						<div class="border-t border-t-ink/15 pt-5">
+						<div class="border-t border-t-ink/15 pt-3">
 							<p class={note}>{c.privacy}</p>
-							<label class="my-5 flex [align-items:start] gap-3 text-[0.9rem] leading-[1.6]"
+							<label class="mt-3 flex [align-items:start] gap-3 text-[0.9rem] leading-[1.5]"
 								><input
 									class="mt-[3px] size-5 shrink-0 accent-cyan-ink aria-invalid:outline-2 aria-invalid:outline-[#962f24] {focusRing}"
 									type="checkbox"
@@ -454,45 +459,44 @@
 							>
 						</div>
 					</fieldset>
-					{#if Object.keys(flow.errors).length}<p
-							class="mb-5 border border-[#efb8ac] bg-[#fff1ee] p-[14px] text-[0.8rem] leading-[1.65] text-[#962f24]"
-							role="alert"
-						>
+					{#if Object.keys(flow.errors).length}<p class={alertBox} role="alert">
 							{f.errorSummary}
 						</p>{/if}
-					{#if error}<p
-							class="mb-5 border border-[#efb8ac] bg-[#fff1ee] p-[14px] text-[0.8rem] leading-[1.65] text-[#962f24]"
-							role="alert"
-						>
-							{error}
-						</p>{/if}
-					<div class="flex flex-wrap items-center justify-between gap-3 bp-480:flex-col-reverse">
-						{#if flow.step > 0}<button
-								class={ghost}
-								type="button"
-								onclick={back}
-								disabled={submitting}
-								><span class="flex [transform:scaleX(-1)]"><Arrow size={20} /></span
-								>{f.previous}</button
-							>{:else}<span></span>{/if}
-						<button class={submit} type="submit" disabled={submitting}
-							>{#if flow.step < flow.last}{flow.returnTo === null
-									? f.next
-									: f.backToReview}{:else}{submitting
-									? c.submitting
-									: c.submit}{/if}{#if !submitting}<Arrow />{/if}</button
-						>
+					{#if error}<p class={alertBox} role="alert" data-alert>{error}</p>{/if}
+					<!-- Pinned to the bottom of the screen, so Next and Send are always in reach. -->
+					<div
+						class="sticky bottom-0 z-10 -mx-(--pad) border-t border-t-ink/15 bg-white px-(--pad) py-3"
+					>
+						<div class="flex items-center justify-between gap-3">
+							{#if flow.step > 0}<button
+									class={ghost}
+									type="button"
+									onclick={back}
+									disabled={submitting}
+									><span class="flex [transform:scaleX(-1)]"><Arrow size={20} /></span><span
+										class="bp-480:sr-only">{f.previous}</span
+									></button
+								>{:else}<span></span>{/if}
+							<button class={submit} type="submit" disabled={submitting}
+								>{#if flow.step < flow.last}{flow.returnTo === null
+										? f.next
+										: f.backToReview}{:else}{submitting
+										? c.submitting
+										: c.submit}{/if}{#if !submitting}<Arrow />{/if}</button
+							>
+						</div>
+						{#if submitting}<p class="mt-2 {note}" aria-live="polite">{c.sendingNote}</p>{/if}
 					</div>
-					{#if submitting}<p class="mt-3 {note}" aria-live="polite">{c.sendingNote}</p>{/if}
-					<div class="mt-8 border-t border-t-ink/15 pt-4">
-						<p class={note}>{f.draftNote}</p>
+					<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-0">
+						<SaveStatus status={flow.status} savingText={f.saving} savedText={f.saved} />
 						{#if flow.hasProgress}<button
-								class="mt-1 inline-flex min-h-11 cursor-pointer items-center border-0 bg-transparent p-0 text-[0.8125rem] text-ink underline decoration-cyan decoration-2 underline-offset-4 hover:text-cyan-deep {focusRing}"
+								class="inline-flex min-h-9 cursor-pointer items-center border-0 bg-transparent p-0 text-[0.8125rem] text-ink underline decoration-cyan decoration-2 underline-offset-4 hover:text-cyan-deep {focusRing}"
 								type="button"
 								onclick={clearAnswers}
 								disabled={submitting}>{f.clearDraft}</button
 							>{/if}
 					</div>
+					<p class="mt-1 {note}">{f.draftNote}</p>
 				</form>{/if}
 		</div>
 	</div>
