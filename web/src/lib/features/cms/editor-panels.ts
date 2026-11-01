@@ -120,6 +120,7 @@ const layouts: Record<string, PanelDefinition[]> = {
 			'optionalLabel'
 		),
 		panel('Privacy and consent', 'privacy', 'consent'),
+		panel('Step-by-step form', 'flow'),
 		panel('Submission', 'submit', 'submitting', 'sendingNote', 'previewError', 'error'),
 		panel('Success message', 'successEyebrow', 'successTitle', 'successCopy'),
 		settingsPanel('SEO', 'seo')

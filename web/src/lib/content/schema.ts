@@ -553,6 +553,45 @@ export const websiteSchema: Field = group('Website', {
 			'Consent label',
 			'I agree to Configains using my answers to assess my inquiry and contact me about coaching.'
 		),
+		flow: group(
+			'Step-by-step form',
+			{
+				stepCounter: text('Step counter', 'Step {current} of {total}'),
+				percentComplete: text('Percent complete', '{percent}% complete'),
+				progressLabel: text('Progress bar description', 'Assessment progress'),
+				stepsLabel: text('Step list description', 'Assessment steps'),
+				reviewStep: text('Review step name', 'Review & send'),
+				reviewTitle: text('Review heading', 'Check your answers'),
+				reviewCopy: area(
+					'Review message',
+					'Look everything over. Choose Edit to change an answer before you send.'
+				),
+				edit: text('Edit button', 'Edit'),
+				notAnswered: text('Empty answer', 'Not answered'),
+				previous: text('Previous button', 'Previous'),
+				next: text('Next button', 'Next'),
+				backToReview: text('Back to review button', 'Back to review'),
+				saving: text('Saving message', 'Saving…'),
+				saved: text('Saved message', 'All changes saved'),
+				restored: area(
+					'Welcome-back message',
+					'Welcome back. Your saved answers are filled in below.'
+				),
+				draftNote: area(
+					'Draft explanation',
+					'Answers save automatically on this device only, and are cleared once you send them.'
+				),
+				clearDraft: text('Clear saved answers button', 'Clear saved answers'),
+				clearConfirm: area('Clear confirmation', 'Clear everything you entered and start over?'),
+				requiredError: text('Required answer error', 'This question needs an answer.'),
+				emailError: text('Email error', 'Enter a valid email address, like name@example.com.'),
+				errorSummary: area(
+					'Step error summary',
+					'Please answer the highlighted questions to continue.'
+				)
+			},
+			'Labels for the progress bar, buttons, saving status, and error messages. {current}, {total}, and {percent} are filled in automatically.'
+		),
 		submit: text('Submit button', 'Send my assessment'),
 		submitting: text('Sending button label', 'Sending your assessment…'),
 		sendingNote: text('Sending note', 'Please keep this page open while your answers are sent.'),

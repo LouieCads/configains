@@ -1,47 +1,186 @@
 <script lang="ts">
 	import { dev } from '$app/environment';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import Arrow from '$lib/components/landing/Arrow.svelte';
 	import SectionLabel from '$lib/components/landing/SectionLabel.svelte';
-	import { container } from '$lib/components/landing/styles';
+	import { container, textLink } from '$lib/components/landing/styles';
 	import { publicHref } from '$lib/content/links';
 	import type { Content } from '$lib/content/schema';
+	import FormProgress from '$lib/features/forms/FormProgress.svelte';
+	import SaveStatus from '$lib/features/forms/SaveStatus.svelte';
+	import { StepFlow } from '$lib/features/forms/step-flow.svelte';
 	let { data } = $props();
 	const c = $derived(data.site.contact),
+		f = $derived(c.flow),
 		email = $derived(data.site.brand.email);
 	let submitting = $state(false),
 		submitted = $state(false),
 		error = $state('');
 	let resultHeading = $state<HTMLHeadingElement>();
+	let form = $state<HTMLFormElement>();
+	// Consent is never saved in a draft: it is given fresh when the form is sent.
+	let consent = $state(false);
+
+	/** Answers kept in the draft. The honeypot and consent are left out on purpose. */
+	const answers = [
+		'name',
+		'email',
+		'goal',
+		'training-experience',
+		'fitness-knowledge',
+		'training-days',
+		'training-location',
+		'nutrition-knowledge',
+		'nutrition-experience',
+		'biggest-challenge',
+		'additional-context'
+	];
+	const flow = new StepFlow({
+		key: 'configains:assessment-draft:v1',
+		steps: 4,
+		fields: answers
+	});
+	const messages = $derived({ required: f.requiredError, email: f.emailError });
+	const stepTitles = $derived([
+		{ title: c.sectionOne },
+		{ title: c.sectionTwo },
+		{ title: c.sectionThree },
+		{ title: f.reviewStep }
+	]);
+	/** What the review step lists, one block per field group. */
+	const review = $derived([
+		{
+			title: c.sectionOne,
+			items: [
+				{ name: 'name', label: c.nameLabel },
+				{ name: 'email', label: c.emailLabel },
+				{ name: 'goal', label: c.goal.label }
+			]
+		},
+		{
+			title: c.sectionTwo,
+			items: [
+				{ name: 'training-experience', label: c.trainingExperience.label },
+				{ name: 'fitness-knowledge', label: c.fitnessKnowledge.label },
+				{ name: 'training-days', label: c.trainingDays.label },
+				{ name: 'training-location', label: c.trainingLocation.label }
+			]
+		},
+		{
+			title: c.sectionThree,
+			items: [
+				{ name: 'nutrition-knowledge', label: c.nutritionKnowledge.label },
+				{ name: 'nutrition-experience', label: c.nutritionExperience.label },
+				{ name: 'biggest-challenge', label: c.challengeLabel },
+				{ name: 'additional-context', label: c.contextLabel }
+			]
+		}
+	]);
+
+	onMount(() => {
+		// A saved answer that is no longer one of the choices is dropped.
+		flow.restore({
+			goal: c.goal.options,
+			'training-experience': c.trainingExperience.options,
+			'fitness-knowledge': c.fitnessKnowledge.options,
+			'training-days': c.trainingDays.options,
+			'training-location': c.trainingLocation.options,
+			'nutrition-knowledge': c.nutritionKnowledge.options,
+			'nutrition-experience': c.nutritionExperience.options
+		});
+		return () => flow.flush();
+	});
+	$effect(() => flow.track());
+
 	const focusRing =
 		'focus-visible:outline-3 focus-visible:outline-cyan-ink focus-visible:outline-offset-4';
 	const label = 'block text-[0.95rem] leading-[1.6] text-ink';
 	/** Labels placed directly in a fieldset are spaced from the field above. */
 	const fieldsetLabel = `${label} [fieldset>&:not(legend+*)]:mt-5`;
-	const control = `mt-2 block min-h-12 w-full rounded-[3px] border border-ink/35 bg-white p-3 text-[1rem]/[1.5] text-ink ${focusRing}`;
+	const control = `mt-2 block min-h-12 w-full rounded-[3px] border border-ink/35 bg-white p-3 text-[1rem]/[1.5] text-ink aria-invalid:border-[#962f24] aria-invalid:[box-shadow:0_0_0_1px_#962f24] ${focusRing}`;
 	const fieldGrid =
 		'grid grid-cols-2 gap-[18px] bp-767:grid-cols-1 [fieldset>&:not(legend+*)]:mt-5';
-	const fieldset = `mb-7 min-w-0 [border-width:0_0_1px] [border-style:none_none_solid] border-b-ink/15 p-0 pb-[30px] ${focusRing}`;
-	const legend = 'mb-5 p-0 font-display text-[1.875rem]/none font-normal text-ink';
+	const fieldset =
+		'mb-7 min-w-0 [border-width:0_0_1px] [border-style:none_none_solid] border-b-ink/15 p-0 pb-[30px]';
+	const legend =
+		'mb-5 p-0 font-display text-[1.875rem]/none font-normal text-ink focus:outline-hidden';
 	const legendNumber = 'mr-3 text-[1.25rem] tracking-[0.1em] text-cyan-deep';
 	const note = 'text-[0.8125rem] leading-[1.65] text-ink-soft';
 	const marker = 'ml-[0.25em] text-cyan-deep';
 	const card =
-		'min-w-0 rounded-[3px] border border-ink/15 border-t-4 border-t-cyan bg-white p-[clamp(22px,4vw,42px)] bp-1100:[grid-area:form]';
-	const submit =
-		'group inline-flex min-h-[56px] cursor-pointer items-center justify-center gap-4 rounded-[3px] [border:0] bg-ink px-7 pt-[0.95rem] pb-[0.8rem] font-display text-[1.3rem]/none tracking-[0.09em] text-bone no-underline [transition:background-color_0.25s,color_0.25s] hover:bg-cyan hover:text-ink disabled:cursor-wait disabled:opacity-65 motion-reduce:[transition:none] bp-480:w-full';
+		'min-w-0 scroll-mt-28 rounded-[3px] border border-ink/15 border-t-4 border-t-cyan bg-white p-[clamp(22px,4vw,42px)] bp-1100:[grid-area:form]';
+	const buttonBase =
+		'group inline-flex min-h-[56px] cursor-pointer items-center justify-center gap-4 rounded-[3px] px-7 pt-[0.95rem] pb-[0.8rem] font-display text-[1.3rem]/none tracking-[0.09em] no-underline [transition:background-color_0.25s,color_0.25s] disabled:cursor-wait disabled:opacity-65 motion-reduce:[transition:none] bp-480:w-full';
+	const submit = `${buttonBase} [border:0] bg-ink text-bone hover:bg-cyan hover:text-ink`;
+	const ghost = `${buttonBase} border border-ink/35 bg-transparent text-ink hover:bg-ink hover:text-bone`;
+
+	const invalid = (name: string) => (flow.errors[name] ? 'true' : undefined);
+	const described = (name: string, extra?: string) =>
+		[extra, flow.errors[name] ? `${name}-error` : undefined].filter(Boolean).join(' ') || undefined;
+
+	/** The container of one step's fields. */
+	const stepRoot = (index: number) =>
+		form?.querySelector<HTMLElement>(`[data-step="${index}"]`) ?? null;
+	function scrollToForm() {
+		const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		form?.scrollIntoView({ block: 'start', behavior: calm ? 'auto' : 'smooth' });
+	}
+	/** After a step change: show the top of the form and move focus to the new step's heading. */
+	async function moved() {
+		await tick();
+		form?.querySelector<HTMLElement>('[data-step]:not([hidden]) legend')?.focus({
+			preventScroll: true
+		});
+		scrollToForm();
+	}
+	async function advance() {
+		if (flow.next(stepRoot(flow.step), messages)) await moved();
+	}
+	async function back() {
+		flow.previous();
+		await moved();
+	}
+	async function jump(index: number) {
+		flow.jump(index);
+		await moved();
+	}
+	async function edit(index: number) {
+		flow.edit(index);
+		await moved();
+	}
+	async function clearAnswers() {
+		if (!window.confirm(f.clearConfirm)) return;
+		flow.reset();
+		consent = false;
+		error = '';
+		await moved();
+	}
+
 	async function submitAssessment(event: SubmitEvent) {
 		event.preventDefault();
 		if (submitting) return;
+		// Enter inside a field on an earlier step goes to the next step.
+		if (flow.step < flow.last) return advance();
 		error = '';
+		// Check every step again, so nothing slips through on the way to sending.
+		for (let index = 0; index <= flow.last; index++) {
+			if (flow.validate(stepRoot(index), messages)) continue;
+			if (index !== flow.step) {
+				flow.jump(index);
+				await tick();
+				flow.validate(stepRoot(index), messages);
+				scrollToForm();
+			}
+			return;
+		}
 		if (dev || data.preview) {
 			error = c.previewError.replaceAll('{email}', email);
 			return;
 		}
-		const form = event.currentTarget as HTMLFormElement;
 		const body = new SvelteURLSearchParams();
-		for (const [name, value] of new FormData(form)) body.append(name, String(value));
+		for (const [name, value] of new FormData(event.currentTarget as HTMLFormElement))
+			body.append(name, String(value));
 		submitting = true;
 		try {
 			const response = await fetch('/assessment-form.html', {
@@ -50,6 +189,7 @@
 				body: body.toString()
 			});
 			if (!response.ok) throw new Error('Submission failed');
+			flow.discard();
 			submitted = true;
 			await tick();
 			resultHeading?.focus();
@@ -61,15 +201,35 @@
 	}
 </script>
 
+<svelte:window onpagehide={() => flow.flush()} />
+<svelte:document
+	onvisibilitychange={() => {
+		if (document.visibilityState === 'hidden') flow.flush();
+	}}
+/>
+
+{#snippet fieldError(name: string)}
+	<!-- Hidden from the label's name; the field points to it with aria-describedby. -->
+	{#if flow.errors[name]}<span
+			id="{name}-error"
+			class="mt-2 block text-[0.8125rem] leading-[1.5] text-[#962f24]"
+			aria-hidden="true">{flow.errors[name]}</span
+		>{/if}
+{/snippet}
 {#snippet question(name: string, content: Content)}
 	<label class={fieldsetLabel}
 		>{content.label}<span class={marker} aria-hidden="true">*</span><select
 			class="{control} pr-9"
 			{name}
 			required
-			><option value="" disabled selected>{content.placeholder}</option
-			>{#each content.options as option, index (index)}<option>{option}</option>{/each}</select
-		></label
+			bind:value={flow.values[name]}
+			aria-invalid={invalid(name)}
+			aria-describedby={described(name)}
+			oninput={(event) => flow.revalidate(event.currentTarget, messages)}
+			><option value="" disabled>{content.placeholder}</option
+			>{#each content.options as option, index (index)}<option value={option}>{option}</option
+				>{/each}</select
+		>{@render fieldError(name)}</label
 	>
 {/snippet}
 <div class="pt-[clamp(12px,2vw,24px)] pb-[clamp(72px,9vw,136px)] text-ink">
@@ -114,7 +274,9 @@
 						{c.successTitle}
 					</h2>
 					<p class="mb-7 leading-[1.8] text-ink-soft">{c.successCopy}</p>
-					<a class={submit} href={publicHref('/', data.preview)}>{c.back}<Arrow /></a>
+					<a class="{submit} hover:no-underline" href={publicHref('/', data.preview)}
+						>{c.back}<Arrow /></a
+					>
 				</section>
 			{:else}<form
 					class={card}
@@ -123,9 +285,30 @@
 					action="/assessment-received"
 					data-netlify="true"
 					data-netlify-honeypot="bot-field"
+					novalidate
+					bind:this={form}
 					onsubmit={submitAssessment}
 					aria-busy={submitting}
 				>
+					<FormProgress
+						current={flow.step + 1}
+						steps={stepTitles}
+						reached={flow.reached}
+						counterText={f.stepCounter}
+						percentText={f.percentComplete}
+						label={f.progressLabel}
+						stepsLabel={f.stepsLabel}
+						onselect={jump}
+					/>
+					<div class="mb-6 min-h-6">
+						<SaveStatus status={flow.status} savingText={f.saving} savedText={f.saved} />
+					</div>
+					{#if flow.restored}<p
+							class="mb-7 border-l-4 border-l-cyan bg-mist p-3.5 text-[0.9rem] leading-[1.6] text-ink"
+							role="status"
+						>
+							{f.restored}
+						</p>{/if}
 					<input class={control} type="hidden" name="form-name" value="coaching-assessment" />
 					<p hidden>
 						<label class={label}
@@ -137,8 +320,11 @@
 							/></label
 						>
 					</p>
-					<fieldset class={fieldset} disabled={submitting}>
-						<legend class={legend}><span class={legendNumber}>01</span>{c.sectionOne}</legend>
+					<!-- Every step stays in the page, so the whole form is sent together. -->
+					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 0} data-step="0">
+						<legend class={legend} tabindex="-1"
+							><span class={legendNumber}>01</span>{c.sectionOne}</legend
+						>
 						<div class={fieldGrid}>
 							<label class={label}
 								>{c.nameLabel}<span class={marker} aria-hidden="true">*</span><input
@@ -147,7 +333,11 @@
 									autocomplete="name"
 									required
 									maxlength="100"
-								/></label
+									bind:value={flow.values.name}
+									aria-invalid={invalid('name')}
+									aria-describedby={described('name')}
+									oninput={(event) => flow.revalidate(event.currentTarget, messages)}
+								/>{@render fieldError('name')}</label
 							><label class={label}
 								>{c.emailLabel}<span class={marker} aria-hidden="true">*</span><input
 									class={control}
@@ -156,15 +346,19 @@
 									autocomplete="email"
 									required
 									maxlength="254"
-									aria-describedby="email-help"
-								/></label
+									bind:value={flow.values.email}
+									aria-invalid={invalid('email')}
+									aria-describedby={described('email', 'email-help')}
+									oninput={(event) => flow.revalidate(event.currentTarget, messages)}
+								/>{@render fieldError('email')}</label
 							>
 						</div>
 						<p id="email-help" class="mt-2 {note}">{c.emailHelp}</p>
 						{@render question('goal', c.goal)}
 					</fieldset>
-					<fieldset class={fieldset} disabled={submitting}>
-						<legend class={legend}><span class={legendNumber}>02</span>{c.sectionTwo}</legend
+					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 1} data-step="1">
+						<legend class={legend} tabindex="-1"
+							><span class={legendNumber}>02</span>{c.sectionTwo}</legend
 						>{@render question('training-experience', c.trainingExperience)}{@render question(
 							'fitness-knowledge',
 							c.fitnessKnowledge
@@ -176,8 +370,9 @@
 							)}
 						</div>
 					</fieldset>
-					<fieldset class={fieldset} disabled={submitting}>
-						<legend class={legend}><span class={legendNumber}>03</span>{c.sectionThree}</legend
+					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 2} data-step="2">
+						<legend class={legend} tabindex="-1"
+							><span class={legendNumber}>03</span>{c.sectionThree}</legend
 						>{@render question('nutrition-knowledge', c.nutritionKnowledge)}{@render question(
 							'nutrition-experience',
 							c.nutritionExperience
@@ -189,7 +384,12 @@
 								rows="3"
 								required
 								maxlength="1500"
-								placeholder={c.challengePlaceholder}></textarea></label
+								placeholder={c.challengePlaceholder}
+								bind:value={flow.values['biggest-challenge']}
+								aria-invalid={invalid('biggest-challenge')}
+								aria-describedby={described('biggest-challenge')}
+								oninput={(event) => flow.revalidate(event.currentTarget, messages)}
+							></textarea>{@render fieldError('biggest-challenge')}</label
 						>
 						<label class={fieldsetLabel}
 							>{c.contextLabel} <span class={note}>{c.optionalLabel}</span><textarea
@@ -197,30 +397,101 @@
 								name="additional-context"
 								rows="3"
 								maxlength="1500"
-								placeholder={c.contextPlaceholder}></textarea></label
+								placeholder={c.contextPlaceholder}
+								bind:value={flow.values['additional-context']}></textarea></label
 						>
 					</fieldset>
-					<div>
-						<p class={note}>{c.privacy}</p>
-						<label class="my-5 flex [align-items:start] gap-3 text-[0.9rem] leading-[1.6]"
-							><input
-								class="mt-[3px] size-5 shrink-0 accent-cyan-ink {focusRing}"
-								type="checkbox"
-								name="consent"
-								value={c.consent}
-								required
-								disabled={submitting}
-							/><span>{c.consent}<span class={marker} aria-hidden="true">*</span></span></label
+					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 3} data-step="3">
+						<legend class={legend} tabindex="-1"
+							><span class={legendNumber}>04</span>{f.reviewTitle}</legend
 						>
-						{#if error}<p
-								class="mb-5 border border-[#efb8ac] bg-[#fff1ee] p-[14px] text-[0.8rem] leading-[1.65] text-[#962f24]"
-								role="alert"
+						<p class="mb-6 {note}">{f.reviewCopy}</p>
+						{#each review as group, index (index)}
+							<section class="border-t border-t-ink/15 py-5" aria-labelledby="review-{index}">
+								<div class="flex items-center justify-between gap-4">
+									<h2 id="review-{index}" class="text-[1.5rem]/none">
+										{group.title}
+									</h2>
+									<button
+										type="button"
+										class="{textLink} cursor-pointer"
+										onclick={() => edit(index)}
+										>{f.edit}<span class="sr-only"> {group.title}</span></button
+									>
+								</div>
+								<dl class="m-0 mt-3 grid gap-3">
+									{#each group.items as item (item.name)}
+										<div>
+											<dt class={note}>{item.label}</dt>
+											<dd
+												class="m-0 mt-0.5 text-[0.95rem]/[1.6] wrap-anywhere whitespace-pre-wrap text-ink"
+											>
+												{flow.values[item.name]?.trim() || f.notAnswered}
+											</dd>
+										</div>
+									{/each}
+								</dl>
+							</section>
+						{/each}
+						<div class="border-t border-t-ink/15 pt-5">
+							<p class={note}>{c.privacy}</p>
+							<label class="my-5 flex [align-items:start] gap-3 text-[0.9rem] leading-[1.6]"
+								><input
+									class="mt-[3px] size-5 shrink-0 accent-cyan-ink aria-invalid:outline-2 aria-invalid:outline-[#962f24] {focusRing}"
+									type="checkbox"
+									name="consent"
+									value={c.consent}
+									required
+									bind:checked={consent}
+									aria-invalid={invalid('consent')}
+									aria-describedby={described('consent')}
+									onchange={(event) => flow.revalidate(event.currentTarget, messages)}
+								/><span
+									>{c.consent}<span class={marker} aria-hidden="true">*</span>{@render fieldError(
+										'consent'
+									)}</span
+								></label
 							>
-								{error}
-							</p>{/if}<button class={submit} type="submit" disabled={submitting}
-							>{submitting ? c.submitting : c.submit}{#if !submitting}<Arrow />{/if}</button
+						</div>
+					</fieldset>
+					{#if Object.keys(flow.errors).length}<p
+							class="mb-5 border border-[#efb8ac] bg-[#fff1ee] p-[14px] text-[0.8rem] leading-[1.65] text-[#962f24]"
+							role="alert"
 						>
-						{#if submitting}<p class="mt-3 {note}" aria-live="polite">{c.sendingNote}</p>{/if}
+							{f.errorSummary}
+						</p>{/if}
+					{#if error}<p
+							class="mb-5 border border-[#efb8ac] bg-[#fff1ee] p-[14px] text-[0.8rem] leading-[1.65] text-[#962f24]"
+							role="alert"
+						>
+							{error}
+						</p>{/if}
+					<div class="flex flex-wrap items-center justify-between gap-3 bp-480:flex-col-reverse">
+						{#if flow.step > 0}<button
+								class={ghost}
+								type="button"
+								onclick={back}
+								disabled={submitting}
+								><span class="flex [transform:scaleX(-1)]"><Arrow size={20} /></span
+								>{f.previous}</button
+							>{:else}<span></span>{/if}
+						<button class={submit} type="submit" disabled={submitting}
+							>{#if flow.step < flow.last}{flow.returnTo === null
+									? f.next
+									: f.backToReview}{:else}{submitting
+									? c.submitting
+									: c.submit}{/if}{#if !submitting}<Arrow />{/if}</button
+						>
+					</div>
+					{#if submitting}<p class="mt-3 {note}" aria-live="polite">{c.sendingNote}</p>{/if}
+					<div class="mt-8 border-t border-t-ink/15 pt-4">
+						<p class={note}>{f.draftNote}</p>
+						{#if flow.hasProgress}<button
+								class="mt-1 inline-flex min-h-11 cursor-pointer items-center border-0 bg-transparent p-0 text-[0.8125rem] text-ink underline decoration-cyan decoration-2 underline-offset-4 hover:text-cyan-deep {focusRing}"
+								type="button"
+								onclick={clearAnswers}
+								disabled={submitting}>{f.clearDraft}</button
+							>{/if}
 					</div>
 				</form>{/if}
 		</div>
