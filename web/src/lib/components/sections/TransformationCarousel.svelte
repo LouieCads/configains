@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import type { Transformation } from '$lib/types/cms';
 	import type { Content } from '$lib/content/schema';
-	import { cardCopy, comingSoon, storyMeta } from '$lib/components/landing/styles';
+	import { cardCopy } from '$lib/components/landing/styles';
 
 	let {
 		items,
@@ -14,7 +14,7 @@
 		showStory?: boolean;
 	} = $props();
 	const control =
-		'size-11 cursor-pointer rounded-[50%] border border-[#9aafb0] bg-transparent text-[22px] text-inherit focus-visible:outline-3 focus-visible:outline-cyan-ink focus-visible:outline-offset-[3px] disabled:cursor-default disabled:opacity-35';
+		'grid size-12 cursor-pointer place-items-center rounded-[3px] border border-ink/40 bg-transparent text-ink [transition:background-color_0.2s,color_0.2s] hover:bg-ink hover:text-cyan focus-visible:outline-3 focus-visible:outline-cyan-ink focus-visible:outline-offset-[3px] disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink';
 	let track = $state<HTMLDivElement>();
 	let current = $state(0);
 	let lastVisible = $state(0);
@@ -87,7 +87,7 @@
 >
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex (The scrolling area needs keyboard focus for native arrow-key scrolling.) -->
 	<div
-		class="flex snap-x snap-mandatory [scrollbar-width:thin] gap-6 overflow-x-auto pb-4 focus-visible:outline-3 focus-visible:outline-offset-[3px] focus-visible:outline-cyan-ink"
+		class="transformation-track flex snap-x snap-mandatory [scrollbar-width:none] gap-6 overflow-x-auto pb-2 focus-visible:outline-3 focus-visible:outline-offset-[3px] focus-visible:outline-cyan-ink [&::-webkit-scrollbar]:hidden"
 		bind:this={track}
 		onscroll={sync}
 		tabindex="0"
@@ -100,61 +100,90 @@
 				aria-roledescription="slide"
 				aria-label={`${index + 1} of ${slides.length}: ${item.title}`}
 			>
-				<div class="grid grid-cols-[1fr_1fr] gap-[3px] overflow-hidden rounded-[10px]">
+				<div class="grid grid-cols-[1fr_1fr] gap-[3px] overflow-hidden rounded-[3px]">
 					{#each [{ label: proof.before, src: item.before_image_url, alt: item.before_image_alt }, { label: proof.after, src: item.after_image_url, alt: item.after_image_alt }] as photo, side (side)}
 						<div
 							class={[
-								'relative grid h-[270px] place-items-center overflow-hidden bp-850:h-[240px]',
-								side === 1 ? 'bg-[#dfebe7]' : 'bg-[#e6ede7]'
+								'relative grid aspect-[3/4] place-items-center overflow-hidden',
+								side === 1 ? 'bg-mist' : 'bg-bone-deep'
 							]}
 						>
 							{#if photo.src}<img
-									class="absolute inset-0 size-full object-cover [transition:transform_0.7s] group-hover:[transform:scale(1.035)] motion-reduce:group-hover:[transform:none]"
+									class="absolute inset-0 size-full object-cover [transition:transform_0.8s_cubic-bezier(0.22,1,0.36,1)] group-hover:[transform:scale(1.04)] motion-reduce:group-hover:[transform:none]"
 									src={photo.src}
 									alt={photo.alt || `${item.title}: ${photo.label}`}
 									loading="lazy"
 								/>
 							{:else}<span
-									class="flex flex-col items-center justify-center gap-[10px] text-[#7c9890]"
+									class="flex flex-col items-center justify-center gap-[10px] px-4 text-center text-[0.8125rem]/[1.5] text-ink-soft"
 									>{proof.photoPlaceholder}</span
 								>{/if}
 							<span
-								class="absolute bottom-[13px] left-[13px] rounded-[4px] bg-[#f8faf8e6] px-[9px] py-[7px] font-[Arial] text-[0.625rem] leading-[normal] tracking-[1px] text-[#536762] bp-850:bottom-2 bp-850:left-2 bp-640:bottom-[13px] bp-640:left-[13px]"
-								>{photo.label}</span
+								class={[
+									'absolute bottom-0 left-0 px-3 pt-[0.4rem] pb-[0.3rem] font-display text-[0.9375rem]/none tracking-[0.18em]',
+									side === 1 ? 'bg-cyan text-ink' : 'bg-night text-bone'
+								]}>{photo.label}</span
 							>
 						</div>
 					{/each}
 				</div>
-				{#if !items.length}<div class={storyMeta}>
-						<span>{proof.journey} {index + 1}</span><span class={comingSoon}
+				{#if !items.length}<div
+						class="mt-5 flex items-center justify-between gap-3 font-display text-[0.9375rem]/none tracking-[0.18em] text-ink-soft"
+					>
+						<span>{proof.journey} {index + 1}</span><span
+							class="rounded-[3px] border border-ink/25 px-2 pt-1 pb-0.5 text-[0.8125rem]"
 							>{proof.comingSoon}</span
 						>
 					</div>{/if}
-				<h3 class="mt-[17px]">{item.title}</h3>
+				<h3 class="mt-5">{item.title}</h3>
 				{#if item.summary}<p class={cardCopy}>{item.summary}</p>{/if}
 				{#if showStory && item.story}<p class="{cardCopy} whitespace-pre-line">{item.story}</p>{/if}
 			</article>
 		{/each}
 	</div>
 	{#if slides.length > 1 && !(atStart && atEnd)}
-		<div class="mt-3 flex items-center justify-end gap-4">
-			<button
-				class={control}
-				type="button"
-				aria-label="Previous transformation"
-				disabled={atStart}
-				onclick={() => go(-1)}>←</button
-			>
-			<span class="font-arial text-[14px] leading-[normal]" aria-live="polite"
+		<div class="mt-8 flex items-center gap-6">
+			<div class="relative h-[2px] flex-1 bg-ink/15" aria-hidden="true">
+				<span
+					class="absolute inset-y-0 bg-ink [transition:left_0.4s,width_0.4s] motion-reduce:[transition:none]"
+					style:left={`${(current / slides.length) * 100}%`}
+					style:width={`${((lastVisible - current + 1) / slides.length) * 100}%`}
+				></span>
+			</div>
+			<span class="font-display text-[1.25rem]/none tracking-[0.1em] text-ink" aria-live="polite"
 				>{current + 1}{#if lastVisible > current}–{lastVisible + 1}{/if} / {slides.length}</span
 			>
-			<button
-				class={control}
-				type="button"
-				aria-label="Next transformation"
-				disabled={atEnd}
-				onclick={() => go(1)}>→</button
-			>
+			<div class="flex gap-2">
+				<button
+					class={control}
+					type="button"
+					aria-label="Previous transformation"
+					disabled={atStart}
+					onclick={() => go(-1)}
+					><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+						><path
+							d="M20 12H5m6-6-6 6 6 6"
+							stroke="currentColor"
+							stroke-width="1.8"
+							stroke-linecap="square"
+						/></svg
+					></button
+				><button
+					class={control}
+					type="button"
+					aria-label="Next transformation"
+					disabled={atEnd}
+					onclick={() => go(1)}
+					><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+						><path
+							d="M4 12h15m-6-6 6 6-6 6"
+							stroke="currentColor"
+							stroke-width="1.8"
+							stroke-linecap="square"
+						/></svg
+					></button
+				>
+			</div>
 		</div>
 	{/if}
 </div>

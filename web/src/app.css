@@ -10,6 +10,15 @@
 	--color-line: #dce5e2;
 	--color-paper: #fcfdfb;
 	--color-floor: #f7f8f5;
+	/* Public site surfaces: warm paper, a darker night band and a soft body ink. */
+	--color-bone: #f4f1ea;
+	--color-bone-deep: #e8e3d6;
+	--color-night: #0f1e24;
+	--color-ink-soft: #35484e;
+	--color-mist: #d9f2f4;
+	/* Cyan for small text on light surfaces (5.5:1 on bone). */
+	--color-cyan-deep: #0f6878;
+	--animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 
 	--font-inter: Inter, ui-sans-serif, system-ui, sans-serif;
 	--font-coustard: 'Coustard', Georgia, serif;
@@ -39,6 +48,7 @@
 @custom-variant bp-360 (@media (max-width: 360px));
 @custom-variant cq-58 (@container (max-width: 58rem));
 @custom-variant cq-52 (@container (max-width: 52rem));
+@custom-variant cq-40 (@container (max-width: 40rem));
 
 /*
  * Scoped element defaults, used on a page root (e.g. `on-p:text-muted`).
@@ -64,3 +74,14 @@
 /* Disabled controls keep the old `.cms button:disabled` weight so they beat cursor utilities. */
 @custom-variant on-disabled (& :is(button:disabled, [aria-disabled='true']));
 @custom-variant on-focus (:where(&) :where(:focus-visible));
+
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}

@@ -8,11 +8,13 @@
 </script>
 
 <PageHero {...c.hero} />
-<section class="{section} {container}">
-	{#if data.transformations.length}<TransformationCarousel
-			items={data.transformations}
-			{proof}
-			showStory
-		/>
-	{:else}<p class="rounded-lg border border-line bg-paper p-8">{c.empty}</p>{/if}
+<section class={section}>
+	<div class={container}>
+		{#if data.transformations.length}<TransformationCarousel
+				items={data.transformations}
+				{proof}
+				showStory
+			/>
+		{:else}<p class="border-l-4 border-l-cyan bg-mist p-8 text-ink">{c.empty}</p>{/if}
+	</div>
 </section>

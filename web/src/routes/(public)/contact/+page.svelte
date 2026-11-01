@@ -2,6 +2,9 @@
 	import { dev } from '$app/environment';
 	import { tick } from 'svelte';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
+	import Arrow from '$lib/components/landing/Arrow.svelte';
+	import SectionLabel from '$lib/components/landing/SectionLabel.svelte';
+	import { container, section as sectionSpacing } from '$lib/components/landing/styles';
 	import { publicHref } from '$lib/content/links';
 	import type { Content } from '$lib/content/schema';
 	let { data } = $props();
@@ -12,22 +15,22 @@
 		error = $state('');
 	let resultHeading = $state<HTMLHeadingElement>();
 	const focusRing =
-		'focus-visible:outline-3 focus-visible:outline-[#157f90] focus-visible:outline-offset-4';
-	const label = 'block text-[0.9rem] leading-[1.6] font-semibold';
+		'focus-visible:outline-3 focus-visible:outline-cyan-ink focus-visible:outline-offset-4';
+	const label = 'block text-[0.95rem] leading-[1.6] text-ink';
 	/** Labels placed directly in a fieldset are spaced from the field above. */
 	const fieldsetLabel = `${label} [fieldset>&:not(legend+*)]:mt-5`;
-	const control = `mt-2 block min-h-12 w-full rounded-[4px] border border-[#b7c6c7] bg-[#fcfdfb] p-3 font-arial text-[1rem]/[1.5] font-normal text-[#182a30] ${focusRing}`;
+	const control = `mt-2 block min-h-12 w-full rounded-[3px] border border-ink/35 bg-white p-3 text-[1rem]/[1.5] text-ink ${focusRing}`;
 	const fieldGrid =
 		'grid grid-cols-2 gap-[18px] bp-767:grid-cols-1 [fieldset>&:not(legend+*)]:mt-5';
-	const fieldset = `mb-7 min-w-0 [border-width:0_0_1px] [border-style:none_none_solid] border-b-[#dce5e2] p-0 pb-[30px] ${focusRing}`;
-	const legend = 'mb-5 p-0 text-[1.18rem] font-bold';
-	const legendNumber = 'mr-[10px] text-[0.8rem] text-[#157f90]';
-	const note = 'text-[0.8rem] leading-[1.65] text-[#56676b]';
-	const marker = 'ml-[0.25em] font-bold text-[#157f90]';
+	const fieldset = `mb-7 min-w-0 [border-width:0_0_1px] [border-style:none_none_solid] border-b-ink/15 p-0 pb-[30px] ${focusRing}`;
+	const legend = 'mb-5 p-0 font-display text-[1.875rem]/none font-normal text-ink';
+	const legendNumber = 'mr-3 text-[1.25rem] tracking-[0.1em] text-cyan-deep';
+	const note = 'text-[0.8125rem] leading-[1.65] text-ink-soft';
+	const marker = 'ml-[0.25em] text-cyan-deep';
 	const card =
-		'min-w-0 rounded-[4px] border border-[#dce5e2] border-t-4 border-t-[#59d9e8] bg-white p-[clamp(22px,4vw,42px)] bp-1100:[grid-area:form]';
+		'min-w-0 rounded-[3px] border border-ink/15 border-t-4 border-t-cyan bg-white p-[clamp(22px,4vw,42px)] bp-1100:[grid-area:form]';
 	const submit =
-		'inline-flex min-h-[52px] cursor-pointer items-center justify-center rounded-[4px] [border:0] bg-[#182a30] px-6 py-4 font-bold text-white no-underline [transition:background_0.2s] hover:bg-[#157f90] disabled:cursor-wait disabled:opacity-65 motion-reduce:[transition:none] bp-480:w-full';
+		'group inline-flex min-h-[56px] cursor-pointer items-center justify-center gap-4 rounded-[3px] [border:0] bg-ink px-7 pt-[0.95rem] pb-[0.8rem] font-display text-[1.3rem]/none tracking-[0.09em] text-bone no-underline [transition:background-color_0.25s,color_0.25s] hover:bg-cyan hover:text-ink disabled:cursor-wait disabled:opacity-65 motion-reduce:[transition:none] bp-480:w-full';
 	async function submitAssessment(event: SubmitEvent) {
 		event.preventDefault();
 		if (submitting) return;
@@ -69,58 +72,56 @@
 		></label
 	>
 {/snippet}
-<div class="bg-[#f7f8f5] px-6 pt-9 pb-[88px] text-[#182a30] bp-480:px-4">
-	<div class="m-auto max-w-[1160px]">
-		<a class="text-[0.875rem] font-semibold" href={publicHref('/', data.preview)}>← {c.back}</a>
-		<header class="max-w-[780px] pt-[clamp(36px,5vw,48px)] pb-[clamp(40px,5vw,56px)]">
-			<h1
-				class="mb-5 font-['Bebas_Neue',Impact,sans-serif] text-[clamp(3rem,7vw,5.8rem)] leading-none font-normal whitespace-pre-line"
-			>
+<div class="{sectionSpacing} text-ink">
+	<div class={container}>
+		<a
+			class="inline-flex min-h-11 items-center text-[0.9375rem] hover:text-cyan-deep"
+			href={publicHref('/', data.preview)}>← {c.back}</a
+		>
+		<header class="max-w-[780px] pt-[clamp(24px,4vw,40px)] pb-[clamp(40px,5vw,64px)]">
+			<h1 class="mb-6 text-[clamp(3.5rem,8vw,7rem)] whitespace-pre-line">
 				{c.hero.title}
 			</h1>
-			<p class="mb-3 max-w-[650px] font-coustard text-[1.25rem]/[1.6] font-normal text-[#182a30]">
+			<p class="mb-3 max-w-[650px] text-[1.25rem]/[1.6] text-ink">
 				{c.intro}
 			</p>
-			<p class="max-w-[650px] leading-[1.8] whitespace-pre-line text-[#56676b]">{c.hero.copy}</p>
+			<p class="max-w-[650px] leading-[1.8] whitespace-pre-line text-ink-soft">{c.hero.copy}</p>
 		</header>
 		<div
 			class="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1.6fr)] [align-items:start] gap-[clamp(32px,4vw,56px)] bp-1100:grid-cols-1 bp-1100:gap-9 bp-1100:[grid-template-areas:'form'_'steps']"
 		>
 			<aside
-				class="pt-4 bp-1100:border-t bp-1100:border-t-[#dce5e2] bp-1100:pt-7 bp-1100:[grid-area:steps]"
+				class="pt-4 bp-1100:border-t bp-1100:border-t-ink/15 bp-1100:pt-7 bp-1100:[grid-area:steps]"
 				aria-label="What happens next"
 			>
 				<ol
 					class="my-7 list-none p-0 [counter-reset:steps] bp-1100:m-0 bp-1100:grid bp-1100:grid-cols-3 bp-1100:gap-6 bp-767:grid-cols-1 bp-767:gap-[18px]"
 				>
 					{#each c.steps as step, index (index)}<li
-							class="relative pb-[26px] pl-9 [counter-increment:steps] before:absolute before:left-0 before:text-[0.8rem] before:font-bold before:text-[#157f90] before:content-['0'_counter(steps)] bp-1100:min-w-0 bp-1100:pb-0"
+							class="relative pb-[26px] pl-12 [counter-increment:steps] before:absolute before:left-0 before:font-display before:text-[1.5rem] before:leading-none before:text-cyan-deep before:content-['0'_counter(steps)] bp-1100:min-w-0 bp-1100:pb-0"
 						>
-							<strong class="block">{step.title}</strong><span
-								class="mt-2 block text-[0.9rem] leading-[1.7] text-[#56676b]">{step.copy}</span
-							>
+							<strong class="block font-display text-[1.5rem]/none font-normal text-ink"
+								>{step.title}</strong
+							><span class="mt-2 block text-[0.9rem] leading-[1.7] text-ink-soft">{step.copy}</span>
 						</li>{/each}
 				</ol>
-				<a class="mt-5 inline-block wrap-anywhere underline bp-1100:mt-6" href={'mailto:' + email}
-					>{email}</a
+				<a
+					class="mt-5 inline-block wrap-anywhere underline decoration-cyan decoration-2 underline-offset-4 bp-1100:mt-6"
+					href={'mailto:' + email}>{email}</a
 				>
 			</aside>
 			{#if submitted}<section class={card} aria-labelledby="assessment-result">
-					<p
-						class="mb-[26px] flex items-center gap-3 font-arial text-[0.75rem]/[1.6] font-bold tracking-[0.12em] text-[#157f90] bp-640:mb-[23px]"
-					>
-						{c.successEyebrow}
-					</p>
+					<SectionLabel>{c.successEyebrow}</SectionLabel>
 					<h2
 						id="assessment-result"
-						class="my-5 font-coustard text-[2rem]/[1.2] font-normal {focusRing}"
+						class="my-5 text-[clamp(2.5rem,5vw,3.5rem)] {focusRing}"
 						tabindex="-1"
 						bind:this={resultHeading}
 					>
 						{c.successTitle}
 					</h2>
-					<p class="mb-7 leading-[1.8] text-[#56676b]">{c.successCopy}</p>
-					<a class={submit} href={publicHref('/', data.preview)}>{c.back} ↗</a>
+					<p class="mb-7 leading-[1.8] text-ink-soft">{c.successCopy}</p>
+					<a class={submit} href={publicHref('/', data.preview)}>{c.back}<Arrow /></a>
 				</section>
 			{:else}<form
 					class={card}
@@ -208,10 +209,9 @@
 					</fieldset>
 					<div>
 						<p class={note}>{c.privacy}</p>
-						<label
-							class="my-5 flex [align-items:start] gap-3 text-[0.9rem] leading-[1.6] font-normal"
+						<label class="my-5 flex [align-items:start] gap-3 text-[0.9rem] leading-[1.6]"
 							><input
-								class="mt-[3px] size-5 shrink-0 accent-[#157f90] {focusRing}"
+								class="mt-[3px] size-5 shrink-0 accent-cyan-ink {focusRing}"
 								type="checkbox"
 								name="consent"
 								value={c.consent}
@@ -225,7 +225,7 @@
 							>
 								{error}
 							</p>{/if}<button class={submit} type="submit" disabled={submitting}
-							>{submitting ? c.submitting : c.submit + ' ↗'}</button
+							>{submitting ? c.submitting : c.submit}{#if !submitting}<Arrow />{/if}</button
 						>
 						{#if submitting}<p class="mt-3 {note}" aria-live="polite">{c.sendingNote}</p>{/if}
 					</div>
