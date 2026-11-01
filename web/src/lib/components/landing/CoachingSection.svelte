@@ -24,7 +24,7 @@
 	<div class="{container} {rail} items-start">
 		<div class="sticky top-28 cq-58:static" use:reveal>
 			<SectionLabel {number}>{content.eyebrow}</SectionLabel>
-			<SectionTitle id="coaching-title" heading={content.heading} />
+			<SectionTitle id="coaching-title" heading={content.heading} fit={{ cqi: 16, max: '5rem' }} />
 		</div>
 		<div>
 			<ServiceRows {services} />

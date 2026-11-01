@@ -1,0 +1,284 @@
+- generic [ref=e3]:
+  - link "Skip to content" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e5]:
+    - generic [ref=e7]:
+      - link "Configains" [ref=e8] [cursor=pointer]:
+        - /url: /
+        - img "Configains" [ref=e9]
+      - navigation "Main navigation" [ref=e10]:
+        - link "Home" [ref=e11] [cursor=pointer]:
+          - /url: "#home"
+        - link "About" [ref=e12] [cursor=pointer]:
+          - /url: "#about"
+        - link "Coaching" [ref=e13] [cursor=pointer]:
+          - /url: "#coaching"
+        - link "Transformations" [ref=e14] [cursor=pointer]:
+          - /url: "#transformations"
+        - link "Products" [ref=e15] [cursor=pointer]:
+          - /url: "#products"
+        - link "FAQ" [ref=e16] [cursor=pointer]:
+          - /url: "#faq"
+      - link "Let’s talk" [ref=e17] [cursor=pointer]:
+        - /url: /contact
+  - main [ref=e20]:
+    - region [ref=e21]:
+      - generic [ref=e22]:
+        - heading "YOUR LIFE. YOUR PROGRESS." [level=1] [ref=e23]:
+          - text: YOUR LIFE.YOUR
+          - generic [ref=e24]: PROGRESS.
+        - paragraph [ref=e26]: Build strength and confidence with Configains. Personalized training, nutrition coaching, and building better habits.
+        - generic [ref=e27]:
+          - link "Find your starting point" [ref=e28] [cursor=pointer]:
+            - /url: /contact
+          - link "Explore coaching" [ref=e31] [cursor=pointer]:
+            - /url: "#coaching"
+      - generic [ref=e33]:
+        - generic [aria-hidden] [ref=e34]: A LITTLE STRONGER.
+        - paragraph [ref=e48]: THE CONFIGAINS APPROACH
+    - region [ref=e51]:
+      - generic [ref=e52]:
+        - figure "THE FOUNDER BEHIND CONFIGAINS Cash Fuerte." [ref=e53]:
+          - generic [ref=e54]:
+            - generic [ref=e55]: THE FOUNDER BEHIND CONFIGAINS
+            - strong [ref=e56]: Cash Fuerte.
+          - img "Cash Fuerte, founder and coach of Configains" [ref=e59]
+        - generic [ref=e60]:
+          - paragraph [ref=e61]:
+            - generic [ref=e62]: "01"
+            - text: MEET CONFIGAINS
+          - heading "TELL US YOUR GOALS LET'S WORK ON THEM TOGETHER" [level=2] [ref=e64]: TELL US YOUR GOALSLET'S WORK ON THEM TOGETHER
+          - paragraph [ref=e65]: Built around your life. Guided by a real coach.
+          - paragraph
+          - paragraph [ref=e66]: Hey, I’m Cash Fuerte, the founder and coach behind Configains. I personally review your assessment, recommend your next steps, and guide you through the work. You’ll have a human coach to ask questions, check in with, and work through real-life challenges.
+          - paragraph [ref=e67]: You don’t need a perfect routine. You need one you can come back to.
+    - region [ref=e68]:
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - paragraph [ref=e71]:
+            - generic [ref=e72]: "02"
+            - text: CONFIGAINS COACHING
+          - heading "LESS GUESSWORK. MORE DIRECTION." [level=2] [ref=e75]: LESS GUESSWORK.MORE DIRECTION.
+        - generic [ref=e76]:
+          - list [ref=e77]:
+            - listitem [ref=e78]:
+              - generic [aria-hidden] [ref=e79]: "01"
+              - heading "Train with purpose." [level=3] [ref=e80]
+              - generic [ref=e81]:
+                - paragraph [ref=e82]: A clear direction in the gym, built around your starting point, your schedule, and the equipment you have.
+                - paragraph [ref=e83]: Training that fits your goals
+            - listitem [ref=e87]:
+              - generic [aria-hidden] [ref=e88]: "02"
+              - heading "Understand what you eat." [level=3] [ref=e89]
+              - generic [ref=e90]:
+                - paragraph [ref=e91]: Sustainable nutrition guidance and everyday habits. Make room for the food you enjoy while working toward your goals.
+                - paragraph [ref=e92]: Practical nutrition support
+            - listitem [ref=e96]:
+              - generic [aria-hidden] [ref=e97]: "03"
+              - heading "Keep progressing." [level=3] [ref=e98]
+              - generic [ref=e99]:
+                - paragraph [ref=e100]: A coach to ask, a place to reflect, and support to find your next step when real life changes the plan.
+                - paragraph [ref=e101]: Support & accountability
+          - link "Talk about your goals" [ref=e106] [cursor=pointer]:
+            - /url: /contact
+    - region [ref=e109]:
+      - region "Client transformations" [ref=e113]:
+        - generic [ref=e114]:
+          - paragraph [ref=e115]:
+            - generic [ref=e116]: "03"
+            - text: PROGRESS IN PRACTICE
+          - heading "REAL WORK. PERSONAL PROGRESS." [level=2] [ref=e118]: REAL WORK.PERSONAL PROGRESS.
+        - generic "Before and after stories. Keep scrolling to see more." [ref=e120]:
+          - 'group "1 of 5: Nothing beats trusting the process" [ref=e121]':
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - 'img "Nothing beats trusting the process: Before" [ref=e124]'
+                - generic [ref=e125]: Before
+              - generic [ref=e126]:
+                - 'img "Nothing beats trusting the process: After" [ref=e127]'
+                - generic [ref=e128]: After
+            - heading "Nothing beats trusting the process" [level=3] [ref=e129]
+            - paragraph [ref=e130]: There were doubts in the journey, impatience, and never really believing in herself. But as she continued to trust the process, and the results started showing, the main focus was to make endless progress.
+          - 'group "2 of 5: Redefining confidence through strength." [ref=e131]':
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - 'img "Redefining confidence through strength.: Before" [ref=e134]'
+                - generic [ref=e135]: Before
+              - generic [ref=e136]:
+                - 'img "Redefining confidence through strength.: After" [ref=e137]'
+                - generic [ref=e138]: After
+            - heading "Redefining confidence through strength." [level=3] [ref=e139]
+            - paragraph [ref=e140]: Strength is the new beauty. Because feeling strong does more than transform your body, it elevates how you feel every single day.
+          - 'group "3 of 5: A Stronger Chapter" [ref=e141]':
+            - generic [ref=e142]:
+              - generic [ref=e143]:
+                - 'img "A Stronger Chapter: Before" [ref=e144]'
+                - generic [ref=e145]: Before
+              - generic [ref=e146]:
+                - 'img "A Stronger Chapter: After" [ref=e147]'
+                - generic [ref=e148]: After
+            - heading "A Stronger Chapter" [level=3] [ref=e149]
+            - paragraph [ref=e150]: Through purposeful strength training, balanced nutrition, and better habits, he rebuilt his strength, transformed his physique, and improved his overall well-being. What started as a fitness journey became a lifestyle transformation toward a healthier, stronger, and happier version of himself.
+          - 'group "4 of 5: Best Revenge is Happiness" [ref=e151]':
+            - generic [ref=e152]:
+              - generic [ref=e153]:
+                - 'img "Best Revenge is Happiness: Before" [ref=e154]'
+                - generic [ref=e155]: Before
+              - generic [ref=e156]:
+                - 'img "Best Revenge is Happiness: After" [ref=e157]'
+                - generic [ref=e158]: After
+            - heading "Best Revenge is Happiness" [level=3] [ref=e159]
+            - paragraph [ref=e160]: What began as a journey to feel better became a transformation in strength, confidence, and healthier habits that inspired others along the way.
+          - 'group "5 of 5: Shine in your own body" [ref=e161]':
+            - generic [ref=e162]:
+              - generic [ref=e163]:
+                - 'img "Shine in your own body: Before" [ref=e164]'
+                - generic [ref=e165]: Before
+              - generic [ref=e166]:
+                - 'img "Shine in your own body: After" [ref=e167]'
+                - generic [ref=e168]: After
+            - heading "Shine in your own body" [level=3] [ref=e169]
+            - paragraph [ref=e170]: Our bodies deserve the best treatment ever. We only have one life, and it deserves the best.
+    - region [ref=e171]:
+      - generic [ref=e172]:
+        - generic [ref=e173]:
+          - paragraph [ref=e174]:
+            - generic [ref=e175]: "04"
+            - text: THE COMMUNITY
+          - heading "THEIR JOURNEY. THEIR WORDS." [level=2] [ref=e177]: THEIR JOURNEY.THEIR WORDS.
+        - generic [ref=e179]:
+          - generic [aria-hidden] [ref=e180]: “
+          - paragraph [ref=e181]: Good progress deserves an honest story.
+          - generic [ref=e182]: CLIENT STORIES COMING SOON
+          - generic [ref=e184]: Reserved for real feedback from the Configains community.
+    - region [ref=e185]:
+      - generic [ref=e186]:
+        - generic [ref=e187]:
+          - paragraph [ref=e188]:
+            - generic [ref=e189]: "05"
+            - text: YOUR EVERYDAY TOOLKIT
+          - heading "A LITTLE STRUCTURE. A STEP FORWARD." [level=2] [ref=e191]: A LITTLE STRUCTURE.A STEP FORWARD.
+        - generic [ref=e192]:
+          - article [ref=e193]:
+            - img "The foundations." [ref=e194]:
+              - generic [ref=e195]:
+                - generic [ref=e196]: CONFIGAINS / THE TOOLKIT
+                - generic [ref=e197]: COVER PLACEHOLDER
+              - strong [ref=e198]: START SIMPLE.
+              - generic [ref=e199]:
+                - generic [ref=e200]: A LITTLE STRUCTURE. A STEP FORWARD.
+                - generic [ref=e201]: "01"
+            - generic [ref=e202]:
+              - generic [ref=e203]: E-BOOK
+              - generic [ref=e204]: COMING SOON
+            - heading "The foundations." [level=3] [ref=e205]
+            - paragraph [ref=e206]: A practical starting point for building better fitness habits.
+          - article [ref=e207]:
+            - img "A little more structure." [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]: CONFIGAINS / THE TOOLKIT
+                - generic [ref=e211]: COVER PLACEHOLDER
+              - strong [ref=e212]: SHOW UP.
+              - generic [ref=e213]:
+                - generic [ref=e214]: A LITTLE STRUCTURE. A STEP FORWARD.
+                - generic [ref=e215]: "02"
+            - generic [ref=e216]:
+              - generic [ref=e217]: WORKOUT PLAN
+              - generic [ref=e218]: COMING SOON
+            - heading "A little more structure." [level=3] [ref=e219]
+            - paragraph [ref=e220]: A clear framework to bring purpose to your training.
+          - article [ref=e221]:
+            - img "See your progress." [ref=e222]:
+              - generic [ref=e223]:
+                - generic [ref=e224]: CONFIGAINS / THE TOOLKIT
+                - generic [ref=e225]: COVER PLACEHOLDER
+              - strong [ref=e226]: KEEP GOING.
+              - generic [ref=e227]:
+                - generic [ref=e228]: A LITTLE STRUCTURE. A STEP FORWARD.
+                - generic [ref=e229]: "03"
+            - generic [ref=e230]:
+              - generic [ref=e231]: TEMPLATE
+              - generic [ref=e232]: COMING SOON
+            - heading "See your progress." [level=3] [ref=e233]
+            - paragraph [ref=e234]: Simple tools to help you reflect, plan, and stay consistent.
+    - region [ref=e235]:
+      - generic [ref=e236]:
+        - generic [ref=e237]:
+          - paragraph [ref=e238]: Nutrition guidance in your hands.
+          - heading "Understand your food. Build better habits." [level=2] [ref=e240]
+          - paragraph [ref=e241]: Meet the Configains app. Learn how food supports your energy, wellbeing, and progress, one better habit at a time.
+          - link "Explore configains.app (opens in a new tab)" [ref=e242] [cursor=pointer]:
+            - /url: https://configains.app
+            - text: Explore configains.app
+            - generic [ref=e245]: (opens in a new tab)
+        - img "Preview of the Configains app" [ref=e248]:
+          - generic [ref=e250]:
+            - generic [ref=e251]: CONFIGAINS.
+            - strong [ref=e252]: A LITTLE STRONGER. EVERY DAY.
+            - generic [ref=e254]: APP PREVIEW PLACEHOLDER
+    - region [ref=e255]:
+      - generic [ref=e256]:
+        - generic [ref=e257]:
+          - paragraph [ref=e258]: A CLEAR STARTING POINT
+          - heading "YOUR QUESTIONS. CLEAR ANSWERS." [level=2] [ref=e259]: YOUR QUESTIONS.CLEAR ANSWERS.
+        - generic [ref=e260]:
+          - group [ref=e261]:
+            - generic "What is Configains?" [ref=e262] [cursor=pointer]
+          - group [ref=e266]:
+            - generic "Who is Cash Fuerte?" [ref=e267] [cursor=pointer]
+          - group [ref=e271]:
+            - generic "How do I start coaching with Configains?" [ref=e272] [cursor=pointer]
+          - group [ref=e276]:
+            - generic "Do I need a visitor account?" [ref=e277] [cursor=pointer]
+          - group [ref=e281]:
+            - generic "What does Configains coaching cover?" [ref=e282] [cursor=pointer]
+    - region [ref=e286]:
+      - generic [ref=e287]:
+        - heading "YOUR NEXT CHAPTER. LET’S FIGURE IT OUT." [level=2] [ref=e290]: YOUR NEXT CHAPTER.LET’S FIGURE IT OUT.
+        - generic [ref=e291]:
+          - paragraph [ref=e292]: Start with a quick fitness and nutrition assessment. The coach will review your answers and email you a recommended program, plan, and duration.
+          - generic [ref=e293]:
+            - link "Let’s talk about coaching" [ref=e294] [cursor=pointer]:
+              - /url: /contact
+            - link "configains@gmail.com" [ref=e297] [cursor=pointer]:
+              - /url: mailto:configains@gmail.com
+  - contentinfo [ref=e298]:
+    - generic [ref=e299]:
+      - generic [ref=e300]:
+        - link "CONFIGAINS." [ref=e301] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e302]: Real life. Real progress.
+      - navigation "Footer navigation" [ref=e303]:
+        - list [ref=e304]:
+          - listitem [ref=e305]:
+            - link "Home" [ref=e306] [cursor=pointer]:
+              - /url: /#home
+          - listitem [ref=e307]:
+            - link "About" [ref=e308] [cursor=pointer]:
+              - /url: /#about
+          - listitem [ref=e309]:
+            - link "Coaching" [ref=e310] [cursor=pointer]:
+              - /url: /#coaching
+          - listitem [ref=e311]:
+            - link "Transformations" [ref=e312] [cursor=pointer]:
+              - /url: /#transformations
+          - listitem [ref=e313]:
+            - link "Products" [ref=e314] [cursor=pointer]:
+              - /url: /#products
+          - listitem [ref=e315]:
+            - link "FAQ" [ref=e316] [cursor=pointer]:
+              - /url: /#faq
+          - listitem [ref=e317]:
+            - link "Contact" [ref=e318] [cursor=pointer]:
+              - /url: /contact
+      - list [ref=e320]:
+        - listitem [ref=e321]:
+          - link "Configains app (opens in a new tab)" [ref=e322] [cursor=pointer]:
+            - /url: https://configains.app
+            - text: Configains app
+            - generic [ref=e323]: (opens in a new tab)
+    - generic [ref=e325]:
+      - generic [ref=e326]: © 2026 Configains
+      - generic [ref=e327]: Built for the long run.
+      - link "Back to top" [ref=e328] [cursor=pointer]:
+        - /url: "#main-content"

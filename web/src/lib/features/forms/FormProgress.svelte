@@ -4,21 +4,15 @@
 	type Props = {
 		/** One-based step the visitor is on. */
 		current: number;
-		/** Names of every step, in order. */
-		steps: { title: string }[];
-		/** Furthest zero-based step that can be opened from the list. */
-		reached: number;
+		/** Number of steps in the form. */
+		total: number;
 		/** Templates using `{current}`, `{total}` and `{percent}`. */
 		counterText: string;
 		percentText: string;
-		/** Accessible names for the bar and the step list. */
+		/** Accessible name for the bar. */
 		label: string;
-		stepsLabel: string;
-		onselect: (index: number) => void;
 	};
-	let { current, steps, reached, counterText, percentText, label, stepsLabel, onselect }: Props =
-		$props();
-	const total = $derived(steps.length);
+	let { current, total, counterText, percentText, label }: Props = $props();
 	const percent = $derived(percentComplete(current, total));
 	const values = $derived({ current, total, percent });
 	const counter = $derived(fillTemplate(counterText, values));
@@ -45,26 +39,4 @@
 			style:width="{percent}%"
 		></div>
 	</div>
-	<!-- One line: only the current step shows its name; the others are numbers with a tooltip. -->
-	<ol class="m-0 mt-1 flex list-none flex-wrap gap-x-5 p-0" aria-label={stepsLabel}>
-		{#each steps as step, index (index)}
-			{@const active = index === current - 1}
-			<li class="min-w-0">
-				<button
-					type="button"
-					title={step.title}
-					class="group relative inline-flex min-h-9 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left text-[0.875rem] leading-[1.3] text-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cyan-ink disabled:cursor-default disabled:text-ink-soft/55 {active
-						? "after:absolute after:inset-x-0 after:bottom-[3px] after:h-[3px] after:bg-cyan after:content-['']"
-						: ''}"
-					aria-current={active ? 'step' : undefined}
-					disabled={index > reached && !active}
-					onclick={() => onselect(index)}
-				>
-					<span class="font-display text-[1.125rem]/none tracking-[0.1em] text-cyan-deep"
-						>{String(index + 1).padStart(2, '0')}</span
-					><span class={active ? '' : 'sr-only'}>{step.title}</span>
-				</button>
-			</li>
-		{/each}
-	</ol>
 </div>

@@ -42,12 +42,6 @@
 		fields: answers
 	});
 	const messages = $derived({ required: f.requiredError, email: f.emailError });
-	const stepTitles = $derived([
-		{ title: c.sectionOne },
-		{ title: c.sectionTwo },
-		{ title: c.sectionThree },
-		{ title: f.reviewStep }
-	]);
 	/** What the review step lists, one block per field group. */
 	const review = $derived([
 		{
@@ -105,7 +99,6 @@
 	const fieldset = 'm-0 min-w-0 p-0 pb-5';
 	const legend =
 		'mb-4 p-0 font-display text-[1.75rem]/none font-normal text-ink focus:outline-hidden';
-	const legendNumber = 'mr-3 text-[1.25rem] tracking-[0.1em] text-cyan-deep';
 	const note = 'text-[0.8125rem] leading-[1.65] text-ink-soft';
 	const marker = 'ml-[0.25em] text-cyan-deep';
 	const alertBox =
@@ -141,10 +134,6 @@
 	}
 	async function back() {
 		flow.previous();
-		await moved();
-	}
-	async function jump(index: number) {
-		flow.jump(index);
 		await moved();
 	}
 	async function edit(index: number) {
@@ -300,13 +289,10 @@
 				>
 					<FormProgress
 						current={flow.step + 1}
-						steps={stepTitles}
-						reached={flow.reached}
+						total={flow.last + 1}
 						counterText={f.stepCounter}
 						percentText={f.percentComplete}
 						label={f.progressLabel}
-						stepsLabel={f.stepsLabel}
-						onselect={jump}
 					/>
 					{#if flow.restored}<p
 							class="mb-4 border-l-4 border-l-cyan bg-mist px-3.5 py-2 text-[0.875rem] leading-[1.5] text-ink"
@@ -327,9 +313,7 @@
 					</p>
 					<!-- Every step stays in the page, so the whole form is sent together. -->
 					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 0} data-step="0">
-						<legend class={legend} tabindex="-1"
-							><span class={legendNumber}>01</span>{c.sectionOne}</legend
-						>
+						<legend class={legend} tabindex="-1">{c.sectionOne}</legend>
 						<div class={fieldGrid}>
 							<label class={label}
 								>{c.nameLabel}<span class={marker} aria-hidden="true">*</span><input
@@ -362,12 +346,10 @@
 						{@render question('goal', c.goal)}
 					</fieldset>
 					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 1} data-step="1">
-						<legend class={legend} tabindex="-1"
-							><span class={legendNumber}>02</span>{c.sectionTwo}</legend
-						>{@render question('training-experience', c.trainingExperience)}{@render question(
-							'fitness-knowledge',
-							c.fitnessKnowledge
-						)}
+						<legend class={legend} tabindex="-1">{c.sectionTwo}</legend>{@render question(
+							'training-experience',
+							c.trainingExperience
+						)}{@render question('fitness-knowledge', c.fitnessKnowledge)}
 						<div class={fieldGrid}>
 							{@render question('training-days', c.trainingDays)}{@render question(
 								'training-location',
@@ -376,12 +358,10 @@
 						</div>
 					</fieldset>
 					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 2} data-step="2">
-						<legend class={legend} tabindex="-1"
-							><span class={legendNumber}>03</span>{c.sectionThree}</legend
-						>{@render question('nutrition-knowledge', c.nutritionKnowledge)}{@render question(
-							'nutrition-experience',
-							c.nutritionExperience
-						)}
+						<legend class={legend} tabindex="-1">{c.sectionThree}</legend>{@render question(
+							'nutrition-knowledge',
+							c.nutritionKnowledge
+						)}{@render question('nutrition-experience', c.nutritionExperience)}
 						<label class={fieldsetLabel}
 							>{c.challengeLabel}<span class={marker} aria-hidden="true">*</span><textarea
 								class="{control} resize-y"
@@ -407,9 +387,7 @@
 						>
 					</fieldset>
 					<fieldset class={fieldset} disabled={submitting} hidden={flow.step !== 3} data-step="3">
-						<legend class={legend} tabindex="-1"
-							><span class={legendNumber}>04</span>{f.reviewTitle}</legend
-						>
+						<legend class={legend} tabindex="-1">{f.reviewTitle}</legend>
 						<p class="mb-3 {note}">{f.reviewCopy}</p>
 						{#each review as group, index (index)}
 							<section class="border-t border-t-ink/15 py-2" aria-labelledby="review-{index}">

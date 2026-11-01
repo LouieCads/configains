@@ -559,8 +559,6 @@ export const websiteSchema: Field = group('Website', {
 				stepCounter: text('Step counter', 'Step {current} of {total}'),
 				percentComplete: text('Percent complete', '{percent}% complete'),
 				progressLabel: text('Progress bar description', 'Assessment progress'),
-				stepsLabel: text('Step list description', 'Assessment steps'),
-				reviewStep: text('Review step name', 'Review & send'),
 				reviewTitle: text('Review heading', 'Check your answers'),
 				reviewCopy: area(
 					'Review message',

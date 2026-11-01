@@ -8,7 +8,7 @@
 	import SectionTitle from '$lib/components/landing/SectionTitle.svelte';
 	import FaqSection from '$lib/components/sections/FaqSection.svelte';
 	import TransformationCarousel from '$lib/components/sections/TransformationCarousel.svelte';
-	import { reveal } from '$lib/components/landing/motion';
+	import { reveal, tilt } from '$lib/components/landing/motion';
 	import { publicHref } from '$lib/content/links';
 	import { orderedHomeSections } from '$lib/content/home-sections';
 	import {
@@ -171,7 +171,7 @@
 						>{site.brand.founder}.</strong
 					>
 				</figcaption>
-				<div class="relative isolate">
+				<div class="relative isolate" use:tilt>
 					<div
 						class="absolute inset-0 -z-10 translate-x-4 translate-y-4 bg-cyan"
 						aria-hidden="true"
@@ -441,7 +441,8 @@
 					id="contact-title"
 					tone="cyan"
 					heading={c.contact.heading}
-					class="text-[clamp(4rem,9vw,8.5rem)] leading-[0.88]"
+					fit={{ cqi: 14, max: '8.5rem' }}
+					class="leading-[0.88]"
 				/>
 			</div>
 			<div use:reveal={140}>
