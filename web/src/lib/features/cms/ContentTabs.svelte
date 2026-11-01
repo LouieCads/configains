@@ -6,15 +6,17 @@
 <script lang="ts">
 	import ContentField from './ContentField.svelte';
 	import { editorPanels } from './editor-panels';
-	import { isQuestionField, type Content, type Field } from '$lib/content/schema';
-	import { help } from './styles';
+	import { isQuestionField, websiteSchema, type Content, type Field } from '$lib/content/schema';
+	import { orderedHomeSections } from '$lib/content/home-sections';
+	import { help, secondary } from './styles';
 	let {
 		field,
 		value = $bindable(),
 		path,
 		active = $bindable(),
 		disabled = false,
-		onUploadChange
+		onUploadChange,
+		onOpenSection
 	}: {
 		field: Field;
 		value: Content;
@@ -22,9 +24,19 @@
 		active?: string;
 		disabled?: boolean;
 		onUploadChange?: (active: boolean) => void;
+		/** Switches the editor to another website section (for tabs whose fields live there). */
+		onOpenSection?: (section: string) => void;
 	} = $props();
 	const panels = $derived(editorPanels(path, field));
-	const contentPanels = $derived(panels.filter((panel) => panel.group !== 'settings'));
+	/** Homepage tabs follow the saved section order, so the tabs read like the page. */
+	const contentPanels = $derived.by(() => {
+		const list = panels.filter((panel) => panel.group !== 'settings');
+		if (!list.some((panel) => panel.homeSection)) return list;
+		const order: string[] = orderedHomeSections(value?.sectionOrder);
+		const rank = (section?: string) => (section ? order.indexOf(section) : order.length);
+		return list.toSorted((a, b) => rank(a.homeSection) - rank(b.homeSection));
+	});
+	const numbered = $derived(contentPanels.some((panel) => panel.homeSection));
 	const settingsPanels = $derived(panels.filter((panel) => panel.group === 'settings'));
 	const tab =
 		'min-h-11 shrink-0 rounded-[6px] border border-line bg-white px-[14px] py-[10px] text-muted hover:border-cyan-ink aria-selected:border-cyan-ink aria-selected:bg-[#d7f2f1] aria-selected:text-ink';
@@ -73,7 +85,7 @@
 		</div>
 	{/if}
 </div>
-<p class={help}>Choose a section to edit.</p>
+{#if numbered}<p class={help}>Tabs are in the same order as the homepage.</p>{/if}
 {#if contentPanels.length > 1}
 	<div
 		class="mt-[22px] mb-[26px] flex flex-wrap gap-[6px] border-b border-b-line pb-4 bp-760:flex-nowrap bp-760:overflow-x-auto bp-760:px-1 bp-760:pt-1 bp-760:pb-3"
@@ -91,12 +103,28 @@
 				tabindex={selected.id === panel.id ? 0 : -1}
 				{disabled}
 				onclick={() => (active = panel.id)}
-				onkeydown={(event) => navigateTabs(event, contentPanels, index)}>{panel.label}</button
+				onkeydown={(event) => navigateTabs(event, contentPanels, index)}
+				>{#if numbered && panel.homeSection}<span
+						class="mr-2 text-[0.75rem] text-muted tabular-nums"
+						aria-hidden="true">{String(index + 1).padStart(2, '0')}</span
+					>{/if}{panel.label}</button
 			>
 		{/each}
 	</div>
 {/if}
 {#snippet panelFields()}
+	{#if selected.linkTo}
+		{@const target = websiteSchema.fields?.[selected.linkTo]?.label ?? selected.linkTo}
+		<p class="mt-0">
+			This section is shared with other pages. Edit it under <strong>{target}</strong>.
+		</p>
+		<button
+			type="button"
+			class={secondary}
+			{disabled}
+			onclick={() => onOpenSection?.(selected.linkTo!)}>Edit {target} →</button
+		>
+	{/if}
 	{#each selected.fields as entry (entry.path.join('.'))}
 		{#if entry.path.length}
 			{@const parent = parentAt(entry.path)}

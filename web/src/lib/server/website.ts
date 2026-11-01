@@ -23,6 +23,41 @@ const legacyOrigins = [
 ];
 
 /**
+ * Former "coming soon" placeholder defaults and their replacements. Stored
+ * documents saved before the change still hold the old wording; only exact
+ * matches are swapped, so text the coach wrote stays untouched.
+ */
+const retiredText = new Map([
+	['COACH PORTRAIT / COMING SOON', 'FOUNDER & COACH'],
+	[
+		'A real client’s journey will go here, shared with their permission.',
+		'Personal coaching, honest check-ins, and steady progress week by week.'
+	],
+	['Photo coming soon', ''],
+	['COMING SOON', 'AVAILABLE NOW'],
+	['CLIENT STORIES COMING SOON', 'THE CONFIGAINS COMMUNITY'],
+	[
+		'Reserved for real feedback from the Configains community.',
+		'Real people building strength and consistency with Configains.'
+	],
+	['COVER PLACEHOLDER', 'CONFIGAINS'],
+	['App updates coming soon', 'Available on configains.app'],
+	['APP PREVIEW PLACEHOLDER', 'YOUR COACHING, IN ONE PLACE'],
+	['Transformation stories are coming soon.', 'New client stories are added regularly.']
+]);
+
+/** Replaces retired placeholder wording anywhere in the document, in place. */
+export function replaceRetiredText(value: Content): Content {
+	for (const [key, child] of Object.entries(value)) {
+		if (typeof child === 'string') {
+			const next = retiredText.get(child);
+			if (next !== undefined) value[key] = next;
+		} else if (child && typeof child === 'object') replaceRetiredText(child as Content);
+	}
+	return value;
+}
+
+/**
  * Loads the published (or draft) website, normalized to the current schema.
  * Falls back to default content when no document exists or the query fails;
  * callers decide how to surface `error`.
@@ -34,7 +69,7 @@ export async function readWebsite(supabase: SupabaseClient, draft = false) {
 		.eq('key', draft ? 'website.draft' : 'website')
 		.maybeSingle();
 	const content = data
-		? (normalizeContent(websiteSchema, data.metadata) as Content)
+		? replaceRetiredText(normalizeContent(websiteSchema, data.metadata) as Content)
 		: defaultWebsite();
 	// Older published CMS documents retain the original domain after code defaults change.
 	if (legacyOrigins.includes(content.brand.canonicalUrl.replace(/\/+$/, '')))

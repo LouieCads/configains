@@ -147,7 +147,7 @@ export const websiteSchema: Field = group('Website', {
 			),
 			portrait: image('Coach portrait'),
 			portraitAlt: text('Portrait description', 'Cash Fuerte, founder and coach of Configains'),
-			portraitPlaceholder: text('Portrait placeholder label', 'COACH PORTRAIT / COMING SOON'),
+			portraitPlaceholder: text('Portrait placeholder label', 'FOUNDER & COACH'),
 			logo: image('Logo (optional)'),
 			logoAlt: text('Logo description', 'Configains'),
 			favicon: image('Browser icon', '/favicon.svg'),
@@ -255,23 +255,23 @@ export const websiteSchema: Field = group('Website', {
 			]),
 			placeholderCopy: area(
 				'Placeholder explanation',
-				'A real client’s journey will go here, shared with their permission.'
+				'Personal coaching, honest check-ins, and steady progress week by week.'
 			),
-			photoPlaceholder: text('Photo placeholder', 'Photo coming soon'),
+			photoPlaceholder: text('Photo placeholder', ''),
 			before: text('Before label', 'Before'),
 			after: text('After label', 'After'),
 			journey: text('Journey label', 'JOURNEY'),
-			comingSoon: text('Status label', 'COMING SOON'),
+			comingSoon: text('Status label', 'CLIENT STORY'),
 			testimonialEyebrow: text('Testimonial section label', 'THE COMMUNITY'),
 			testimonialHeading: heading('Testimonial heading', 'THEIR JOURNEY.', 'THEIR WORDS.'),
 			testimonialPlaceholder: area(
 				'Testimonial placeholder',
 				'Good progress deserves\nan honest story.'
 			),
-			testimonialStatus: text('Testimonial status', 'CLIENT STORIES COMING SOON'),
+			testimonialStatus: text('Testimonial status', 'THE CONFIGAINS COMMUNITY'),
 			testimonialHint: area(
 				'Testimonial explanation',
-				'Reserved for real feedback from the Configains community.'
+				'Real people building strength and consistency with Configains.'
 			)
 		}),
 		products: group('Product previews', {
@@ -280,7 +280,7 @@ export const websiteSchema: Field = group('Website', {
 			heading: heading('Heading', 'A LITTLE STRUCTURE.', 'A STEP FORWARD.'),
 			coverLabel: text('Cover label', 'CONFIGAINS / THE TOOLKIT'),
 			coverNote: area('Cover footer', 'A LITTLE STRUCTURE.\nA STEP FORWARD.'),
-			placeholderLabel: text('Placeholder label', 'COVER PLACEHOLDER'),
+			placeholderLabel: text('Cover corner label', 'CONFIGAINS'),
 			items: list(
 				'Products',
 				group('Product', {
@@ -290,7 +290,7 @@ export const websiteSchema: Field = group('Website', {
 					cover: area('Cover text', 'START\nSIMPLE.'),
 					image: image('Cover image'),
 					imageAlt: text('Cover image description'),
-					status: text('Availability label', 'COMING SOON')
+					status: text('Availability label', 'AVAILABLE NOW')
 				}),
 				[
 					{
@@ -300,7 +300,7 @@ export const websiteSchema: Field = group('Website', {
 						cover: 'START\nSIMPLE.',
 						image: '',
 						imageAlt: '',
-						status: 'COMING SOON'
+						status: 'AVAILABLE NOW'
 					},
 					{
 						type: 'WORKOUT PLAN',
@@ -309,7 +309,7 @@ export const websiteSchema: Field = group('Website', {
 						cover: 'SHOW\nUP.',
 						image: '',
 						imageAlt: '',
-						status: 'COMING SOON'
+						status: 'AVAILABLE NOW'
 					},
 					{
 						type: 'TEMPLATE',
@@ -318,7 +318,7 @@ export const websiteSchema: Field = group('Website', {
 						cover: 'KEEP\nGOING.',
 						image: '',
 						imageAlt: '',
-						status: 'COMING SOON'
+						status: 'AVAILABLE NOW'
 					}
 				]
 			)
@@ -334,11 +334,11 @@ export const websiteSchema: Field = group('Website', {
 				'Meet the Configains app.\nA space to support your coaching journey, with Cash Fuerte guiding the plan and the decisions along the way.'
 			),
 			cta: text('App button', 'Explore configains.app'),
-			unavailable: text('Not-ready label', 'App updates coming soon'),
+			unavailable: text('Not-ready label', 'Available on configains.app'),
 			previewImage: image('App preview image'),
 			previewAlt: text('App preview description', 'Preview of the Configains app'),
 			deviceHeading: area('Device headline', 'A LITTLE\nSTRONGER.\nEVERY DAY.'),
-			previewLabel: text('Preview placeholder label', 'APP PREVIEW PLACEHOLDER')
+			previewLabel: text('Preview placeholder label', 'YOUR COACHING, IN ONE PLACE')
 		}),
 		contact: group('Contact section', {
 			heading: heading('Heading', 'YOUR NEXT CHAPTER.', 'LET’S FIGURE IT OUT.'),
@@ -412,7 +412,7 @@ export const websiteSchema: Field = group('Website', {
 			'Progress beyond the photo.',
 			'Real stories of strength, confidence, and consistency built one step at a time.'
 		),
-		empty: area('Placeholder text', 'Transformation stories are coming soon.')
+		empty: area('Placeholder text', 'New client stories are added regularly.')
 	}),
 	faq: group('Questions and answers', {
 		enabled: toggle('Show FAQ section'),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { readWebsite, websiteOrigin } from './website';
+import { readWebsite, replaceRetiredText, websiteOrigin } from './website';
 
 function storedWebsite(canonicalUrl: string) {
 	const metadata = { brand: { canonicalUrl, socialImage: '/og-image.png', name: 'Configains' } };
@@ -32,5 +32,28 @@ describe('published website domain migration', () => {
 		const { client } = storedWebsite('https://www.example.com');
 		const { content } = await readWebsite(client);
 		expect(content.brand.canonicalUrl).toBe('https://www.example.com');
+	});
+});
+
+describe('retired placeholder wording', () => {
+	it('swaps exact old "coming soon" defaults and keeps custom text', () => {
+		const content = replaceRetiredText({
+			home: {
+				products: {
+					items: [
+						{ status: 'COMING SOON' },
+						{ status: 'Coming soon to stores' },
+						{ status: 'AVAILABLE' }
+					]
+				},
+				app: { unavailable: 'App updates coming soon' }
+			}
+		});
+		expect(content.home.products.items.map((item: { status: string }) => item.status)).toEqual([
+			'AVAILABLE NOW',
+			'Coming soon to stores',
+			'AVAILABLE'
+		]);
+		expect(content.home.app.unavailable).toBe('Available on configains.app');
 	});
 });

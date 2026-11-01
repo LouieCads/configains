@@ -33,10 +33,6 @@
 <svelte:head><title>Assessments | Configains CMS</title></svelte:head>
 <div class={flow}>
 	<h1>Coaching assessments</h1>
-	<p class={help}>
-		Review AI Coaching matches and override them. Any health answer sends a client here for personal
-		review.
-	</p>
 
 	{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 	{#if form?.updated}<p class={success} role="status">Saved.</p>{/if}

@@ -466,7 +466,30 @@
 						{#if submitting}<p class="mt-2 {note}" aria-live="polite">{c.sendingNote}</p>{/if}
 					</div>
 					<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-0">
-						<SaveStatus status={flow.status} savingText={f.saving} savedText={f.saved} />
+						<span class="group/tip relative inline-flex items-center gap-1.5">
+							<SaveStatus status={flow.status} savingText={f.saving} savedText={f.saved} />
+							{#if f.draftNote}<span class="inline-flex">
+									<button
+										type="button"
+										class="grid size-9 cursor-help place-items-center rounded-full border-0 bg-transparent p-0 text-ink-soft hover:text-ink {focusRing}"
+										aria-label="How saving works"
+										aria-describedby="draft-note"
+										><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"
+											><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4" /><path
+												d="M8 7v4.5M8 4.5v.01"
+												stroke="currentColor"
+												stroke-width="1.6"
+												stroke-linecap="round"
+											/></svg
+										></button
+									><span
+										id="draft-note"
+										role="tooltip"
+										class="pointer-events-none invisible absolute bottom-full left-0 z-20 mb-1 w-[min(17rem,calc(100vw-3rem))] rounded-[3px] bg-night px-3 py-2 text-[0.8125rem]/[1.5] text-bone opacity-0 [transition:opacity_0.15s] group-focus-within/tip:visible group-focus-within/tip:opacity-100 group-hover/tip:visible group-hover/tip:opacity-100"
+										>{f.draftNote}</span
+									></span
+								>{/if}
+						</span>
 						{#if flow.hasProgress}<button
 								class="inline-flex min-h-9 cursor-pointer items-center border-0 bg-transparent p-0 text-[0.8125rem] text-ink underline decoration-cyan decoration-2 underline-offset-4 hover:text-cyan-deep {focusRing}"
 								type="button"
@@ -474,7 +497,6 @@
 								disabled={submitting}>{f.clearDraft}</button
 							>{/if}
 					</div>
-					<p class="mt-1 {note}">{f.draftNote}</p>
 				</form>{/if}
 		</div>
 	</div>

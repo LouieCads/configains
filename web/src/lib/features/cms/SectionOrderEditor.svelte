@@ -1,10 +1,12 @@
 <!--
-	Reorders homepage sections by dragging or with up/down buttons. Missing or
-	unknown ids in `value` are repaired on display; moves are announced to screen readers.
+	Reorders homepage sections by dragging the handle, or by focusing it and
+	pressing the up and down arrow keys. Missing or unknown ids in `value` are
+	repaired on display; moves are announced to screen readers.
 -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { homeSections, orderedHomeSections } from '$lib/content/home-sections';
-	import { help, secondaryCompact, visuallyHidden } from './styles';
+	import { help, visuallyHidden } from './styles';
 	let { value = $bindable(), disabled = false }: { value: string[]; disabled?: boolean } = $props();
 	let announcement = $state('');
 	let dragIndex = $state<number | null>(null);
@@ -27,8 +29,16 @@
 		value = order;
 		announcement = `${labelOf(moved)} moved to position ${to + 1}.`;
 	}
-	function move(index: number, direction: number) {
+	let list = $state<HTMLOListElement>();
+	/** Arrow keys on a focused handle move its section one place; focus follows it. */
+	async function handleKey(event: KeyboardEvent, index: number) {
+		const direction = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
+		if (!direction) return;
+		event.preventDefault();
+		const id = sections[index];
 		reorder(index, index + direction);
+		await tick();
+		list?.querySelector<HTMLButtonElement>(`[data-handle="${id}"]`)?.focus();
 	}
 	function handleDragStart(event: DragEvent, index: number) {
 		if (disabled) return;
@@ -57,11 +67,8 @@
 
 <fieldset class="m-0 mb-6 min-w-0 p-0 [border:0]" {disabled}>
 	<legend class="text-[1.5rem]">Homepage section order</legend>
-	<p class={help}>
-		Drag a section to reorder it, or use the up/down buttons. Save your draft and preview the
-		arrangement before publishing. Sections switched off in their settings stay hidden.
-	</p>
-	<ol class="mt-[18px] grid list-none gap-2 p-0">
+	<p class={help}>Drag ⠿ to reorder. The homepage and the editor tabs follow this order.</p>
+	<ol bind:this={list} class="mt-[18px] grid list-none gap-2 p-0">
 		{#each sections as id, index (id)}
 			{@const label = labelOf(id)}
 			<li
@@ -75,29 +82,19 @@
 				ondragover={(event) => handleDragOver(event, index)}
 				ondrop={(event) => handleDrop(event, index)}
 			>
-				<span
-					class="cursor-grab touch-none p-1 text-[1rem] leading-none text-[#99a9ab]"
-					aria-hidden="true"
+				<button
+					type="button"
+					class="min-h-11 cursor-grab touch-none rounded-[6px] border-0 bg-transparent px-2 text-[1rem] leading-none text-[#99a9ab] hover:text-ink"
+					title="Drag to reorder"
+					aria-label={`Reorder ${label}. Use the up and down arrow keys.`}
+					data-handle={id}
 					draggable={!disabled}
 					ondragstart={(event) => handleDragStart(event, index)}
-					ondragend={handleDragEnd}>⠿</span
+					ondragend={handleDragEnd}
+					onkeydown={(event) => handleKey(event, index)}>⠿</button
 				>
 				<span class="min-w-6 text-[0.8rem] text-muted">{index + 1}</span>
 				<strong class="flex-1 text-[0.875rem]">{label}</strong>
-				<button
-					type="button"
-					class={secondaryCompact}
-					aria-label={`Move ${label} up`}
-					disabled={disabled || index === 0}
-					onclick={() => move(index, -1)}>↑</button
-				>
-				<button
-					type="button"
-					class={secondaryCompact}
-					aria-label={`Move ${label} down`}
-					disabled={disabled || index === sections.length - 1}
-					onclick={() => move(index, 1)}>↓</button
-				>
 			</li>
 		{/each}
 	</ol>

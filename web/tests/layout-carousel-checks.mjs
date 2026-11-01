@@ -22,8 +22,8 @@ export async function checkLayoutAndCarousel({ page, origin }) {
 	await page.getByRole('tab', { name: 'Section order', exact: true }).click();
 	const sections = page.locator('.section-order li');
 	assert.equal(await sections.count(), 10);
-	for (let index = 0; index < 9; index++)
-		await page.getByRole('button', { name: 'Move Contact up', exact: true }).click();
+	await page.getByRole('button', { name: /^Reorder Contact\./ }).focus();
+	for (let index = 0; index < 9; index++) await page.keyboard.press('ArrowUp');
 	assert.match(await sections.first().innerText(), /Contact/);
 	await page.getByRole('button', { name: 'Save draft', exact: true }).first().click();
 	await page.getByRole('status').filter({ hasText: 'Draft saved.' }).waitFor();

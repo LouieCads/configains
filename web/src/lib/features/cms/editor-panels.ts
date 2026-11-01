@@ -6,13 +6,20 @@
  * to an "Other settings" tab, so new schema fields are never hidden.
  */
 import type { Field } from '$lib/content/schema';
+import { homeSections, type HomeSectionId } from '$lib/content/home-sections';
 
 type PanelGroup = 'content' | 'settings';
-type PanelDefinition = { label: string; paths: string[]; group: PanelGroup };
-export type EditorPanel = {
-	id: string;
+type PanelDefinition = {
 	label: string;
+	paths: string[];
 	group: PanelGroup;
+	/** Homepage section this tab edits; the editor orders these tabs like the homepage. */
+	homeSection?: HomeSectionId;
+	/** Website section that holds this tab's fields instead (the tab links there). */
+	linkTo?: string;
+};
+export type EditorPanel = Omit<PanelDefinition, 'paths'> & {
+	id: string;
 	fields: { path: string[]; field: Field }[];
 };
 
@@ -20,6 +27,13 @@ const panel = (label: string, ...paths: string[]): PanelDefinition => ({
 	label,
 	paths,
 	group: 'content'
+});
+/** A homepage tab, labelled like the section in the section order list. */
+const homePanel = (homeSection: HomeSectionId, ...paths: string[]): PanelDefinition => ({
+	label: homeSections.find((section) => section.id === homeSection)!.label,
+	paths,
+	group: 'content',
+	homeSection
 });
 /** Page-level settings (SEO, section order) rather than a homepage section — kept visually separate in the tabs. */
 const settingsPanel = (label: string, ...paths: string[]): PanelDefinition => ({
@@ -41,27 +55,24 @@ const layouts: Record<string, PanelDefinition[]> = {
 		panel('Footer', 'backToTop', 'footerNote', 'contactLink', 'appLink')
 	],
 	home: [
-		panel(
-			'Hero',
+		homePanel(
+			'hero',
 			'hero.firstLine',
 			'hero.secondLine',
 			'hero.rotatingWords',
 			'hero.copy',
 			'hero.cta',
-			'hero.explore'
-		),
-		panel(
-			'Hero visual',
+			'hero.explore',
 			'hero.visualLabel',
 			'hero.visualTitle',
 			'hero.image',
-			'hero.imageAlt',
-			'hero.principles'
+			'hero.imageAlt'
 		),
-		panel('Coach introduction', 'about'),
-		panel('Coaching', 'coaching'),
-		panel(
-			'Transformations',
+		homePanel('principles', 'hero.principles'),
+		homePanel('about', 'about'),
+		homePanel('coaching', 'coaching'),
+		homePanel(
+			'transformations',
 			'proof.eyebrow',
 			'proof.heading',
 			'proof.placeholderTitles',
@@ -72,17 +83,18 @@ const layouts: Record<string, PanelDefinition[]> = {
 			'proof.journey',
 			'proof.comingSoon'
 		),
-		panel(
-			'Testimonials',
+		homePanel(
+			'testimonials',
 			'proof.testimonialEyebrow',
 			'proof.testimonialHeading',
 			'proof.testimonialPlaceholder',
 			'proof.testimonialStatus',
 			'proof.testimonialHint'
 		),
-		panel('Products', 'products'),
-		panel('App', 'app'),
-		panel('Contact', 'contact'),
+		homePanel('products', 'products'),
+		homePanel('app', 'app'),
+		{ ...homePanel('faq'), linkTo: 'faq' },
+		homePanel('contact', 'contact'),
 		settingsPanel('Section order', 'sectionOrder'),
 		settingsPanel('SEO', 'seo')
 	],
@@ -140,10 +152,9 @@ function leaves(field: Field, path: string[] = []): string[][] {
  */
 export function editorPanels(section: string, field: Field): EditorPanel[] {
 	const definitions = layouts[section] ?? [panel(field.label, '')];
-	const panels = definitions.map(({ label, paths, group }, index) => ({
+	const panels: EditorPanel[] = definitions.map(({ paths, ...definition }, index) => ({
+		...definition,
 		id: `${section}-${index}`,
-		label,
-		group,
 		fields: paths.map((value) => {
 			const path = value ? value.split('.') : [];
 			let child = field;

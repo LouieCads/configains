@@ -20,10 +20,6 @@
 <svelte:head><title>Templates | Configains CMS</title></svelte:head>
 <div class={flow}>
 	<h1>Program templates</h1>
-	<p class={help}>
-		Templates are the approved programs clients are assigned. Changes apply to clients on their next
-		view. Archive a template to stop assigning it without affecting clients already on it.
-	</p>
 
 	<p class="my-5 flex flex-wrap gap-3">
 		<a class={primary} href="/admin/templates/new?kind=workout">New workout template</a>

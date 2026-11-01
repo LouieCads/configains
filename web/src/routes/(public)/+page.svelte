@@ -235,7 +235,7 @@
 				{#snippet header()}
 					<div class="mb-14 bp-640:mb-10" use:reveal>
 						<SectionLabel number={sectionNumber('transformations')}>{proof.eyebrow}</SectionLabel>
-						<SectionTitle id="transformations-title" heading={proof.heading} />
+						<SectionTitle id="transformations-title" heading={proof.heading} oneLine />
 					</div>
 				{/snippet}
 			</TransformationCarousel>
@@ -434,7 +434,7 @@
 {#snippet contactSection()}
 	<section id="contact" class="{anchor} bg-cyan" aria-labelledby="contact-title">
 		<div
-			class="{container} grid grid-cols-[minmax(0,7fr)_minmax(0,4fr)] items-end gap-x-16 gap-y-10 py-[clamp(72px,10vw,144px)] cq-58:grid-cols-[minmax(0,1fr)]"
+			class="{container} grid grid-cols-[minmax(0,7fr)_minmax(0,4fr)] items-center gap-x-16 gap-y-10 py-[clamp(72px,10vw,144px)] cq-58:grid-cols-[minmax(0,1fr)]"
 		>
 			<div use:reveal={60}>
 				<SectionTitle

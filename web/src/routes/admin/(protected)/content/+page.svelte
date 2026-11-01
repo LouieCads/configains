@@ -13,7 +13,6 @@
 	import {
 		error as errorClass,
 		eyebrow,
-		help,
 		primary,
 		secondary,
 		subtle,
@@ -94,8 +93,8 @@
 	const sections = Object.entries(websiteSchema.fields!);
 	const isPage = (key: string): key is WebsitePage => websitePages.includes(key as WebsitePage);
 	const sectionGroups = [
-		{ label: 'Website pages', sections: sections.filter(([key]) => isPage(key)) },
-		{ label: 'Shared content', sections: sections.filter(([key]) => !isPage(key)) }
+		{ label: 'Pages', sections: sections.filter(([key]) => isPage(key)) },
+		{ label: 'Shared across pages', sections: sections.filter(([key]) => !isPage(key)) }
 	];
 	const previewPath = $derived(isPage(active) ? websitePagePath(active) : '/');
 
@@ -175,10 +174,7 @@
 </script>
 
 <svelte:head><title>Website editor | Configains CMS</title></svelte:head>
-<div class="mb-7 max-w-[800px]">
-	<p class={eyebrow}>CONTENT STUDIO</p>
-	<h1>Your website. Your words.</h1>
-</div>
+<h1>Website content</h1>
 <ConfirmDialog
 	open={dialog !== null}
 	{...dialogs[dialog ?? 'leave']}
@@ -191,14 +187,22 @@
 <div
 	class="sticky top-3 z-[5] flex flex-wrap items-center gap-3 rounded-lg border border-line bg-paper p-4 [box-shadow:0_5px_20px_#183b360a] bp-760:static"
 >
-	<span class="mr-auto text-[0.85rem] bp-760:w-full"
-		>{pendingUploads
+	<span class="mr-auto flex items-center gap-2 text-[0.85rem] font-semibold bp-760:w-full"
+		><span
+			class={[
+				'h-2.5 w-2.5 rounded-full',
+				pendingUploads || dirty ? 'bg-[#d98a2b]' : revision ? 'bg-[#1f8a6f]' : 'bg-[#b7c6c7]'
+			]}
+			aria-hidden="true"
+		></span>{pendingUploads
 			? 'Uploading image…'
 			: dirty
 				? 'Unsaved changes'
 				: revision
 					? 'Draft saved'
-					: 'Ready to edit'}</span
+					: 'Ready to edit'}{#if publishedRevision}<span class="font-normal text-muted"
+				>· Last published {formatDateTime(publishedRevision)}</span
+			>{/if}</span
 	>
 	<button class={secondary} disabled={locked || data.unavailable} onclick={save}
 		>{busy ? 'Working…' : 'Save draft'}</button
@@ -211,7 +215,7 @@
 		aria-disabled={!canPreview}
 		onclick={(event) => {
 			if (!canPreview) event.preventDefault();
-		}}>Preview saved draft ↗</a
+		}}>Preview draft ↗</a
 	>
 	<button
 		class={primary}
@@ -233,9 +237,6 @@
 			{#each errors as error (error)}<li>{error}</li>{/each}
 		</ul>
 	</div>{/if}
-{#if publishedRevision}<p class={help}>
-		Last published: {formatDateTime(publishedRevision)}
-	</p>{/if}
 <div class="mt-7 grid grid-cols-[210px_minmax(0,1fr)] gap-6 bp-1100:grid-cols-1">
 	<nav
 		class="flex flex-col gap-[6px] [align-self:start] bp-1100:flex-row bp-1100:flex-wrap"
@@ -290,6 +291,7 @@
 					path={key}
 					disabled={locked}
 					onUploadChange={trackUpload}
+					onOpenSection={(section) => (active = section)}
 				/>{/if}{/each}<button class={primary} disabled={locked || data.unavailable}
 			>Save draft</button
 		>
