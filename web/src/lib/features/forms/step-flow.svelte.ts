@@ -37,6 +37,7 @@ export class StepFlow {
 	/** Step to go back to once an edit from the review step is done. */
 	returnTo = $state<number | null>(null);
 
+	#steps = $state(1);
 	#ready = $state(false);
 	#discarded = false;
 	#timer: ReturnType<typeof setTimeout> | undefined;
@@ -50,12 +51,21 @@ export class StepFlow {
 			now: Date.now,
 			...options
 		};
+		this.#steps = Math.max(1, options.steps);
 		this.values = Object.fromEntries(options.fields.map((name) => [name, '']));
 	}
 
 	/** Zero-based index of the final step. */
 	get last() {
-		return this.#options.steps - 1;
+		return this.#steps - 1;
+	}
+
+	/** Changes the number of steps, for a form whose length depends on an answer. Positions stay in range. */
+	setSteps(count: number) {
+		this.#steps = Math.max(1, count);
+		this.step = Math.min(this.step, this.last);
+		this.reached = Math.min(this.reached, this.last);
+		if (this.returnTo !== null) this.returnTo = Math.min(this.returnTo, this.last);
 	}
 
 	/** True once anything has been entered or the visitor has moved on. */

@@ -212,6 +212,22 @@ describe('StepFlow navigation', () => {
 		expect(flow.returnTo).toBeNull();
 	});
 
+	it('keeps positions in range when the number of steps shrinks', () => {
+		const flow = make();
+		const ok = fakeStep([{ name: 'name', value: 'Ana' }]).root;
+		flow.next(ok, messages);
+		flow.next(ok, messages);
+		flow.next(ok, messages);
+		flow.edit(0);
+		flow.setSteps(3);
+		expect(flow.last).toBe(2);
+		expect(flow.step).toBe(0);
+		expect(flow.reached).toBe(2);
+		expect(flow.returnTo).toBe(2);
+		flow.setSteps(4);
+		expect(flow.last).toBe(3);
+	});
+
 	it('drops a field message once the answer is valid', () => {
 		const flow = make();
 		flow.next(fakeStep([{ name: 'name', value: '' }]).root, messages);

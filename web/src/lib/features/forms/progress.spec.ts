@@ -12,15 +12,15 @@ const validity = (flags: Partial<ValidityState> = {}) =>
 	}) as ValidityState;
 
 describe('percentComplete', () => {
-	it('is the share of steps reached', () => {
-		expect(percentComplete(1, 4)).toBe(25);
-		expect(percentComplete(2, 5)).toBe(40);
-		expect(percentComplete(4, 4)).toBe(100);
+	it('is the share of steps finished, not counting the current one', () => {
+		expect(percentComplete(1, 4)).toBe(0);
+		expect(percentComplete(2, 5)).toBe(20);
+		expect(percentComplete(4, 4)).toBe(75);
 	});
 
-	it('stays within 0 to 100', () => {
-		expect(percentComplete(0, 4)).toBe(25);
-		expect(percentComplete(9, 4)).toBe(100);
+	it('stays within range for odd input', () => {
+		expect(percentComplete(0, 4)).toBe(0);
+		expect(percentComplete(9, 4)).toBe(75);
 		expect(percentComplete(1, 0)).toBe(0);
 	});
 });

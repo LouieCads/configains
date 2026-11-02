@@ -1,8 +1,12 @@
-/** Share of the form reached, as a whole percent: step 2 of 5 is 40%. */
+/**
+ * Share of the form finished, as a whole percent. The step being filled in does
+ * not count yet, so the first step is 0% and step 2 of 5 is 20%. The form is only
+ * complete once it is sent.
+ */
 export function percentComplete(step: number, total: number): number {
 	if (total <= 0) return 0;
 	const current = Math.min(Math.max(step, 1), total);
-	return Math.round((current / total) * 100);
+	return Math.round(((current - 1) / total) * 100);
 }
 
 /** Replaces `{name}` placeholders with values; unknown placeholders stay as written. */
