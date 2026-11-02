@@ -21,7 +21,7 @@
 	const dateFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' });
 	const updatedLabel = (value: string | null) => {
 		const date = value ? new Date(value) : null;
-		return date && !Number.isNaN(date.getTime()) ? `Updated ${dateFormat.format(date)}` : '';
+		return date && !Number.isNaN(date.getTime()) ? dateFormat.format(date) : '';
 	};
 
 	let kind = $state('all');
@@ -50,13 +50,16 @@
 				href="/admin/templates/{template.id}"
 				aria-label="Edit {template.name}">{template.name}</a
 			>
-			<span class="truncate text-[0.85rem] text-muted"
-				>{goalLabel(template.goal)}{updatedLabel(template.updated_at)
-					? ` · ${updatedLabel(template.updated_at)}`
-					: ''}</span
-			>
+			<span class="truncate text-[0.85rem] text-muted">{goalLabel(template.goal)}</span>
 		</span>
-		<span class={badgeNeutral}>{kindLabel(template.kind)}</span>
+		<span class="grid justify-items-start gap-1">
+			<span class={badgeNeutral}>{kindLabel(template.kind)}</span>
+			{#if updatedLabel(template.updated_at)}
+				<span class="text-[0.7rem] text-muted"
+					><span class="sr-only">Updated </span>{updatedLabel(template.updated_at)}</span
+				>
+			{/if}
+		</span>
 		<div class="flex items-center gap-1">
 			<form method="POST" action="?/duplicate" class="m-0 flex">
 				<input type="hidden" name="id" value={template.id} />
