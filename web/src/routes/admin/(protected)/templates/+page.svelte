@@ -45,21 +45,21 @@
 {#snippet templateRow(template: (typeof data.templates)[number])}
 	<li class={row}>
 		<span class="grid min-w-0 flex-1 basis-56">
-			<a
-				class="truncate font-bold text-ink no-underline after:absolute after:inset-0 after:content-['']"
-				href="/admin/templates/{template.id}"
-				aria-label="Edit {template.name}">{template.name}</a
-			>
+			<span class="flex min-w-0 items-baseline gap-2">
+				<a
+					class="truncate font-bold text-ink no-underline after:absolute after:inset-0 after:content-['']"
+					href="/admin/templates/{template.id}"
+					aria-label="Edit {template.name}">{template.name}</a
+				>
+				{#if updatedLabel(template.updated_at)}
+					<span class="shrink-0 text-[0.7rem] text-muted"
+						><span class="sr-only">Updated </span>{updatedLabel(template.updated_at)}</span
+					>
+				{/if}
+			</span>
 			<span class="truncate text-[0.85rem] text-muted">{goalLabel(template.goal)}</span>
 		</span>
-		<span class="grid justify-items-start gap-1">
-			<span class={badgeNeutral}>{kindLabel(template.kind)}</span>
-			{#if updatedLabel(template.updated_at)}
-				<span class="text-[0.7rem] text-muted"
-					><span class="sr-only">Updated </span>{updatedLabel(template.updated_at)}</span
-				>
-			{/if}
-		</span>
+		<span class={badgeNeutral}>{kindLabel(template.kind)}</span>
 		<div class="flex items-center gap-1">
 			<form method="POST" action="?/duplicate" class="m-0 flex">
 				<input type="hidden" name="id" value={template.id} />
