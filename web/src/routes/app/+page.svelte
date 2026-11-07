@@ -113,7 +113,7 @@
 												exercise.rest_seconds !== null ? `${exercise.rest_seconds}s rest` : null
 											]
 												.filter(Boolean)
-												.join(' · ')}
+												.join(', ')}
 										</p>
 										{#if exercise.notes}<p>{exercise.notes}</p>{/if}
 									</li>

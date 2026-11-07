@@ -68,7 +68,7 @@
 		{#if clientId}<input type="hidden" name="client_id" value={clientId} />{/if}
 		<div class="grid grid-cols-2 gap-3 bp-640:grid-cols-1">
 			<label class="m-0 grid gap-1 font-semibold"
-				>Workout<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Workout<span class={requiredMark} aria-hidden="true">*</span></span>
 				<select name="workout_template_id" required bind:value={workoutId}>
 					{#each workouts as option (option.id)}
 						<option value={option.id}>{label(option, recommended.workoutId)}</option>
@@ -88,7 +88,7 @@
 		{#if allowCustomise}
 			<label class="m-0 flex! items-center gap-2 font-normal!">
 				<input type="checkbox" name="customise" value="1" class="w-auto!" />
-				Customise the workout for this client after assigning
+				Customise after assigning
 			</label>
 		{/if}
 		<div class="flex flex-wrap items-center gap-3">

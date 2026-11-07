@@ -25,7 +25,7 @@
 		<p class={help}>Share how training and nutrition are going. Cash replies here.</p>
 		<form method="POST" action="?/checkin" class="grid gap-2">
 			<label class="grid gap-1"
-				>Check-in<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Check-in<span class={requiredMark} aria-hidden="true">*</span></span>
 				<textarea name="body" rows="4" maxlength="4000" required></textarea>
 			</label>
 			<button class={primary}>Send check-in</button>
@@ -38,7 +38,8 @@
 				{#if checkIn.coach_feedback}
 					<div class="rounded-lg bg-floor p-3">
 						<strong>Feedback from Cash</strong>
-						{#if checkIn.feedback_at}<span class={help}> · {when(checkIn.feedback_at)}</span>{/if}
+						{#if checkIn.feedback_at}<span class="{help} ml-2">{when(checkIn.feedback_at)}</span
+							>{/if}
 						<p>{checkIn.coach_feedback}</p>
 					</div>
 				{:else}
@@ -64,7 +65,7 @@
 		</ul>
 		<form method="POST" action="?/message" class="mt-4 grid gap-2">
 			<label class="grid gap-1"
-				>Message<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Message<span class={requiredMark} aria-hidden="true">*</span></span>
 				<textarea name="body" rows="3" maxlength="2000" required></textarea>
 			</label>
 			<button class={primary}>Send message</button>

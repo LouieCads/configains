@@ -30,7 +30,7 @@
 			}}
 		>
 			<label class={authLabel}
-				>New password<span class={requiredMark} aria-hidden="true">*</span><input
+				><span>New password<span class={requiredMark} aria-hidden="true">*</span></span><input
 					name="password"
 					type="password"
 					autocomplete="new-password"
@@ -40,7 +40,8 @@
 				/></label
 			>
 			<label class={authLabel}
-				>Confirm new password<span class={requiredMark} aria-hidden="true">*</span><input
+				><span>Confirm new password<span class={requiredMark} aria-hidden="true">*</span></span
+				><input
 					name="confirmation"
 					type="password"
 					autocomplete="new-password"

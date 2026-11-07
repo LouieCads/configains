@@ -45,7 +45,7 @@
 				<input type="hidden" name="token_hash" value={data.tokenHash ?? ''} />
 				<input type="hidden" name="code" value={data.authCode ?? ''} />
 				<label class={authLabel}
-					>New password<span class={requiredMark} aria-hidden="true">*</span><input
+					><span>New password<span class={requiredMark} aria-hidden="true">*</span></span><input
 						name="password"
 						type="password"
 						autocomplete="new-password"
@@ -55,7 +55,7 @@
 					/></label
 				>
 				<label class={authLabel}
-					>Confirm password<span class={requiredMark} aria-hidden="true">*</span><input
+					><span>Confirm password<span class={requiredMark} aria-hidden="true">*</span></span><input
 						name="confirmation"
 						type="password"
 						autocomplete="new-password"

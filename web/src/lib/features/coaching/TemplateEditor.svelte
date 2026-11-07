@@ -300,7 +300,7 @@
 {#snippet details()}
 	{#if isNew}
 		<label class="my-2 grid gap-1"
-			>Type<span class={requiredMark} aria-hidden="true">*</span>
+			><span>Type<span class={requiredMark} aria-hidden="true">*</span></span>
 			<select name="template-kind" required bind:value={template.kind}>
 				{#each templateKinds as kind (kind.value)}
 					<option value={kind.value}>{kind.label}</option>
@@ -311,7 +311,7 @@
 		<p class={help}>{isWorkout ? 'Workout' : 'Nutrition'} template</p>
 	{/if}
 	<label class="my-2 grid gap-1"
-		>Name<span class={requiredMark} aria-hidden="true">*</span>
+		><span>Name<span class={requiredMark} aria-hidden="true">*</span></span>
 		<input
 			name="template-name"
 			bind:value={template.name}
@@ -323,7 +323,7 @@
 		{@render fieldError('template-name')}
 	</label>
 	<label class="my-2 grid gap-1"
-		>Goal<span class={requiredMark} aria-hidden="true">*</span>
+		><span>Goal<span class={requiredMark} aria-hidden="true">*</span></span>
 		<select name="template-goal" required bind:value={template.goal}>
 			{#each goals as goal (goal.value)}
 				<option value={goal.value}>{goal.label}</option>
@@ -436,7 +436,7 @@
 				>
 			</div>
 			<label class="my-2 grid gap-1"
-				>Phase name<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Phase name<span class={requiredMark} aria-hidden="true">*</span></span>
 				<input
 					name="phase-{p}-name"
 					bind:value={phase.name}
@@ -463,7 +463,9 @@
 								class="grid grid-cols-[minmax(0,1fr)_4.5rem_6rem_5.5rem_auto] items-end gap-2 bp-760:grid-cols-3"
 							>
 								<label class="grid gap-1 text-[0.8rem] bp-760:col-span-3"
-									>Exercise {e + 1}<span class={requiredMark} aria-hidden="true">*</span>
+									><span
+										>Exercise {e + 1}<span class={requiredMark} aria-hidden="true">*</span></span
+									>
 									<input
 										name="phase-{p}-exercise-{e}-name"
 										bind:value={exercise.name}

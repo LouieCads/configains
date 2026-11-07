@@ -259,8 +259,8 @@
 						/>{:else}<span
 							class="grid h-11 w-11 shrink-0 place-items-center rounded-[6px] bg-[#eef3f3] text-muted"
 							title="No photo"
-							aria-hidden="true">—</span
-						>{/if}
+							aria-hidden="true"
+						></span>{/if}
 					<span class="grid min-w-0 flex-1 basis-40 grid-cols-[minmax(0,1fr)]">
 						<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
 							<strong class="min-w-0 truncate text-[0.95rem]">{title}</strong>

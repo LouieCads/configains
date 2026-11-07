@@ -127,9 +127,7 @@
 				{#if status}<span class={toneClass[status.tone]}>{status.label}</span>{/if}
 			</div>
 			{#if !data.assessment}
-				<p class="m-0 text-muted">
-					Not taken yet. The client can take it from their coaching home.
-				</p>
+				<p class="m-0 text-muted">Not taken yet.</p>
 			{:else}
 				<p class="{help} mt-0!">Submitted {when(data.assessment.created_at)}</p>
 				<dl class="m-0 grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-3">
@@ -143,8 +141,7 @@
 				{#if data.assessment.red_flags.length > 0}
 					<p class="{error} mb-0!">
 						<strong>Health:</strong>
-						{data.assessment.red_flags.map(healthLabel).join(', ')}. Check in personally before
-						training starts.
+						{data.assessment.red_flags.map(healthLabel).join(', ')}. Review before training.
 					</p>
 				{/if}
 				{#if data.assessment.explanation}
@@ -172,12 +169,15 @@
 
 			{#if data.program}
 				<p class="m-0 text-[1.1rem] font-semibold">{data.program.workout?.name ?? 'No workout'}</p>
-				<p class="{help} mt-1!">
-					{data.program.source === 'ai' ? 'Matched by AI Coaching' : 'Assigned by you'}{data.program
-						.nutrition
-						? ` · Nutrition: ${data.program.nutrition.name}`
-						: ''}{data.program.customised ? ' · Customised for this client' : ''}
-				</p>
+				{#if data.program.nutrition}<p class="{help} mt-1! mb-0!">
+						Nutrition: {data.program.nutrition.name}
+					</p>{/if}
+				<div class="mt-3 flex flex-wrap gap-2">
+					<span class={badgeNeutral}
+						>{data.program.source === 'ai' ? 'AI match' : 'Assigned by you'}</span
+					>
+					{#if data.program.customised}<span class={badgeOk}>Customised</span>{/if}
+				</div>
 
 				{#if phases.length > 1}
 					<form method="POST" action="?/phase" class="mt-4" use:enhance={keepPlace('phase')}>
@@ -217,7 +217,7 @@
 								>Customise for this client</button
 							>
 						</form>
-						<p class="{help} m-0!">Makes a private copy. The library template stays the same.</p>
+						<p class="{help} m-0!">Edits a private copy for this client.</p>
 					{/if}
 				</div>
 			{/if}
@@ -225,7 +225,7 @@
 			{#if !data.program || changing}
 				<div id="change-program" class={data.program ? 'mt-5 border-t border-line pt-5' : ''}>
 					{#if !data.program && (data.recommended.workoutId || data.recommended.nutritionId)}
-						<p class="{help} mt-0!">Recommended picks from the assessment are preselected.</p>
+						<p class="{help} mt-0!">Recommended picks are preselected.</p>
 					{/if}
 					<AssignProgramForm
 						workouts={data.workoutTemplates}
@@ -233,7 +233,7 @@
 						recommended={data.recommended}
 						selected={data.program ? currentSelection : undefined}
 						allowCustomise
-						note={data.program ? 'Ends the current program and starts the new one.' : ''}
+						note={data.program ? 'Replaces the current program.' : ''}
 					/>
 				</div>
 			{/if}
@@ -295,7 +295,7 @@
 							>
 								<input type="hidden" name="check_in_id" value={checkIn.id} />
 								<label class="grid gap-1 text-[0.85rem] font-semibold"
-									>Your feedback<span class={requiredMark} aria-hidden="true">*</span>
+									><span>Your feedback<span class={requiredMark} aria-hidden="true">*</span></span>
 									<textarea name="feedback" rows="2" maxlength="4000" required
 										>{checkIn.coach_feedback ?? ''}</textarea
 									>
@@ -313,7 +313,7 @@
 		<section id="messages" class={card}>
 			<h2>Messages</h2>
 			{#if !isHuman}
-				<p class="{help} mt-0!">The client can read and reply only on human coaching.</p>
+				<p class="{help} mt-0!">Client sees messages only on human coaching.</p>
 			{/if}
 			{#if data.messages.length === 0}
 				<p class="text-muted">No messages yet.</p>
@@ -331,7 +331,8 @@
 						]}
 					>
 						<p class="m-0 text-[0.75rem] text-muted">
-							{mine ? 'You' : 'Client'} · {when(message.created_at)}
+							<span class="font-semibold">{mine ? 'You' : 'Client'}</span>
+							<span class="ml-2">{when(message.created_at)}</span>
 						</p>
 						<p class="m-0 whitespace-pre-line">{message.body}</p>
 					</li>
@@ -369,7 +370,7 @@
 				<p class="m-0 text-[1.4rem] font-semibold">
 					{thisWeek?.averages[metric.key] !== undefined
 						? `${thisWeek.averages[metric.key]} ${metric.unit}`
-						: '—'}
+						: 'None'}
 				</p>
 			</div>
 		{/each}

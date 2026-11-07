@@ -200,8 +200,8 @@
 				? 'Unsaved changes'
 				: revision
 					? 'Draft saved'
-					: 'Ready to edit'}{#if publishedRevision}<span class="font-normal text-muted"
-				>· Last published {formatDateTime(publishedRevision)}</span
+					: 'Ready to edit'}{#if publishedRevision}<span class="ml-2 font-normal text-muted"
+				>Last published {formatDateTime(publishedRevision)}</span
 			>{/if}</span
 	>
 	<button class={secondary} disabled={locked || data.unavailable} onclick={save}

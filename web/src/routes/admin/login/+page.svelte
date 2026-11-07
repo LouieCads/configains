@@ -50,7 +50,7 @@
 				Password updated. Sign in with your new password.
 			</p>{/if}
 		{#if !data.localAdminDemo}<label class={authLabel}
-				>Email address<span class={requiredMark} aria-hidden="true">*</span><input
+				><span>Email address<span class={requiredMark} aria-hidden="true">*</span></span><input
 					name="email"
 					type="email"
 					autocomplete="username"
@@ -59,7 +59,7 @@
 				/></label
 			>
 			<label class={authLabel}
-				>Password<span class={requiredMark} aria-hidden="true">*</span><input
+				><span>Password<span class={requiredMark} aria-hidden="true">*</span></span><input
 					name="password"
 					type="password"
 					autocomplete="current-password"

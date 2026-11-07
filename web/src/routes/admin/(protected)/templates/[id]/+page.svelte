@@ -17,8 +17,7 @@
 <h1 class="my-3!">{data.isNew ? 'New template' : data.template.name}</h1>
 {#if data.owner}
 	<p class="{help} mt-0!">
-		Customised copy for {data.owner.name}. Changes apply only to this client; the library template
-		stays the same.
+		Private copy for {data.owner.name}. The library template is not changed.
 	</p>
 {/if}
 

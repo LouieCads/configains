@@ -122,8 +122,10 @@
 					/>{field.label}</label
 				>
 			{:else}<label class="grid gap-[6px] text-[0.875rem] font-semibold"
-					>{field.label}{#if field.required}<span class={requiredMark} aria-hidden="true">*</span
-						>{/if}
+					><span
+						>{field.label}{#if field.required}<span class={requiredMark} aria-hidden="true">*</span
+							>{/if}</span
+					>
 					{#if field.type === 'textarea'}<textarea
 							bind:value={values[field.name]}
 							rows="4"

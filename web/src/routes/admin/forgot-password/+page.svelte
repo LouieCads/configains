@@ -44,7 +44,7 @@
 		>
 			{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 			<label class={authLabel}
-				>Email address<span class={requiredMark} aria-hidden="true">*</span><input
+				><span>Email address<span class={requiredMark} aria-hidden="true">*</span></span><input
 					name="email"
 					type="email"
 					autocomplete="email"

@@ -98,7 +98,7 @@
 					<strong>{dayLabel(log.logged_on)}</strong>
 					<span class={help}
 						>{log.completed ? 'Completed' : 'Not completed'}{log.duration_minutes
-							? ` · ${log.duration_minutes} min`
+							? `, ${log.duration_minutes} min`
 							: ''}</span
 					>
 					{#if log.entries.length > 0}
@@ -108,7 +108,7 @@
 									(entry) =>
 										`${entry.name}${entry.sets ? ` ${entry.sets}×${entry.reps ?? ''}` : ''}${entry.load_kg ? ` @ ${entry.load_kg} kg` : ''}`
 								)
-								.join(' · ')}
+								.join(', ')}
 						</p>
 					{/if}
 					{#if log.notes}<p>{log.notes}</p>{/if}
@@ -125,7 +125,7 @@
 		<ul class="grid gap-2">
 			{#each data.metrics.slice(0, 20) as entry (entry.id)}
 				<li>
-					{dayLabel(entry.measured_on)} · {metricLabel(entry.metric)?.label ?? entry.metric}: {entry.value}
+					{dayLabel(entry.measured_on)}: {metricLabel(entry.metric)?.label ?? entry.metric}: {entry.value}
 					{metricLabel(entry.metric)?.unit ?? ''}
 				</li>
 			{/each}

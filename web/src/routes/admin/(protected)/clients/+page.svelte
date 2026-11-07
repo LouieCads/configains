@@ -7,7 +7,6 @@
 		badgeWarn,
 		card,
 		error,
-		flow,
 		help,
 		primary,
 		secondary,
@@ -18,7 +17,6 @@
 	} from '$lib/features/cms/styles';
 	let { form, data } = $props();
 
-	const dateFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' });
 	let inviteOpen = $state(false);
 	let inviting = $state(false);
 	$effect(() => {
@@ -30,10 +28,8 @@
 	const needs = (client: Client) =>
 		[
 			client.pendingCheckIns > 0 &&
-				`${client.pendingCheckIns} check-in${client.pendingCheckIns === 1 ? '' : 's'} to review`,
-			client.assessmentStatus &&
-				openStatuses.includes(client.assessmentStatus) &&
-				'Assessment to review',
+				`${client.pendingCheckIns} check-in${client.pendingCheckIns === 1 ? '' : 's'}`,
+			client.assessmentStatus && openStatuses.includes(client.assessmentStatus) && 'New assessment',
 			!client.program && client.assessmentStatus && 'No program'
 		].filter((item): item is string => !!item);
 
@@ -41,7 +37,7 @@
 	let filter = $state<'all' | 'attention' | 'human' | 'ai'>('all');
 	const filters = [
 		{ value: 'all', label: 'All' },
-		{ value: 'attention', label: 'Needs you' },
+		{ value: 'attention', label: 'To do' },
 		{ value: 'human', label: 'Human' },
 		{ value: 'ai', label: 'AI' }
 	] as const;
@@ -66,9 +62,9 @@
 </script>
 
 <svelte:head><title>Clients | Configains CMS</title></svelte:head>
-<div class={flow}>
-	<header class="flex flex-wrap items-center justify-between gap-4">
-		<h1 class="mb-0">Clients</h1>
+<div class="grid gap-6">
+	<header class="mt-3 flex flex-wrap items-center justify-between gap-4">
+		<h1 class="m-0!">Clients</h1>
 		<button
 			type="button"
 			class={inviteOpen ? secondary : primary}
@@ -78,14 +74,15 @@
 		>
 	</header>
 
-	{#if form?.invited}<p class={success} role="status">Invitation sent to {form.email}.</p>{/if}
+	{#if form?.invited}<p class="{success} m-0!" role="status">Invite sent to {form.email}.</p>{/if}
 
-	<section id="invite-client" class="{card} p-5!" hidden={!inviteOpen}>
+	<section id="invite-client" class={card} hidden={!inviteOpen}>
+		<h2 class="text-[1.5rem]!">Invite a client</h2>
 		{#if form?.message}<p class="{error} mt-0!" role="alert">{form.message}</p>{/if}
 		<form
 			method="POST"
 			action="?/invite"
-			class="m-0! flex! flex-wrap items-end gap-3!"
+			class="flex flex-wrap items-end gap-4"
 			use:enhance={() => {
 				inviting = true;
 				return async ({ update, result }) => {
@@ -95,27 +92,27 @@
 				};
 			}}
 		>
-			<label class="m-0 grid min-w-[220px] flex-[2] gap-1"
-				>Email<span class={requiredMark} aria-hidden="true">*</span>
+			<label class="grid min-w-[220px] flex-[2] gap-2 font-semibold"
+				><span>Email<span class={requiredMark} aria-hidden="true">*</span></span>
 				<input name="email" type="email" required value={form?.email ?? ''} />
 			</label>
-			<label class="m-0 grid min-w-[180px] flex-1 gap-1"
+			<label class="grid min-w-[180px] flex-1 gap-2 font-semibold"
 				>Name
 				<input name="display_name" type="text" maxlength="120" />
 			</label>
 			<button class={primary} disabled={inviting}>{inviting ? 'Sending…' : 'Send invite'}</button>
 		</form>
-		<p class="{help} mb-0!">They get an email to set a password, then can sign in.</p>
+		<p class="{help} mb-0!">They get an email to set a password.</p>
 	</section>
 
-	{#if data.loadError}<p class={error} role="alert">{data.loadError}</p>{/if}
+	{#if data.loadError}<p class="{error} m-0!" role="alert">{data.loadError}</p>{/if}
 	{#if data.clients.length === 0 && !data.loadError}
-		<p class="rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
-			No clients yet. Invite your first client to get started.
+		<p class="m-0 rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
+			No clients yet.
 		</p>
 	{:else if data.clients.length > 0}
 		<div class="flex flex-wrap items-center gap-3">
-			<label class="m-0 min-w-[200px] flex-1">
+			<label class="min-w-[200px] flex-1">
 				<span class="sr-only">Search clients</span>
 				<input type="search" placeholder="Search by name" bind:value={query} />
 			</label>
@@ -135,30 +132,32 @@
 		</div>
 
 		{#if visible.length === 0}
-			<p class="rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
-				{filter === 'attention' && !query ? 'Nothing waiting. All caught up.' : 'No clients match.'}
+			<p class="m-0 rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
+				{filter === 'attention' && !query ? 'All caught up.' : 'No clients found.'}
 			</p>
 		{:else}
-			<ul class="m-0! grid list-none gap-3 p-0">
+			<ul class="m-0 grid list-none gap-3 p-0">
 				{#each visible as client (client.id)}
 					{@const todo = needs(client)}
 					<li>
 						<a
 							href="/admin/clients/{client.id}"
 							class={[
-								'flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border bg-paper p-4 text-ink no-underline hover:border-cyan-ink',
+								'flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border bg-paper px-4 py-3 text-ink no-underline hover:border-cyan-ink',
 								todo.length > 0 ? 'border-[#efb8ac]' : 'border-line'
 							]}
 						>
-							<span class="grid min-w-0 flex-1 basis-48">
-								<strong class="truncate">{client.display_name ?? 'Unnamed client'}</strong>
-								<span class="truncate text-[0.85rem] text-muted"
-									>{client.program ?? 'No program yet'} · Joined {dateFormat.format(
-										new Date(client.created_at)
-									)}</span
+							<span class="grid min-w-0 flex-1 basis-48 gap-1">
+								<strong class="truncate text-[0.95rem]"
+									>{client.display_name ?? 'Unnamed client'}</strong
+								>
+								<span class="truncate text-[0.8rem] text-muted"
+									>{client.program ?? 'No program'}</span
 								>
 							</span>
-							{#each todo as item (item)}<span class={badgeWarn}>{item}</span>{/each}
+							{#each todo.filter((item) => item !== 'No program') as item (item)}<span
+									class={badgeWarn}>{item}</span
+								>{/each}
 							<span class={client.coaching_mode === 'human' ? badgeOk : badgeNeutral}
 								>{client.coaching_mode === 'human' ? 'Human' : 'AI'}</span
 							>

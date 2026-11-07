@@ -5,7 +5,6 @@
 		badgeNeutral,
 		card,
 		error,
-		flow,
 		help,
 		primary,
 		secondary,
@@ -69,7 +68,7 @@
 	}
 
 	const row =
-		'relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-line bg-paper p-4 hover:border-cyan-ink focus-within:border-cyan-ink';
+		'relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-line bg-paper px-4 py-3 hover:border-cyan-ink focus-within:border-cyan-ink';
 	const rowAction = `${subtle} relative z-10 hover:bg-[#eef3f3] hover:text-ink`;
 </script>
 
@@ -78,10 +77,10 @@
 {#snippet templateRow(template: Template)}
 	{@const used = usageOf(template)}
 	<li class={row}>
-		<span class="grid min-w-0 flex-1 basis-56">
+		<span class="grid min-w-0 flex-1 basis-56 gap-1">
 			<span class="flex min-w-0 items-baseline gap-2">
 				<a
-					class="truncate font-bold text-ink no-underline after:absolute after:inset-0 after:content-['']"
+					class="truncate text-[0.95rem] font-bold text-ink no-underline after:absolute after:inset-0 after:content-['']"
 					href="/admin/templates/{template.id}"
 					aria-label="Edit {template.name}">{template.name}</a
 				>
@@ -91,10 +90,14 @@
 					>
 				{/if}
 			</span>
-			<span class="truncate text-[0.85rem] text-muted"
-				>{goalLabel(template.goal)} · {plural(template.phaseCount, 'phase')}{used > 0
-					? ` · ${plural(used, 'client')}`
-					: ''}</span
+			<span class="truncate text-[0.8rem] text-muted"
+				>{[
+					goalLabel(template.goal),
+					plural(template.phaseCount, 'phase'),
+					used > 0 && plural(used, 'client')
+				]
+					.filter(Boolean)
+					.join(', ')}</span
 			>
 		</span>
 		<span class={badgeNeutral}>{kindLabel(template.kind)}</span>
@@ -124,34 +127,34 @@
 	</li>
 {/snippet}
 
-<div class={flow}>
-	<header class="flex flex-wrap items-center justify-between gap-4">
-		<h1 class="mb-0">Templates</h1>
+<div class="grid gap-6">
+	<header class="mt-3 flex flex-wrap items-center justify-between gap-4">
+		<h1 class="m-0!">Templates</h1>
 		<div class="flex flex-wrap gap-3">
 			<a class={primary} href="/admin/templates/new?kind=workout">+ Workout</a>
 			<a class={secondary} href="/admin/templates/new?kind=nutrition">+ Nutrition</a>
 		</div>
 	</header>
 
-	{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
-	{#if form?.updated}<p class={success} role="status">
+	{#if form?.message}<p class="{error} m-0!" role="alert">{form.message}</p>{/if}
+	{#if form?.updated}<p class="{success} m-0!" role="status">
 			{form.updated}
 			{#if 'assignedClient' in form && form.assignedClient}<a
 					class="ml-2 font-semibold text-[#175e4d]"
 					href="/admin/clients/{form.assignedClient}">Open client →</a
 				>{/if}
 		</p>{/if}
-	{#if data.loadError}<p class={error} role="alert">{data.loadError}</p>{/if}
+	{#if data.loadError}<p class="{error} m-0!" role="alert">{data.loadError}</p>{/if}
 
 	{#if data.templates.length === 0}
 		{#if !data.loadError}
-			<p class="rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
-				No templates yet. Create the first one above.
+			<p class="m-0 rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
+				No templates yet.
 			</p>
 		{/if}
 	{:else}
 		<div class="flex flex-wrap items-center gap-3">
-			<label class="m-0 min-w-[200px] flex-1">
+			<label class="min-w-[200px] flex-1">
 				<span class="sr-only">Search templates</span>
 				<input type="search" placeholder="Search by name or goal" bind:value={query} />
 			</label>
@@ -171,13 +174,13 @@
 		</div>
 
 		{#if active.length === 0}
-			<p class="rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
+			<p class="m-0 rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
 				{query
-					? 'No templates match.'
+					? 'No templates found.'
 					: `No active ${kind === 'all' ? '' : `${kindLabel(kind).toLowerCase()} `}templates.`}
 			</p>
 		{:else}
-			<ul class="m-0! grid list-none gap-3 p-0">
+			<ul class="m-0 grid list-none gap-3 p-0">
 				{#each active as template (template.id)}
 					{@render templateRow(template)}
 				{/each}
@@ -185,13 +188,11 @@
 		{/if}
 
 		{#if archived.length > 0}
-			<details class="{card} p-4!">
+			<details class="{card} p-5!">
 				<summary class="cursor-pointer font-semibold text-ink">Archived ({archived.length})</summary
 				>
-				<p class={help}>
-					Archived templates cannot be newly assigned. Restore one to use it again.
-				</p>
-				<ul class="m-0! mt-3! grid list-none gap-3 p-0">
+				<p class={help}>Restore a template to assign it again.</p>
+				<ul class="m-0 grid list-none gap-3 p-0">
 					{#each archived as template (template.id)}
 						{@render templateRow(template)}
 					{/each}
@@ -223,10 +224,10 @@
 			<input type="hidden" name="workout_template_id" value={assigning.id} />
 			<div>
 				<h2 id="assign-title" class="mb-1! text-[1.6rem]!">Assign {assigning.name}</h2>
-				<p class="{help} m-0!">Starts on the first phase and ends the client's current program.</p>
+				<p class="{help} m-0!">Replaces the client's current program.</p>
 			</div>
 			<label class="grid gap-1 font-semibold"
-				>Client<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Client<span class={requiredMark} aria-hidden="true">*</span></span>
 				<select
 					name="client_id"
 					required

@@ -243,13 +243,15 @@
 	/></svelte:head
 >
 <main class="mx-auto grid max-w-[640px] gap-6 p-6">
-	<p><a href="/app">Back to your program</a> · <a href="/app/progress">Progress</a></p>
+	<p class="flex flex-wrap gap-4">
+		<a href="/app">Back to your program</a><a href="/app/progress">Progress</a>
+	</p>
 	<h1>Log your training</h1>
 
 	<section class={card} aria-live="polite">
 		<p>
-			{online ? 'Online' : 'Offline'} · {pending} waiting to sync{lastSynced
-				? ` · last synced ${lastSynced}`
+			{online ? 'Online' : 'Offline'}. {pending} waiting to sync.{lastSynced
+				? ` Last synced ${lastSynced}.`
 				: ''}
 		</p>
 		{#if message}<p class={message.kind === 'error' ? error : success} role="status">
@@ -295,11 +297,11 @@
 		<form class={card} onsubmit={saveWorkout}>
 			<h2>{program.workout.name}</h2>
 			<label class="my-2 grid gap-1"
-				>Date<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Date<span class={requiredMark} aria-hidden="true">*</span></span>
 				<input type="date" bind:value={loggedOn} required />
 			</label>
 			<label class="my-2 grid gap-1"
-				>Phase<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Phase<span class={requiredMark} aria-hidden="true">*</span></span>
 				<select required bind:value={phaseId} onchange={() => (rows = entriesForPhase(phaseId))}>
 					{#each phases as phase (phase.id)}
 						<option value={phase.id}>{phase.name}</option>
@@ -348,7 +350,7 @@
 		<form class={card} onsubmit={saveMetric}>
 			<h2>Measurement</h2>
 			<label class="my-2 grid gap-1"
-				>What<span class={requiredMark} aria-hidden="true">*</span>
+				><span>What<span class={requiredMark} aria-hidden="true">*</span></span>
 				<select required bind:value={metricKey}>
 					{#each progressMetrics as metric (metric.key)}
 						<option value={metric.key}>{metric.label} ({metric.unit})</option>
@@ -356,11 +358,11 @@
 				</select>
 			</label>
 			<label class="my-2 grid gap-1"
-				>Value<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Value<span class={requiredMark} aria-hidden="true">*</span></span>
 				<input type="number" step="0.1" bind:value={metricValue} required />
 			</label>
 			<label class="my-2 grid gap-1"
-				>Date<span class={requiredMark} aria-hidden="true">*</span>
+				><span>Date<span class={requiredMark} aria-hidden="true">*</span></span>
 				<input type="date" bind:value={metricDate} required />
 			</label>
 			<button class={secondary}>Save measurement</button>
