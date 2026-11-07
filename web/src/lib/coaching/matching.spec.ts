@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { eligiblePrograms, type MatchableTemplate } from './matching';
+import { eligiblePrograms, recommendedPrograms, type MatchableTemplate } from './matching';
 
 const profile = {
 	goal: 'fat_loss',
@@ -59,5 +59,28 @@ describe('eligiblePrograms', () => {
 		const meals = template({ kind: 'nutrition', name: 'Meals', rules: null });
 		expect(eligiblePrograms(profile, [meals]).nutrition).toHaveLength(1);
 		expect(eligiblePrograms({ ...profile, goal: 'maintenance' }, [meals]).nutrition).toEqual([]);
+	});
+});
+
+describe('recommendedPrograms', () => {
+	const answers = { ...profile, health: ['injury'] };
+
+	it('picks the most specific fitting workout and a nutrition plan for the goal', () => {
+		const general = template({ name: 'General' });
+		const exact = template({ name: 'Exact', rules: { training_location: 'home', sex: 'female' } });
+		const food = template({ name: 'Food', kind: 'nutrition' });
+		expect(recommendedPrograms(answers, [general, exact, food])).toEqual({
+			workoutId: exact.id,
+			nutritionId: food.id
+		});
+	});
+
+	it('recommends nothing for missing or broken answers', () => {
+		const general = template({ name: 'General' });
+		expect(recommendedPrograms(null, [general])).toEqual({ workoutId: null, nutritionId: null });
+		expect(recommendedPrograms({ goal: 'fat_loss' }, [general])).toEqual({
+			workoutId: null,
+			nutritionId: null
+		});
 	});
 });

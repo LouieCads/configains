@@ -1,17 +1,71 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { isUuid } from '$lib/coaching/text';
 import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
-import { listTemplates, loadTemplate, saveTemplate } from '$lib/server/coaching/templates';
+import {
+	assignProgram,
+	listTemplates,
+	loadTemplate,
+	markAssessmentsReviewed,
+	saveTemplate
+} from '$lib/server/coaching/templates';
 import type { Actions, PageServerLoad } from './$types';
+
+type ClientOption = {
+	id: string;
+	name: string;
+	/** The client's current workout and nutrition, shown in the assign dialog. */
+	workout: string | null;
+	nutritionId: string | null;
+};
 
 export const load: PageServerLoad = async (event) => {
 	await requireAdmin(event);
-	if (event.locals.localAdminDemo) return { templates: [], loadError: null };
+	const empty = { templates: [], clients: [] as ClientOption[], usage: {}, loadError: null };
+	if (event.locals.localAdminDemo) return empty;
+	const supabase = event.locals.supabase;
+
+	let templates;
 	try {
-		return { templates: await listTemplates(event.locals.supabase), loadError: null };
+		templates = await listTemplates(supabase);
 	} catch {
-		return { templates: [], loadError: 'Templates could not be loaded. Please try again.' };
+		return { ...empty, loadError: 'Templates could not be loaded. Please try again.' };
 	}
+
+	// Extras for usage counts and the assign dialog; missing ones leave them blank.
+	const [clients, programs] = await Promise.all([
+		supabase.from('client_profiles').select('id, display_name').order('display_name'),
+		supabase
+			.from('client_programs')
+			.select(
+				'client_id, workout_template_id, nutrition_template_id, workout:program_templates!workout_template_id(name)'
+			)
+			.eq('status', 'active')
+	]);
+
+	const usage: Record<string, number> = {};
+	const programOf = new Map<string, { workout: string | null; nutritionId: string | null }>();
+	for (const row of programs.data ?? []) {
+		for (const id of [row.workout_template_id, row.nutrition_template_id])
+			if (id) usage[id] = (usage[id] ?? 0) + 1;
+		const workout = row.workout as { name?: string } | { name?: string }[] | null;
+		programOf.set(row.client_id as string, {
+			workout: (Array.isArray(workout) ? workout[0]?.name : workout?.name) ?? null,
+			nutritionId: (row.nutrition_template_id as string | null) ?? null
+		});
+	}
+
+	return {
+		templates,
+		usage,
+		clients: (clients.data ?? []).map((client): ClientOption => ({
+			id: client.id,
+			name: client.display_name ?? 'Unnamed client',
+			workout: programOf.get(client.id)?.workout ?? null,
+			nutritionId: programOf.get(client.id)?.nutritionId ?? null
+		})),
+		loadError: null
+	};
 };
 
 export const actions = {
@@ -49,6 +103,32 @@ export const actions = {
 			.update({ is_archived: archived })
 			.eq('id', id);
 		if (error) return fail(400, { message: 'The template could not be updated. Try again.' });
-		return { updated: true };
+		return { updated: archived ? 'Template archived.' : 'Template restored.' };
+	},
+	assign: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const form = await event.request.formData();
+		const clientId = String(form.get('client_id') ?? '');
+		const workoutId = String(form.get('workout_template_id') ?? '');
+		let nutritionId: string | null = String(form.get('nutrition_template_id') ?? '') || null;
+		if (!isUuid(clientId) || !isUuid(workoutId))
+			return fail(400, { message: 'Choose a client to assign this template to.' });
+
+		// "Keep" carries over the client's current nutrition plan.
+		if (nutritionId === 'keep') {
+			const { data } = await event.locals.supabase
+				.from('client_programs')
+				.select('nutrition_template_id')
+				.eq('client_id', clientId)
+				.eq('status', 'active')
+				.maybeSingle();
+			nutritionId = (data?.nutrition_template_id as string | null) ?? null;
+		}
+
+		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
+		if (!result.ok) return fail(400, { message: result.message });
+		await markAssessmentsReviewed(event.locals.supabase, clientId);
+		return { updated: 'Program assigned.', assignedClient: clientId };
 	}
 } satisfies Actions;

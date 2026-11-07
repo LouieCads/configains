@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import AuthCard from '$lib/features/cms/AuthCard.svelte';
-	import { authLabel, authLink, authSubmit, error, primary } from '$lib/features/cms/styles';
+	import {
+		authLabel,
+		authLink,
+		authSubmit,
+		error,
+		primary,
+		requiredMark
+	} from '$lib/features/cms/styles';
 	let { form } = $props();
 	let busy = $state(false);
 </script>
@@ -23,7 +30,7 @@
 			}}
 		>
 			<label class={authLabel}
-				>New password<input
+				>New password<span class={requiredMark} aria-hidden="true">*</span><input
 					name="password"
 					type="password"
 					autocomplete="new-password"
@@ -33,7 +40,7 @@
 				/></label
 			>
 			<label class={authLabel}
-				>Confirm new password<input
+				>Confirm new password<span class={requiredMark} aria-hidden="true">*</span><input
 					name="confirmation"
 					type="password"
 					autocomplete="new-password"

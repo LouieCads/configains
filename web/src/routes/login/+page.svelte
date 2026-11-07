@@ -10,7 +10,8 @@
 		loginPage,
 		primary,
 		studio,
-		success
+		success,
+		requiredMark
 	} from '$lib/features/cms/styles';
 	let { form, data } = $props();
 	let busy = $state(false);
@@ -43,7 +44,7 @@
 				Password set. Sign in to continue.
 			</p>{/if}
 		<label class={authLabel}
-			>Email address<input
+			>Email address<span class={requiredMark} aria-hidden="true">*</span><input
 				name="email"
 				type="email"
 				autocomplete="username"
@@ -52,7 +53,7 @@
 			/></label
 		>
 		<label class={authLabel}
-			>Password<input
+			>Password<span class={requiredMark} aria-hidden="true">*</span><input
 				name="password"
 				type="password"
 				autocomplete="current-password"

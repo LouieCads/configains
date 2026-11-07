@@ -10,7 +10,8 @@
 		help,
 		loginPage,
 		primary,
-		studio
+		studio,
+		requiredMark
 	} from '$lib/features/cms/styles';
 	let { form, data } = $props();
 	let busy = $state(false);
@@ -44,7 +45,7 @@
 				<input type="hidden" name="token_hash" value={data.tokenHash ?? ''} />
 				<input type="hidden" name="code" value={data.authCode ?? ''} />
 				<label class={authLabel}
-					>New password<input
+					>New password<span class={requiredMark} aria-hidden="true">*</span><input
 						name="password"
 						type="password"
 						autocomplete="new-password"
@@ -54,7 +55,7 @@
 					/></label
 				>
 				<label class={authLabel}
-					>Confirm password<input
+					>Confirm password<span class={requiredMark} aria-hidden="true">*</span><input
 						name="confirmation"
 						type="password"
 						autocomplete="new-password"

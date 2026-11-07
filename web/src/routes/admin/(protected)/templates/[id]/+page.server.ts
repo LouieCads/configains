@@ -27,14 +27,29 @@ export const load: PageServerLoad = async (event) => {
 	const { id } = event.params;
 	if (id === 'new') {
 		const kind = event.url.searchParams.get('kind') === 'nutrition' ? 'nutrition' : 'workout';
-		return { template: blankTemplate(kind), isNew: true, saved: false };
+		return { template: blankTemplate(kind), isNew: true, saved: false, owner: null };
 	}
 	const template = await loadTemplate(event.locals.supabase, id);
 	if (!template) error(404, 'Template not found.');
+
+	// A client's customised copy links back to that client instead of the library.
+	const { data: ownership } = await event.locals.supabase
+		.from('program_templates')
+		.select('owner:client_profiles!owner_client_id(id, display_name)')
+		.eq('id', id)
+		.maybeSingle();
+	const raw = ownership?.owner as
+		| { id: string; display_name: string | null }
+		| { id: string; display_name: string | null }[]
+		| null
+		| undefined;
+	const owner = (Array.isArray(raw) ? raw[0] : raw) ?? null;
+
 	return {
 		template,
 		isNew: false,
-		saved: event.url.searchParams.get('saved') === '1'
+		saved: event.url.searchParams.get('saved') === '1',
+		owner: owner ? { id: owner.id, name: owner.display_name ?? 'this client' } : null
 	};
 };
 

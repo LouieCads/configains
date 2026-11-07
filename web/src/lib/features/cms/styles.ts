@@ -42,6 +42,8 @@ export const clientPage = [
 
 export const brand = 'font-studio text-[2rem] font-normal text-cyan';
 export const eyebrow = 'text-[0.7rem] font-bold tracking-[1.5px] text-cyan-ink';
+/** Asterisk after a required field's label. The field's `required` attribute tells assistive tech. */
+export const requiredMark = 'ml-[0.25em] text-cyan-deep';
 export const help = 'my-[10px] text-[0.8rem] text-muted';
 
 const action =

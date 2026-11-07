@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { experienceLevels, goals, trainingLocations, dayRange } from '$lib/coaching/options';
 	import { clientSexOptions, healthFlags } from '$lib/coaching/assessment';
-	import { card, clientPage, error, help, primary } from '$lib/features/cms/styles';
+	import { card, clientPage, error, help, primary, requiredMark } from '$lib/features/cms/styles';
 	let { form } = $props();
 	let busy = $state(false);
 	const days = Array.from({ length: dayRange[1] - dayRange[0] + 1 }, (_, i) => dayRange[0] + i);
@@ -35,7 +35,7 @@
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 
 		<fieldset class={card}>
-			<legend>What is your main goal?</legend>
+			<legend>What is your main goal?<span class={requiredMark} aria-hidden="true">*</span></legend>
 			{#each goals as goal (goal.value)}
 				<label class="my-2 flex items-center gap-2">
 					<input type="radio" name="goal" value={goal.value} required />
@@ -45,7 +45,12 @@
 		</fieldset>
 
 		<fieldset class={card}>
-			<legend>How would you describe your training experience?</legend>
+			<legend
+				>How would you describe your training experience?<span
+					class={requiredMark}
+					aria-hidden="true">*</span
+				></legend
+			>
 			{#each experienceLevels as level (level.value)}
 				<label class="my-2 flex items-center gap-2">
 					<input type="radio" name="experience" value={level.value} required />
@@ -55,7 +60,7 @@
 		</fieldset>
 
 		<fieldset class={card}>
-			<legend>Where will you train?</legend>
+			<legend>Where will you train?<span class={requiredMark} aria-hidden="true">*</span></legend>
 			{#each trainingLocations as location (location.value)}
 				<label class="my-2 flex items-center gap-2">
 					<input type="radio" name="training_location" value={location.value} required />
@@ -65,7 +70,10 @@
 		</fieldset>
 
 		<fieldset class={card}>
-			<legend>How many days a week can you train?</legend>
+			<legend
+				>How many days a week can you train?<span class={requiredMark} aria-hidden="true">*</span
+				></legend
+			>
 			<select name="days_per_week" required>
 				<option value="">Choose</option>
 				{#each days as day (day)}
@@ -75,7 +83,10 @@
 		</fieldset>
 
 		<fieldset class={card}>
-			<legend>Which program variant fits you?</legend>
+			<legend
+				>Which program variant fits you?<span class={requiredMark} aria-hidden="true">*</span
+				></legend
+			>
 			<p class={help}>Used only to choose the approved program variant.</p>
 			{#each clientSexOptions as option (option.value)}
 				<label class="my-2 flex items-center gap-2">

@@ -12,7 +12,16 @@
 		readCachedProgram,
 		sendBatch
 	} from '$lib/client/offline';
-	import { card, error, help, primary, secondary, subtle, success } from '$lib/features/cms/styles';
+	import {
+		card,
+		error,
+		help,
+		primary,
+		secondary,
+		subtle,
+		success,
+		requiredMark
+	} from '$lib/features/cms/styles';
 
 	type Exercise = { id: string; name: string; sets: number | null; reps: string | null };
 	type Phase = { id: string; name: string; exercises: Exercise[] };
@@ -286,12 +295,12 @@
 		<form class={card} onsubmit={saveWorkout}>
 			<h2>{program.workout.name}</h2>
 			<label class="my-2 grid gap-1"
-				>Date
+				>Date<span class={requiredMark} aria-hidden="true">*</span>
 				<input type="date" bind:value={loggedOn} required />
 			</label>
 			<label class="my-2 grid gap-1"
-				>Phase
-				<select bind:value={phaseId} onchange={() => (rows = entriesForPhase(phaseId))}>
+				>Phase<span class={requiredMark} aria-hidden="true">*</span>
+				<select required bind:value={phaseId} onchange={() => (rows = entriesForPhase(phaseId))}>
 					{#each phases as phase (phase.id)}
 						<option value={phase.id}>{phase.name}</option>
 					{/each}
@@ -339,19 +348,19 @@
 		<form class={card} onsubmit={saveMetric}>
 			<h2>Measurement</h2>
 			<label class="my-2 grid gap-1"
-				>What
-				<select bind:value={metricKey}>
+				>What<span class={requiredMark} aria-hidden="true">*</span>
+				<select required bind:value={metricKey}>
 					{#each progressMetrics as metric (metric.key)}
 						<option value={metric.key}>{metric.label} ({metric.unit})</option>
 					{/each}
 				</select>
 			</label>
 			<label class="my-2 grid gap-1"
-				>Value
+				>Value<span class={requiredMark} aria-hidden="true">*</span>
 				<input type="number" step="0.1" bind:value={metricValue} required />
 			</label>
 			<label class="my-2 grid gap-1"
-				>Date
+				>Date<span class={requiredMark} aria-hidden="true">*</span>
 				<input type="date" bind:value={metricDate} required />
 			</label>
 			<button class={secondary}>Save measurement</button>

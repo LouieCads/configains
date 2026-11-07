@@ -1,5 +1,5 @@
 import type { TemplateRules } from './template';
-import type { Answers } from './assessment';
+import { validateAssessment, type Answers } from './assessment';
 
 export type MatchableTemplate = {
 	id: string;
@@ -52,4 +52,22 @@ export function eligiblePrograms(profile: Profile, templates: MatchableTemplate[
 			.filter((template) => template.kind === 'nutrition' && nutritionFits(profile, template))
 			.sort(rank)
 	};
+}
+
+export type Recommendation = { workoutId: string | null; nutritionId: string | null };
+
+/**
+ * The best-fitting workout and nutrition for a stored assessment, used to preselect
+ * the coach's assign form. Health answers are ignored here: the coach reviews those.
+ * Answers that no longer validate recommend nothing.
+ */
+export function recommendedPrograms(
+	answers: unknown,
+	templates: MatchableTemplate[]
+): Recommendation {
+	if (!answers || typeof answers !== 'object') return { workoutId: null, nutritionId: null };
+	const checked = validateAssessment({ ...(answers as Record<string, unknown>), health: [] });
+	if (!checked.ok) return { workoutId: null, nutritionId: null };
+	const { workouts, nutrition } = eligiblePrograms(checked.value, templates);
+	return { workoutId: workouts[0]?.id ?? null, nutritionId: nutrition[0]?.id ?? null };
 }

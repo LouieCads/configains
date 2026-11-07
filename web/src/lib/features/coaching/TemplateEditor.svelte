@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick, untrack } from 'svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import {
 		experienceLevels,
 		trainingLocations,
@@ -23,7 +24,8 @@
 		secondary,
 		subtle,
 		subtleDanger,
-		success
+		success,
+		requiredMark
 	} from '$lib/features/cms/styles';
 	import FormProgress from '$lib/features/forms/FormProgress.svelte';
 	import type { Control } from '$lib/features/forms/progress';
@@ -33,12 +35,15 @@
 		initial,
 		isNew,
 		message = null,
-		saved = false
+		saved = false,
+		clientCopy = false
 	}: {
 		initial: TemplateInput;
 		isNew: boolean;
 		message?: string | null;
 		saved?: boolean;
+		/** A client's private copy: matching rules and archiving do not apply. */
+		clientCopy?: boolean;
 	} = $props();
 
 	// The whole template lives here and is posted as one JSON payload, so a save is one transaction.
@@ -46,13 +51,29 @@
 	let template = $state<TemplateInput>(structuredClone(initial));
 	const isWorkout = $derived(template.kind === 'workout');
 
-	const blankExercise = (): ExerciseInput => ({
+	/** A new exercise repeats the previous one's sets, reps and rest, which usually stay the same. */
+	const blankExercise = (previous?: ExerciseInput): ExerciseInput => ({
 		name: '',
-		sets: 3,
-		reps: '',
-		rest_seconds: 90,
+		sets: previous?.sets ?? 3,
+		reps: previous?.reps ?? '',
+		rest_seconds: previous?.rest_seconds ?? 90,
 		notes: null
 	});
+	async function addExercise(phase: PhaseInput, p: number) {
+		phase.exercises.push(blankExercise(phase.exercises.at(-1)));
+		await tick();
+		const last = phase.exercises.length - 1;
+		form?.querySelector<HTMLInputElement>(`[name="phase-${p}-exercise-${last}-name"]`)?.focus();
+	}
+	/** Copies a phase without row ids, so the copy saves as new rows, right after the original. */
+	function duplicatePhase(p: number) {
+		const source = $state.snapshot(template.phases[p]);
+		template.phases.splice(p + 1, 0, {
+			name: `${source.name} (copy)`.slice(0, 120),
+			instructions: source.instructions,
+			exercises: source.exercises.map((exercise) => ({ ...exercise, id: undefined }))
+		});
+	}
 	const blankPhase = (): PhaseInput => ({
 		name: `Phase ${template.phases.length + 1}`,
 		instructions: null,
@@ -171,7 +192,10 @@
 	}
 
 	function submit(event: SubmitEvent) {
-		if (!isNew) return;
+		if (!isNew) {
+			saving = true;
+			return;
+		}
 		// Enter inside a field on an earlier step goes to the next step.
 		if (flow.step < flow.last) {
 			event.preventDefault();
@@ -195,6 +219,24 @@
 			? template
 			: { ...template, rules: {}, phases: template.phases.map((p) => ({ ...p, exercises: [] })) }
 	);
+
+	// Warn before leaving with unsaved edits. After a rejected save, the edits are unsaved too.
+	// Empty values are left out, so a select filling in "Any" on load is not an edit.
+	const fingerprint = (value: unknown) =>
+		JSON.stringify(value, (_key, item) => (item === '' || item === null ? undefined : item));
+	// svelte-ignore state_referenced_locally
+	const savedJson = message ? '' : fingerprint(initial);
+	const dirty = $derived(fingerprint(template) !== savedJson);
+	beforeNavigate((navigation) => {
+		if (saving || !dirty || navigation.type === 'form') return;
+		// Closing the tab or a full reload: the browser shows its own prompt.
+		if (navigation.willUnload) {
+			navigation.cancel();
+			return;
+		}
+		if (!confirm('Leave without saving? Your changes to this template will be lost.'))
+			navigation.cancel();
+	});
 
 	const labelOf = (list: readonly { value: string; label: string }[], value: string | undefined) =>
 		list.find((item) => item.value === value)?.label ?? 'Any';
@@ -258,8 +300,8 @@
 {#snippet details()}
 	{#if isNew}
 		<label class="my-2 grid gap-1"
-			>Type
-			<select name="template-kind" bind:value={template.kind}>
+			>Type<span class={requiredMark} aria-hidden="true">*</span>
+			<select name="template-kind" required bind:value={template.kind}>
 				{#each templateKinds as kind (kind.value)}
 					<option value={kind.value}>{kind.label}</option>
 				{/each}
@@ -269,7 +311,7 @@
 		<p class={help}>{isWorkout ? 'Workout' : 'Nutrition'} template</p>
 	{/if}
 	<label class="my-2 grid gap-1"
-		>Name
+		>Name<span class={requiredMark} aria-hidden="true">*</span>
 		<input
 			name="template-name"
 			bind:value={template.name}
@@ -281,8 +323,8 @@
 		{@render fieldError('template-name')}
 	</label>
 	<label class="my-2 grid gap-1"
-		>Goal
-		<select name="template-goal" bind:value={template.goal}>
+		>Goal<span class={requiredMark} aria-hidden="true">*</span>
+		<select name="template-goal" required bind:value={template.goal}>
 			{#each goals as goal (goal.value)}
 				<option value={goal.value}>{goal.label}</option>
 			{/each}
@@ -296,7 +338,7 @@
 			rows="2"
 			maxlength="1000"></textarea>
 	</label>
-	{#if !isNew}
+	{#if !isNew && !clientCopy}
 		<label class="my-2 flex items-center gap-2">
 			<input type="checkbox" bind:checked={template.is_archived} /> Archived (cannot be newly assigned)
 		</label>
@@ -370,26 +412,31 @@
 {#snippet phases()}
 	{#each template.phases as phase, p (p)}
 		<section class={isNew ? 'mb-4 rounded-[10px] border border-line p-4' : card}>
-			<div class="flex flex-wrap items-center gap-2">
+			<div class="flex flex-wrap items-center gap-1">
 				<h2 class="mr-auto mb-0">Phase {p + 1}</h2>
 				<button
 					type="button"
 					class={subtle}
 					onclick={() => move(template.phases, p, -1)}
-					disabled={p === 0}>Up</button
+					disabled={p === 0}
+					aria-label="Move phase {p + 1} up">↑</button
 				>
 				<button
 					type="button"
 					class={subtle}
 					onclick={() => move(template.phases, p, 1)}
-					disabled={p === template.phases.length - 1}>Down</button
+					disabled={p === template.phases.length - 1}
+					aria-label="Move phase {p + 1} down">↓</button
+				>
+				<button type="button" class={subtle} onclick={() => duplicatePhase(p)}
+					>Duplicate<span class="sr-only"> phase {p + 1}</span></button
 				>
 				<button type="button" class={subtleDanger} onclick={() => remove(template.phases, p)}
-					>Remove phase</button
+					>Remove<span class="sr-only"> phase {p + 1}</span></button
 				>
 			</div>
 			<label class="my-2 grid gap-1"
-				>Phase name
+				>Phase name<span class={requiredMark} aria-hidden="true">*</span>
 				<input
 					name="phase-{p}-name"
 					bind:value={phase.name}
@@ -402,86 +449,96 @@
 			</label>
 			<label class="my-2 grid gap-1"
 				>Instructions for clients
-				<textarea bind:value={phase.instructions} rows="3" maxlength="2000"></textarea>
+				<textarea bind:value={phase.instructions} rows="2" maxlength="2000"></textarea>
 			</label>
 
 			{#if isWorkout}
-				{#each phase.exercises as exercise, e (e)}
-					<fieldset class="my-3 rounded-lg border border-[#b7c6c7] p-3">
-						<legend>Exercise {e + 1}</legend>
-						<label class="my-2 grid gap-1"
-							>Name
-							<input
-								name="phase-{p}-exercise-{e}-name"
-								bind:value={exercise.name}
-								maxlength="120"
-								required
-								oninput={recheck}
-								{...aria(`phase-${p}-exercise-${e}-name`)}
-							/>
+				<h3 class="mt-4 mb-2 text-[0.8rem] font-bold tracking-[1px] text-muted uppercase">
+					Exercises ({phase.exercises.length})
+				</h3>
+				<ol class="m-0 grid list-none gap-2 p-0">
+					{#each phase.exercises as exercise, e (e)}
+						<li class="grid gap-2 rounded-lg border border-[#b7c6c7] p-3">
+							<div
+								class="grid grid-cols-[minmax(0,1fr)_4.5rem_6rem_5.5rem_auto] items-end gap-2 bp-760:grid-cols-3"
+							>
+								<label class="grid gap-1 text-[0.8rem] bp-760:col-span-3"
+									>Exercise {e + 1}<span class={requiredMark} aria-hidden="true">*</span>
+									<input
+										name="phase-{p}-exercise-{e}-name"
+										bind:value={exercise.name}
+										maxlength="120"
+										required
+										placeholder="e.g. Goblet squat"
+										oninput={recheck}
+										{...aria(`phase-${p}-exercise-${e}-name`)}
+									/>
+								</label>
+								<label class="grid gap-1 text-[0.8rem]"
+									>Sets
+									<input
+										name="phase-{p}-exercise-{e}-sets"
+										type="number"
+										min="1"
+										max="20"
+										step="1"
+										bind:value={exercise.sets}
+										oninput={recheck}
+										{...aria(`phase-${p}-exercise-${e}-sets`)}
+									/>
+								</label>
+								<label class="grid gap-1 text-[0.8rem]"
+									>Reps
+									<input bind:value={exercise.reps} maxlength="40" placeholder="8-10" />
+								</label>
+								<label class="grid gap-1 text-[0.8rem]"
+									>Rest (s)
+									<input
+										name="phase-{p}-exercise-{e}-rest"
+										type="number"
+										min="0"
+										max="900"
+										step="1"
+										bind:value={exercise.rest_seconds}
+										oninput={recheck}
+										{...aria(`phase-${p}-exercise-${e}-rest`)}
+									/>
+								</label>
+								<div class="flex bp-760:col-span-3 bp-760:justify-end">
+									<button
+										type="button"
+										class={subtle}
+										onclick={() => move(phase.exercises, e, -1)}
+										disabled={e === 0}
+										aria-label="Move exercise {e + 1} up">↑</button
+									>
+									<button
+										type="button"
+										class={subtle}
+										onclick={() => move(phase.exercises, e, 1)}
+										disabled={e === phase.exercises.length - 1}
+										aria-label="Move exercise {e + 1} down">↓</button
+									>
+									<button
+										type="button"
+										class={subtleDanger}
+										onclick={() => remove(phase.exercises, e)}
+										aria-label="Remove exercise {e + 1}">✕</button
+									>
+								</div>
+							</div>
 							{@render fieldError(`phase-${p}-exercise-${e}-name`)}
-						</label>
-						<div class="flex flex-wrap items-end gap-2">
-							<label class="my-2 grid gap-1"
-								>Sets
-								<input
-									name="phase-{p}-exercise-{e}-sets"
-									type="number"
-									min="1"
-									max="20"
-									step="1"
-									bind:value={exercise.sets}
-									oninput={recheck}
-									{...aria(`phase-${p}-exercise-${e}-sets`)}
-								/>
-								{@render fieldError(`phase-${p}-exercise-${e}-sets`)}
+							{@render fieldError(`phase-${p}-exercise-${e}-sets`)}
+							{@render fieldError(`phase-${p}-exercise-${e}-rest`)}
+							<label class="grid text-[0.8rem]"
+								><span class="sr-only">Notes for exercise {e + 1}</span>
+								<input bind:value={exercise.notes} maxlength="500" placeholder="Notes" />
 							</label>
-							<label class="my-2 grid gap-1"
-								>Reps
-								<input bind:value={exercise.reps} maxlength="40" placeholder="8-10" />
-							</label>
-							<label class="my-2 grid gap-1"
-								>Rest (seconds)
-								<input
-									name="phase-{p}-exercise-{e}-rest"
-									type="number"
-									min="0"
-									max="900"
-									step="1"
-									bind:value={exercise.rest_seconds}
-									oninput={recheck}
-									{...aria(`phase-${p}-exercise-${e}-rest`)}
-								/>
-								{@render fieldError(`phase-${p}-exercise-${e}-rest`)}
-							</label>
-						</div>
-						<label class="my-2 grid gap-1"
-							>Notes
-							<input bind:value={exercise.notes} maxlength="500" />
-						</label>
-						<div class="flex flex-wrap items-end gap-2">
-							<button
-								type="button"
-								class={subtle}
-								onclick={() => move(phase.exercises, e, -1)}
-								disabled={e === 0}>Up</button
-							>
-							<button
-								type="button"
-								class={subtle}
-								onclick={() => move(phase.exercises, e, 1)}
-								disabled={e === phase.exercises.length - 1}>Down</button
-							>
-							<button type="button" class={subtleDanger} onclick={() => remove(phase.exercises, e)}
-								>Remove exercise</button
-							>
-						</div>
-					</fieldset>
-				{/each}
-				<button
-					type="button"
-					class={secondary}
-					onclick={() => phase.exercises.push(blankExercise())}>Add exercise</button
+						</li>
+					{/each}
+				</ol>
+				<button type="button" class="{secondary} mt-3" onclick={() => addExercise(phase, p)}
+					>+ Add exercise</button
 				>
 			{/if}
 		</section>
@@ -546,7 +603,7 @@
 				</p>
 				{@render phases()}
 				<button type="button" class={secondary} onclick={() => template.phases.push(blankPhase())}
-					>Add phase</button
+					>+ Add phase</button
 				>
 			</fieldset>
 
@@ -622,7 +679,7 @@
 			{@render details()}
 		</section>
 
-		{#if isWorkout}
+		{#if isWorkout && !clientCopy}
 			<section class={card}>
 				<h2>Who this program suits</h2>
 				{@render suits()}
@@ -631,11 +688,22 @@
 
 		{@render phases()}
 
-		<div class="flex flex-wrap items-end gap-2">
-			<button type="button" class={secondary} onclick={() => template.phases.push(blankPhase())}
-				>Add phase</button
+		<button
+			type="button"
+			class="{secondary} justify-self-start"
+			onclick={() => template.phases.push(blankPhase())}>+ Add phase</button
+		>
+
+		<!-- Pinned to the bottom of the screen, so Save is always in reach on long templates. -->
+		<div
+			class="sticky bottom-0 z-10 -mx-1 flex flex-wrap items-center justify-end gap-3 border-t border-line bg-[#f7f8f5] px-1 py-3"
+		>
+			<span class="mr-auto text-[0.85rem] text-muted" aria-live="polite"
+				>{dirty ? 'Unsaved changes' : 'No unsaved changes'}</span
 			>
-			<button class={primary}>Save template</button>
+			<button class={primary} disabled={saving || !dirty}
+				>{saving ? 'Saving…' : 'Save template'}</button
+			>
 		</div>
 	{/if}
 </form>

@@ -8,7 +8,8 @@
 		error,
 		help,
 		primary,
-		success
+		success,
+		requiredMark
 	} from '$lib/features/cms/styles';
 	let { data, form } = $props();
 	let busy = $state(false);
@@ -43,7 +44,7 @@
 		>
 			{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 			<label class={authLabel}
-				>Email address<input
+				>Email address<span class={requiredMark} aria-hidden="true">*</span><input
 					name="email"
 					type="email"
 					autocomplete="email"

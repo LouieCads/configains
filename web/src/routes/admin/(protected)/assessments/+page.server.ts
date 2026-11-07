@@ -1,55 +1,69 @@
 import { fail } from '@sveltejs/kit';
+import { recommendedPrograms } from '$lib/coaching/matching';
+import { isUuid } from '$lib/coaching/text';
 import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
-import { assignProgram } from '$lib/server/coaching/templates';
+import {
+	assignProgram,
+	listAssignable,
+	markAssessmentsReviewed
+} from '$lib/server/coaching/templates';
 import type { Actions, PageServerLoad } from './$types';
+
+type Client = { display_name: string | null; coaching_mode: string } | null;
 
 export const load: PageServerLoad = async (event) => {
 	await requireAdmin(event);
-	const empty = { assessments: [], templates: [], loadError: null };
+	const empty = {
+		assessments: [],
+		workoutTemplates: [],
+		nutritionTemplates: [],
+		loadError: null
+	};
 	if (event.locals.localAdminDemo) return empty;
 
-	const { data: assessments, error } = await event.locals.supabase
-		.from('assessments')
-		.select(
-			'id, client_id, status, red_flags, answers, created_at, client_profiles(display_name, coaching_mode)'
-		)
-		.order('created_at', { ascending: false })
-		.limit(100);
+	const supabase = event.locals.supabase;
+	const [{ data: assessments, error }, templates] = await Promise.all([
+		supabase
+			.from('assessments')
+			.select(
+				'id, client_id, status, red_flags, answers, created_at, client_profiles(display_name, coaching_mode)'
+			)
+			.order('created_at', { ascending: false })
+			.limit(100),
+		listAssignable(supabase)
+	]);
 	if (error) return { ...empty, loadError: 'Assessments could not be loaded. Please try again.' };
 
 	const ids = (assessments ?? []).map((row) => row.id);
 	const { data: recommendations } = ids.length
-		? await event.locals.supabase
+		? await supabase
 				.from('ai_recommendations')
-				.select('assessment_id, explanation, model')
+				.select('assessment_id, explanation')
 				.in('assessment_id', ids)
 		: { data: [] };
-	const byAssessment = new Map((recommendations ?? []).map((row) => [row.assessment_id, row]));
-
-	const { data: templates } = await event.locals.supabase
-		.from('program_templates')
-		.select('id, kind, name')
-		.eq('is_archived', false)
-		.is('owner_client_id', null)
-		.order('name');
-	const active = templates ?? [];
+	const byAssessment = new Map(
+		(recommendations ?? []).map((row) => [row.assessment_id, row.explanation as string])
+	);
 
 	return {
-		assessments: (assessments ?? []).map((row) => ({
+		assessments: (assessments ?? []).map(({ client_profiles, ...row }) => ({
 			...row,
-			client: (Array.isArray(row.client_profiles)
-				? row.client_profiles[0]
-				: row.client_profiles) as {
-				display_name: string | null;
-				coaching_mode: string;
-			} | null,
-			recommendation: byAssessment.get(row.id) ?? null
+			answers: (row.answers ?? {}) as Record<string, unknown>,
+			red_flags: (row.red_flags ?? []) as string[],
+			client: (Array.isArray(client_profiles) ? client_profiles[0] : client_profiles) as Client,
+			explanation: byAssessment.get(row.id) ?? null,
+			recommended: recommendedPrograms(row.answers, templates)
 		})),
-		workoutTemplates: active.filter((template) => template.kind === 'workout'),
-		nutritionTemplates: active.filter((template) => template.kind === 'nutrition'),
+		workoutTemplates: templates.filter((template) => template.kind === 'workout'),
+		nutritionTemplates: templates.filter((template) => template.kind === 'nutrition'),
 		loadError: null
 	};
+};
+
+const clientFrom = (form: FormData) => {
+	const id = String(form.get('client_id') ?? '');
+	return isUuid(id) ? id : null;
 };
 
 export const actions = {
@@ -57,7 +71,7 @@ export const actions = {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const form = await event.request.formData();
-		const clientId = String(form.get('client_id') ?? '');
+		const clientId = clientFrom(form);
 		const workoutId = String(form.get('workout_template_id') ?? '');
 		const nutritionId = String(form.get('nutrition_template_id') ?? '') || null;
 		if (!clientId || !workoutId)
@@ -66,28 +80,30 @@ export const actions = {
 		// The database ends any active program, including an AI one, and records this as a coach assignment.
 		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
 		if (!result.ok) return fail(400, { message: result.message });
-		return { updated: true };
+		await markAssessmentsReviewed(event.locals.supabase, clientId);
+		return { updated: 'Program assigned.' };
 	},
 	human: async (event) => {
 		requireSameOrigin(event);
 		await requireAdmin(event);
-		const form = await event.request.formData();
-		const clientId = String(form.get('client_id') ?? '');
-		const assessmentId = String(form.get('assessment_id') ?? '');
-		if (!clientId || !assessmentId) return fail(400, { message: 'The client could not be found.' });
+		const clientId = clientFrom(await event.request.formData());
+		if (!clientId) return fail(400, { message: 'The client could not be found.' });
 
 		const { error: modeError } = await event.locals.supabase
 			.from('client_profiles')
 			.update({ coaching_mode: 'human' })
 			.eq('id', clientId);
 		if (modeError) return fail(400, { message: 'The client could not be switched. Try again.' });
-
-		const { error: statusError } = await event.locals.supabase
-			.from('assessments')
-			.update({ status: 'human_assigned' })
-			.eq('id', assessmentId);
-		if (statusError)
+		await markAssessmentsReviewed(event.locals.supabase, clientId);
+		return { updated: 'Moved to human coaching.' };
+	},
+	review: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = clientFrom(await event.request.formData());
+		if (!clientId) return fail(400, { message: 'The client could not be found.' });
+		if (!(await markAssessmentsReviewed(event.locals.supabase, clientId)))
 			return fail(400, { message: 'The assessment could not be updated. Try again.' });
-		return { updated: true };
+		return { updated: 'Marked as reviewed.' };
 	}
 } satisfies Actions;

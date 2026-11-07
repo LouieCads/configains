@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { goals, experienceLevels, trainingLocations } from '$lib/coaching/options';
+	import { enhance } from '$app/forms';
+	import { answerSummary, assessmentStatus, healthLabel, openStatuses } from '$lib/coaching/labels';
+	import AssignProgramForm from '$lib/features/coaching/AssignProgramForm.svelte';
 	import {
 		badgeNeutral,
 		badgeOk,
@@ -7,114 +9,135 @@
 		card,
 		error,
 		flow,
-		help,
-		primary,
-		secondary,
-		success
+		subtle,
+		success,
+		tabIdle,
+		tabSelected
 	} from '$lib/features/cms/styles';
 	let { data, form } = $props();
 
-	const label = (options: readonly { value: string; label: string }[], value: string) =>
-		options.find((option) => option.value === value)?.label ?? value;
-	const statusLabel: Record<string, string> = {
-		submitted: 'Waiting for matching',
-		ai_matched: 'AI Coaching plan',
-		needs_human_review: 'Needs Cash review',
-		human_assigned: 'Human coaching'
-	};
-	const statusBadge: Record<string, string> = {
-		submitted: badgeNeutral,
-		ai_matched: badgeOk,
-		needs_human_review: badgeWarn,
-		human_assigned: badgeNeutral
-	};
+	const toneClass = { ok: badgeOk, warn: badgeWarn, neutral: badgeNeutral } as const;
+	const dateFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' });
+
+	const open = $derived(data.assessments.filter((row) => openStatuses.includes(row.status)));
+	// Start on the queue; fall back to everything when the queue is empty.
+	let view = $state<'open' | 'all' | null>(null);
+	const shown = $derived(view ?? (open.length > 0 ? 'open' : 'all'));
+	const rows = $derived(shown === 'open' ? open : data.assessments);
+	const nameOf = (id: string | null, list: { id: string; name: string }[]) =>
+		list.find((item) => item.id === id)?.name ?? null;
 </script>
 
 <svelte:head><title>Assessments | Configains CMS</title></svelte:head>
 <div class={flow}>
-	<h1>Coaching assessments</h1>
+	<h1>Assessments</h1>
 
 	{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
-	{#if form?.updated}<p class={success} role="status">Saved.</p>{/if}
+	{#if form?.updated}<p class={success} role="status">{form.updated}</p>{/if}
 	{#if data.loadError}<p class={error} role="alert">{data.loadError}</p>{/if}
 
 	{#if data.assessments.length === 0 && !data.loadError}
-		<p>No assessments yet.</p>
-	{/if}
+		<p class="rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
+			No assessments yet. They appear here when clients complete one.
+		</p>
+	{:else if data.assessments.length > 0}
+		<div class="flex flex-wrap gap-2" role="group" aria-label="Show assessments">
+			<button
+				type="button"
+				class={shown === 'open' ? tabSelected : tabIdle}
+				aria-pressed={shown === 'open'}
+				onclick={() => (view = 'open')}
+				>To review <span class="ml-2 text-[0.8rem] font-normal opacity-75">{open.length}</span
+				></button
+			>
+			<button
+				type="button"
+				class={shown === 'all' ? tabSelected : tabIdle}
+				aria-pressed={shown === 'all'}
+				onclick={() => (view = 'all')}
+				>All <span class="ml-2 text-[0.8rem] font-normal opacity-75">{data.assessments.length}</span
+				></button
+			>
+		</div>
 
-	{#each data.assessments as row (row.id)}
-		<section class="{card} {flow}">
-			<header class="flex flex-wrap items-center justify-between gap-3">
-				<h2 class="mb-0">{row.client?.display_name ?? 'Unnamed client'}</h2>
-				<span class={statusBadge[row.status] ?? badgeNeutral}>
-					{statusLabel[row.status] ?? row.status}
-				</span>
-			</header>
-			<p class={help}>
-				Submitted {new Date(row.created_at).toLocaleDateString('en-GB')} ·
-				{row.client?.coaching_mode === 'human' ? 'Human coaching' : 'AI coaching'}
+		{#if rows.length === 0}
+			<p class="rounded-[10px] border border-dashed border-line p-6 text-center text-muted">
+				Nothing to review. All caught up.
 			</p>
+		{/if}
 
-			<dl class="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
-				<dt class="font-semibold">Goal</dt>
-				<dd>{label(goals, row.answers.goal)}</dd>
-				<dt class="font-semibold">Experience</dt>
-				<dd>{label(experienceLevels, row.answers.experience)}</dd>
-				<dt class="font-semibold">Location</dt>
-				<dd>{label(trainingLocations, row.answers.training_location)}</dd>
-				<dt class="font-semibold">Days a week</dt>
-				<dd>{row.answers.days_per_week}</dd>
-			</dl>
+		<ul class="m-0! grid list-none gap-4 p-0">
+			{#each rows as row (row.id)}
+				{@const status = assessmentStatus[row.status]}
+				{@const isOpen = openStatuses.includes(row.status)}
+				{@const workout = nameOf(row.recommended.workoutId, data.workoutTemplates)}
+				{@const nutrition = nameOf(row.recommended.nutritionId, data.nutritionTemplates)}
+				<li class="{card} grid gap-4 p-5!">
+					<header class="flex flex-wrap items-center gap-x-3 gap-y-1">
+						<a
+							class="mr-auto text-[1.15rem] font-bold text-ink no-underline hover:text-cyan-ink"
+							href="/admin/clients/{row.client_id}"
+							>{row.client?.display_name ?? 'Unnamed client'} <span aria-hidden="true">→</span></a
+						>
+						<span class={toneClass[status?.tone ?? 'neutral']}>{status?.label ?? row.status}</span>
+						<span class="w-full text-[0.8rem] text-muted"
+							>{dateFormat.format(new Date(row.created_at))} · {row.client?.coaching_mode ===
+							'human'
+								? 'Human coaching'
+								: 'AI coaching'}</span
+						>
+					</header>
 
-			{#if row.red_flags.length > 0}
-				<p class={error}>
-					Health answers: {row.red_flags.join(', ')}. Review personally before any plan.
-				</p>
-			{/if}
+					<ul class="m-0! flex list-none flex-wrap gap-2 p-0">
+						{#each answerSummary(row.answers) as item (item.label)}
+							<li class="rounded-full bg-[#eef3f3] px-3 py-1 text-[0.85rem]">
+								<span class="text-muted">{item.label}:</span>
+								<strong class="font-semibold">{item.value}</strong>
+							</li>
+						{/each}
+					</ul>
 
-			{#if row.recommendation}
-				<div>
-					<p><strong>AI explanation:</strong> {row.recommendation.explanation}</p>
-					<p class={help}>Model: {row.recommendation.model}</p>
-				</div>
-			{/if}
-
-			<div class="grid gap-5 border-t border-line pt-5">
-				{#if row.client?.coaching_mode !== 'human'}
-					<form method="POST" action="?/human" class="grid gap-2">
-						<input type="hidden" name="client_id" value={row.client_id} />
-						<input type="hidden" name="assessment_id" value={row.id} />
-						<p class="font-semibold">Coaching mode</p>
-						<p class={help}>
-							Switches this client to human coaching: check-ins and messages open with Cash.
+					{#if row.red_flags.length > 0}
+						<p class="{error} m-0!">
+							<strong>Health:</strong>
+							{row.red_flags.map(healthLabel).join(', ')}. Review personally before any plan.
 						</p>
-						<button class={secondary}>Move to human coaching</button>
-					</form>
-				{/if}
+					{/if}
+					{#if row.explanation}
+						<p class="m-0! text-[0.9rem]"><strong>AI note:</strong> {row.explanation}</p>
+					{/if}
 
-				<form method="POST" action="?/assign" class="grid gap-2">
-					<input type="hidden" name="client_id" value={row.client_id} />
-					<p class="font-semibold">Assign program</p>
-					<label>
-						Workout
-						<select name="workout_template_id" required>
-							{#each data.workoutTemplates as template (template.id)}
-								<option value={template.id}>{template.name}</option>
-							{/each}
-						</select>
-					</label>
-					<label>
-						Nutrition (optional)
-						<select name="nutrition_template_id">
-							<option value="">None</option>
-							{#each data.nutritionTemplates as template (template.id)}
-								<option value={template.id}>{template.name}</option>
-							{/each}
-						</select>
-					</label>
-					<button class={primary}>Assign as coach</button>
-				</form>
-			</div>
-		</section>
-	{/each}
+					{#if isOpen}
+						<div class="grid gap-3 border-t border-line pt-4">
+							{#if workout}
+								<p class="m-0! text-[0.9rem]">
+									<strong>Recommended:</strong>
+									{workout}{nutrition ? ` + ${nutrition}` : ''}
+								</p>
+							{/if}
+							<AssignProgramForm
+								clientId={row.client_id}
+								workouts={data.workoutTemplates}
+								nutrition={data.nutritionTemplates}
+								recommended={row.recommended}
+								submitLabel={workout ? 'Assign' : 'Assign program'}
+							/>
+							<div class="flex flex-wrap gap-1">
+								{#if row.client?.coaching_mode !== 'human'}
+									<form method="POST" action="?/human" class="m-0!" use:enhance>
+										<input type="hidden" name="client_id" value={row.client_id} />
+										<button class={subtle}>Move to human coaching</button>
+									</form>
+								{/if}
+								<form method="POST" action="?/review" class="m-0!" use:enhance>
+									<input type="hidden" name="client_id" value={row.client_id} />
+									<button class={subtle}>Mark reviewed</button>
+								</form>
+							</div>
+						</div>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	{/if}
 </div>

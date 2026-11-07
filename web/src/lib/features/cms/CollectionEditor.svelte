@@ -10,7 +10,7 @@
 <script lang="ts">
 	import ContentField from './ContentField.svelte';
 	import { cmsRequest, errorMessage } from './api';
-	import { card, help as helpClass, primary } from './styles';
+	import { card, help as helpClass, primary, requiredMark } from './styles';
 	import { onDestroy, untrack } from 'svelte';
 	import {
 		collections,
@@ -122,7 +122,8 @@
 					/>{field.label}</label
 				>
 			{:else}<label class="grid gap-[6px] text-[0.875rem] font-semibold"
-					>{field.label}
+					>{field.label}{#if field.required}<span class={requiredMark} aria-hidden="true">*</span
+						>{/if}
 					{#if field.type === 'textarea'}<textarea
 							bind:value={values[field.name]}
 							rows="4"

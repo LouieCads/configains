@@ -1,8 +1,14 @@
-import { error, fail, type RequestEvent } from '@sveltejs/kit';
+import { error, fail, redirect, type RequestEvent } from '@sveltejs/kit';
+import { recommendedPrograms } from '$lib/coaching/matching';
 import { cleanText, isUuid } from '$lib/coaching/text';
 import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
-import { assignProgram, loadActiveProgram } from '$lib/server/coaching/templates';
+import {
+	assignProgram,
+	listAssignable,
+	loadActiveProgram,
+	markAssessmentsReviewed
+} from '$lib/server/coaching/templates';
 import { loadCoachingThread, saveCheckInFeedback, sendMessage } from '$lib/server/coaching/human';
 import { loadProgress } from '$lib/server/coaching/progress';
 import type { Actions, PageServerLoad } from './$types';
@@ -23,27 +29,48 @@ export const load: PageServerLoad = async (event) => {
 	if (profileError) error(500, 'The client could not be loaded.');
 	if (!profile) error(404, 'Client not found.');
 
-	const [program, thread, progress, templates] = await Promise.all([
+	const [program, thread, progress, templates, latest] = await Promise.all([
 		loadActiveProgram(event.locals.supabase, clientId),
 		loadCoachingThread(event.locals.supabase, clientId),
 		loadProgress(event.locals.supabase, clientId, new Date().toISOString().slice(0, 10)),
 		// Only active (non-archived) library templates can be assigned.
+		listAssignable(event.locals.supabase),
 		event.locals.supabase
-			.from('program_templates')
-			.select('id, kind, name')
-			.eq('is_archived', false)
-			.is('owner_client_id', null)
-			.order('name')
+			.from('assessments')
+			.select('id, status, answers, red_flags, created_at')
+			.eq('client_id', clientId)
+			.order('created_at', { ascending: false })
+			.limit(1)
+			.maybeSingle()
 	]);
-	const active = templates.data ?? [];
+
+	const assessment = latest.data;
+	let explanation: string | null = null;
+	if (assessment) {
+		const { data: recommendation } = await event.locals.supabase
+			.from('ai_recommendations')
+			.select('explanation')
+			.eq('assessment_id', assessment.id)
+			.maybeSingle();
+		explanation = recommendation?.explanation ?? null;
+	}
 
 	return {
 		client: profile,
 		program,
 		...thread,
 		progress,
-		workoutTemplates: active.filter((template) => template.kind === 'workout'),
-		nutritionTemplates: active.filter((template) => template.kind === 'nutrition')
+		assessment: assessment
+			? {
+					...assessment,
+					answers: (assessment.answers ?? {}) as Record<string, unknown>,
+					red_flags: (assessment.red_flags ?? []) as string[],
+					explanation
+				}
+			: null,
+		recommended: recommendedPrograms(assessment?.answers, templates),
+		workoutTemplates: templates.filter((template) => template.kind === 'workout'),
+		nutritionTemplates: templates.filter((template) => template.kind === 'nutrition')
 	};
 };
 
@@ -51,6 +78,14 @@ export const load: PageServerLoad = async (event) => {
 async function ownActiveProgram(event: RequestEvent, clientId: string, programId: string) {
 	const program = await loadActiveProgram(event.locals.supabase, clientId);
 	return program && program.id === programId ? program : null;
+}
+
+/** Makes (or reuses) the client's private copy of their workout. Returns its template id. */
+async function customiseProgram(event: RequestEvent, programId: string) {
+	const { data, error: rpcError } = await event.locals.supabase.rpc('customise_client_program', {
+		p_program_id: programId
+	});
+	return rpcError || typeof data !== 'string' ? null : data;
 }
 
 export const actions = {
@@ -66,7 +101,37 @@ export const actions = {
 
 		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
 		if (!result.ok) return fail(400, { message: result.message });
+		await markAssessmentsReviewed(event.locals.supabase, clientId);
+
+		// Assign and customise in one step: open the client's private copy straight away.
+		if (form.get('customise') === '1') {
+			const program = await loadActiveProgram(event.locals.supabase, clientId);
+			const copy = program ? await customiseProgram(event, program.id) : null;
+			if (!copy)
+				return fail(400, {
+					message: 'The program was assigned, but the copy could not be made. Use Customise.'
+				});
+			redirect(303, `/admin/templates/${copy}?client=${clientId}`);
+		}
 		return { updated: 'assign' };
+	},
+
+	mode: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		const mode = String((await event.request.formData()).get('mode') ?? '');
+		if (!isUuid(clientId) || (mode !== 'human' && mode !== 'ai'))
+			return fail(400, { message: 'Choose a coaching mode.' });
+
+		const { error: modeError } = await event.locals.supabase
+			.from('client_profiles')
+			.update({ coaching_mode: mode })
+			.eq('id', clientId);
+		if (modeError)
+			return fail(400, { message: 'The coaching mode could not be changed. Try again.' });
+		if (mode === 'human') await markAssessmentsReviewed(event.locals.supabase, clientId);
+		return { updated: 'mode' };
 	},
 
 	phase: async (event) => {
@@ -105,11 +170,9 @@ export const actions = {
 		const program = await ownActiveProgram(event, clientId, programId);
 		if (!program) return fail(404, { message: 'This program is no longer active.' });
 
-		const { error: rpcError } = await event.locals.supabase.rpc('customise_client_program', {
-			p_program_id: programId
-		});
-		if (rpcError) return fail(400, { message: 'The program could not be customised. Try again.' });
-		return { updated: 'customise' };
+		const copy = await customiseProgram(event, programId);
+		if (!copy) return fail(400, { message: 'The program could not be customised. Try again.' });
+		redirect(303, `/admin/templates/${copy}?client=${clientId}`);
 	},
 
 	feedback: async (event) => {

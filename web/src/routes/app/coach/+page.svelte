@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { card, error, help, primary, success } from '$lib/features/cms/styles';
+	import { card, error, help, primary, success, requiredMark } from '$lib/features/cms/styles';
 	let { data, form } = $props();
 
 	const when = (value: string) =>
@@ -25,7 +25,7 @@
 		<p class={help}>Share how training and nutrition are going. Cash replies here.</p>
 		<form method="POST" action="?/checkin" class="grid gap-2">
 			<label class="grid gap-1"
-				>Check-in
+				>Check-in<span class={requiredMark} aria-hidden="true">*</span>
 				<textarea name="body" rows="4" maxlength="4000" required></textarea>
 			</label>
 			<button class={primary}>Send check-in</button>
@@ -64,7 +64,7 @@
 		</ul>
 		<form method="POST" action="?/message" class="mt-4 grid gap-2">
 			<label class="grid gap-1"
-				>Message
+				>Message<span class={requiredMark} aria-hidden="true">*</span>
 				<textarea name="body" rows="3" maxlength="2000" required></textarea>
 			</label>
 			<button class={primary}>Send message</button>

@@ -1,5 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ExerciseInput, PhaseInput, TemplateInput } from '$lib/coaching/template';
+import type {
+	ExerciseInput,
+	PhaseInput,
+	TemplateInput,
+	TemplateRules
+} from '$lib/coaching/template';
 
 type ExerciseRow = ExerciseInput & { id: string; position: number };
 type PhaseRow = Omit<PhaseInput, 'exercises'> & {
@@ -40,11 +45,14 @@ export function phasesFromRows(rows: PhaseRow[] | null | undefined) {
 export async function listTemplates(supabase: SupabaseClient) {
 	const { data, error } = await supabase
 		.from('program_templates')
-		.select('id, kind, goal, name, is_archived, updated_at')
+		.select('id, kind, goal, name, is_archived, updated_at, template_phases(count)')
 		.is('owner_client_id', null)
 		.order('name');
 	if (error) throw error;
-	return data ?? [];
+	return (data ?? []).map(({ template_phases, ...template }) => ({
+		...template,
+		phaseCount: (template_phases as { count: number }[] | null)?.[0]?.count ?? 0
+	}));
 }
 
 export async function loadTemplate(supabase: SupabaseClient, id: string) {
@@ -79,6 +87,38 @@ export async function saveTemplate(supabase: SupabaseClient, template: TemplateI
 			message: 'The template could not be saved. Check the fields and try again.'
 		};
 	return { ok: true as const, id: data as string };
+}
+
+export type AssignableTemplate = {
+	id: string;
+	kind: 'workout' | 'nutrition';
+	goal: string;
+	name: string;
+	rules: TemplateRules | null;
+};
+
+/** Active library templates a coach can assign, with the rules used to recommend one. */
+export async function listAssignable(supabase: SupabaseClient): Promise<AssignableTemplate[]> {
+	const { data } = await supabase
+		.from('program_templates')
+		.select('id, kind, goal, name, rules')
+		.eq('is_archived', false)
+		.is('owner_client_id', null)
+		.order('name');
+	return (data ?? []) as AssignableTemplate[];
+}
+
+/**
+ * Closes the client's open assessments once the coach has acted on them, so they
+ * leave the review queue and the dashboard count. Failure only leaves them listed.
+ */
+export async function markAssessmentsReviewed(supabase: SupabaseClient, clientId: string) {
+	const { error } = await supabase
+		.from('assessments')
+		.update({ status: 'human_assigned' })
+		.eq('client_id', clientId)
+		.in('status', ['submitted', 'needs_human_review']);
+	return !error;
 }
 
 /** Assigns a template pair to a client. The database ends their previous active program. */

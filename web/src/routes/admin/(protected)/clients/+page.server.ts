@@ -14,6 +14,8 @@ type ClientSummary = {
 	program: string | null;
 	/** Check-ins still waiting for coach feedback. */
 	pendingCheckIns: number;
+	/** Status of the latest assessment, or null if none was taken. */
+	assessmentStatus: string | null;
 };
 
 export const load: PageServerLoad = async (event) => {
@@ -32,12 +34,16 @@ export const load: PageServerLoad = async (event) => {
 		};
 
 	// Extras for the list; missing ones just leave the column blank.
-	const [programs, checkIns] = await Promise.all([
+	const [programs, checkIns, assessments] = await Promise.all([
 		supabase
 			.from('client_programs')
 			.select('client_id, workout:program_templates!workout_template_id(name)')
 			.eq('status', 'active'),
-		supabase.from('check_ins').select('client_id').is('coach_feedback', null)
+		supabase.from('check_ins').select('client_id').is('coach_feedback', null),
+		supabase
+			.from('assessments')
+			.select('client_id, status')
+			.order('created_at', { ascending: false })
 	]);
 	const programOf = new Map<string, string>();
 	for (const row of programs.data ?? []) {
@@ -49,11 +55,18 @@ export const load: PageServerLoad = async (event) => {
 	for (const row of checkIns.data ?? [])
 		pending.set(row.client_id as string, (pending.get(row.client_id as string) ?? 0) + 1);
 
+	// Newest first, so the first status seen per client is their latest.
+	const assessmentOf = new Map<string, string>();
+	for (const row of assessments.data ?? [])
+		if (!assessmentOf.has(row.client_id as string))
+			assessmentOf.set(row.client_id as string, row.status as string);
+
 	return {
 		clients: (data ?? []).map((client): ClientSummary => ({
 			...client,
 			program: programOf.get(client.id) ?? null,
-			pendingCheckIns: pending.get(client.id) ?? 0
+			pendingCheckIns: pending.get(client.id) ?? 0,
+			assessmentStatus: assessmentOf.get(client.id) ?? null
 		})),
 		loadError: null
 	};
