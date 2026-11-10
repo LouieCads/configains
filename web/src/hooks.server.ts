@@ -1,4 +1,5 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, RequestEvent } from '@sveltejs/kit';
+import { websitePaths } from '$lib/server/website';
 import { createSupabaseServerClient } from '$lib/server/supabase';
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
@@ -34,6 +35,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 		// Native POST forms need their same-origin Origin header for CSRF checks.
 		// no-referrer makes browsers send Origin: null for these submissions.
 		response.headers.set('Referrer-Policy', 'same-origin');
+	} else if (cacheablePublic(event, response)) {
+		// Browsers always revalidate; Netlify's CDN serves a recent copy and refreshes it in the
+		// background, so a CMS publish shows up within about a minute.
+		response.headers.set('Netlify-CDN-Cache-Control', publicEdgeCache);
 	}
 	return response;
 };
+
+const publicEdgeCache = 'public, s-maxage=60, stale-while-revalidate=600';
+const publicPaths = new Set(websitePaths);
+
+/** Anonymous public page (or its client-navigation data) with no per-user or draft content. */
+function cacheablePublic(event: RequestEvent, response: Response) {
+	if (event.request.method !== 'GET' || response.status !== 200) return false;
+	if (event.url.searchParams.has('preview') || response.headers.has('set-cookie')) return false;
+	if (
+		response.headers.has('cache-control') &&
+		/no-store|private/.test(response.headers.get('cache-control')!)
+	)
+		return false;
+	const path = event.url.pathname.replace(/\/__data\.json$/, '') || '/';
+	return publicPaths.has(path);
+}

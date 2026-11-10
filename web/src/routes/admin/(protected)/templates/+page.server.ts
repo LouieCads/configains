@@ -20,20 +20,21 @@ type ClientOption = {
 };
 
 export const load: PageServerLoad = async (event) => {
-	await requireAdmin(event);
 	const empty = { templates: [], clients: [] as ClientOption[], usage: {}, loadError: null };
-	if (event.locals.localAdminDemo) return empty;
+	if (event.locals.localAdminDemo) {
+		await requireAdmin(event);
+		return empty;
+	}
 	const supabase = event.locals.supabase;
 
-	let templates;
-	try {
-		templates = await listTemplates(supabase);
-	} catch {
-		return { ...empty, loadError: 'Templates could not be loaded. Please try again.' };
-	}
-
-	// Extras for usage counts and the assign dialog; missing ones leave them blank.
-	const [clients, programs] = await Promise.all([
+	// Queries run alongside the admin check; RLS still limits what a non-admin could read,
+	// and a failed check discards the results. Extras (usage, assign dialog) may be blank.
+	const [, templatesResult, clients, programs] = await Promise.all([
+		requireAdmin(event),
+		listTemplates(supabase).then(
+			(templates) => ({ templates }),
+			() => null
+		),
 		supabase.from('client_profiles').select('id, display_name').order('display_name'),
 		supabase
 			.from('client_programs')
@@ -42,6 +43,9 @@ export const load: PageServerLoad = async (event) => {
 			)
 			.eq('status', 'active')
 	]);
+	if (!templatesResult)
+		return { ...empty, loadError: 'Templates could not be loaded. Please try again.' };
+	const { templates } = templatesResult;
 
 	const usage: Record<string, number> = {};
 	const programOf = new Map<string, { workout: string | null; nutritionId: string | null }>();

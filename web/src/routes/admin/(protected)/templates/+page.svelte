@@ -146,10 +146,10 @@
 		<h1 class="m-0!">Templates</h1>
 		<div class="flex flex-wrap gap-3">
 			<a class={primary} href="/admin/templates/new?kind=workout"
-				><Dumbbell size={18} aria-hidden="true" />Workout</a
+				><Dumbbell size={18} aria-hidden="true" />Add workout</a
 			>
 			<a class={secondary} href="/admin/templates/new?kind=nutrition"
-				><Apple size={18} aria-hidden="true" />Nutrition</a
+				><Apple size={18} aria-hidden="true" />Add nutrition</a
 			>
 		</div>
 	</header>

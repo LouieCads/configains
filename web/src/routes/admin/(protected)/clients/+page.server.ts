@@ -19,22 +19,20 @@ type ClientSummary = {
 };
 
 export const load: PageServerLoad = async (event) => {
-	await requireAdmin(event);
-	if (event.locals.localAdminDemo) return { clients: [] as ClientSummary[], loadError: null };
+	if (event.locals.localAdminDemo) {
+		await requireAdmin(event);
+		return { clients: [] as ClientSummary[], loadError: null };
+	}
 
+	// Queries run alongside the admin check; RLS still limits what a non-admin could read,
+	// and a failed check discards the results.
 	const supabase = event.locals.supabase;
-	const { data, error } = await supabase
-		.from('client_profiles')
-		.select('id, display_name, coaching_mode, created_at')
-		.order('created_at', { ascending: false });
-	if (error)
-		return {
-			clients: [] as ClientSummary[],
-			loadError: 'Clients could not be loaded. Please try again.'
-		};
-
-	// Extras for the list; missing ones just leave the column blank.
-	const [programs, checkIns, assessments] = await Promise.all([
+	const [, { data, error }, programs, checkIns, assessments] = await Promise.all([
+		requireAdmin(event),
+		supabase
+			.from('client_profiles')
+			.select('id, display_name, coaching_mode, created_at')
+			.order('created_at', { ascending: false }),
 		supabase
 			.from('client_programs')
 			.select('client_id, workout:program_templates!workout_template_id(name)')
@@ -45,6 +43,13 @@ export const load: PageServerLoad = async (event) => {
 			.select('client_id, status')
 			.order('created_at', { ascending: false })
 	]);
+	if (error)
+		return {
+			clients: [] as ClientSummary[],
+			loadError: 'Clients could not be loaded. Please try again.'
+		};
+
+	// Extras for the list; missing ones just leave the column blank.
 	const programOf = new Map<string, string>();
 	for (const row of programs.data ?? []) {
 		const workout = row.workout as { name?: string } | { name?: string }[] | null;
