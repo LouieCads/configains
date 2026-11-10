@@ -1,4 +1,5 @@
 <script lang="ts">
+	import KeyRound from '@lucide/svelte/icons/key-round';
 	import { enhance } from '$app/forms';
 	import {
 		authCard,
@@ -65,7 +66,7 @@
 					/></label
 				>
 				<button class="{primary} {authSubmit}" disabled={busy}
-					>{busy ? 'Saving…' : 'Set password'}</button
+					><KeyRound size={18} aria-hidden="true" />{busy ? 'Saving…' : 'Set password'}</button
 				>
 			</form>
 		{:else}

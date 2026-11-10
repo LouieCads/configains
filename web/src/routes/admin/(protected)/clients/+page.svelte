@@ -1,4 +1,8 @@
 <script lang="ts">
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import UserPlus from '@lucide/svelte/icons/user-plus';
+	import Send from '@lucide/svelte/icons/send';
+	import X from '@lucide/svelte/icons/x';
 	import { enhance } from '$app/forms';
 	import { openStatuses } from '$lib/coaching/labels';
 	import {
@@ -70,7 +74,11 @@
 			class={inviteOpen ? secondary : primary}
 			aria-expanded={inviteOpen}
 			aria-controls="invite-client"
-			onclick={() => (inviteOpen = !inviteOpen)}>{inviteOpen ? 'Cancel' : '+ Invite client'}</button
+			onclick={() => (inviteOpen = !inviteOpen)}
+			>{#if inviteOpen}<X size={18} aria-hidden="true" />Cancel{:else}<UserPlus
+					size={18}
+					aria-hidden="true"
+				/>Invite client{/if}</button
 		>
 	</header>
 
@@ -100,7 +108,9 @@
 				>Name
 				<input name="display_name" type="text" maxlength="120" />
 			</label>
-			<button class={primary} disabled={inviting}>{inviting ? 'Sending…' : 'Send invite'}</button>
+			<button class={primary} disabled={inviting}
+				><Send size={18} aria-hidden="true" />{inviting ? 'Sending…' : 'Send invite'}</button
+			>
 		</form>
 		<p class="{help} mb-0!">They get an email to set a password.</p>
 	</section>
@@ -161,7 +171,7 @@
 							<span class={client.coaching_mode === 'human' ? badgeOk : badgeNeutral}
 								>{client.coaching_mode === 'human' ? 'Human' : 'AI'}</span
 							>
-							<span aria-hidden="true" class="text-muted">→</span>
+							<ChevronRight size={18} class="text-muted" aria-hidden="true" />
 						</a>
 					</li>
 				{/each}

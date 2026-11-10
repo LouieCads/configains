@@ -3,6 +3,9 @@
 	the cancel button call `onCancel`. Focus starts on the safe (cancel) action.
 -->
 <script lang="ts">
+	import X from '@lucide/svelte/icons/x';
+	import Check from '@lucide/svelte/icons/check';
+	import Trash2 from '@lucide/svelte/icons/trash';
 	import { dangerSolid, eyebrow, primary, secondary } from './styles';
 	let {
 		open,
@@ -55,10 +58,13 @@
 		<p id={`${id}-message`} class="m-0 text-muted">{message}</p>
 		<div class="mt-7 flex flex-wrap justify-end gap-[10px]">
 			<button type="button" class={secondary} bind:this={cancelButton} onclick={onCancel}
-				>{cancelLabel}</button
+				><X size={18} aria-hidden="true" />{cancelLabel}</button
 			>
 			<button type="button" class={danger ? dangerSolid : primary} onclick={onConfirm}
-				>{confirmLabel}</button
+				>{#if danger}<Trash2 size={18} aria-hidden="true" />{:else}<Check
+						size={18}
+						aria-hidden="true"
+					/>{/if}{confirmLabel}</button
 			>
 		</div>
 	</div>

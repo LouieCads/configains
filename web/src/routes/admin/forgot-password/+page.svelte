@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Mail from '@lucide/svelte/icons/mail';
 	import { enhance } from '$app/forms';
 	import AuthCard from '$lib/features/cms/AuthCard.svelte';
 	import {
@@ -53,7 +54,7 @@
 				/></label
 			>
 			<button class="{primary} {authSubmit}" disabled={busy}
-				>{busy ? 'Sending…' : 'Send reset link'}</button
+				><Mail size={18} aria-hidden="true" />{busy ? 'Sending…' : 'Send reset link'}</button
 			>
 		</form>
 	{/if}

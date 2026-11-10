@@ -7,6 +7,11 @@
 	Guards navigation while any editor has unsaved changes.
 -->
 <script lang="ts">
+	import GripVertical from '@lucide/svelte/icons/grip-vertical';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Trash2 from '@lucide/svelte/icons/trash';
+	import X from '@lucide/svelte/icons/x';
 	import CollectionEditor from './CollectionEditor.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import { cmsRequest, errorMessage } from './api';
@@ -206,7 +211,10 @@
 <div class="grid gap-6">
 	<details bind:open={newItemOpen}>
 		<summary class="{secondary} [[open]>&]:mb-4"
-			>{newItemOpen ? 'Cancel' : `+ Add ${itemLabel}`}</summary
+			>{#if newItemOpen}<X size={18} aria-hidden="true" />Cancel{:else}<Plus
+					size={18}
+					aria-hidden="true"
+				/>Add {itemLabel}{/if}</summary
 		>
 		<CollectionEditor
 			{collection}
@@ -249,7 +257,8 @@
 							draggable="true"
 							ondragstart={(event) => dragStart(event, row.id)}
 							ondragend={dragEnd}
-							onkeydown={(event) => handleKey(event, row.id)}>⠿</button
+							onkeydown={(event) => handleKey(event, row.id)}
+							><GripVertical size={20} aria-hidden="true" /></button
 						>{/if}
 					{#if image}<img
 							class="h-11 w-11 shrink-0 rounded-[6px] object-cover"
@@ -302,14 +311,19 @@
 							aria-expanded={open}
 							aria-controls="{row.id}-editor"
 							aria-label={`${open ? 'Close' : 'Edit'} ${title}`}
-							onclick={() => (expanded[row.id] = !open)}>{open ? 'Close' : 'Edit'}</button
+							onclick={() => (expanded[row.id] = !open)}
+							>{#if open}<X size={16} aria-hidden="true" />Close{:else}<Pencil
+									size={16}
+									aria-hidden="true"
+								/>Edit{/if}</button
 						>
 						<button
 							type="button"
 							class={subtleDanger}
 							aria-label={`Delete ${title}`}
 							disabled={busy}
-							onclick={() => (pendingDelete = row)}>Delete</button
+							onclick={() => (pendingDelete = row)}
+							><Trash2 size={16} aria-hidden="true" />Delete</button
 						>
 					</span>
 				</div>

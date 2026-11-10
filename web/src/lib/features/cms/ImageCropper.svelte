@@ -4,6 +4,10 @@
 	WebP file and passes it to `onApply`. The original file never leaves the browser.
 -->
 <script lang="ts">
+	import CropIcon from '@lucide/svelte/icons/crop';
+	import RectangleHorizontal from '@lucide/svelte/icons/rectangle-horizontal';
+	import X from '@lucide/svelte/icons/x';
+	import Upload from '@lucide/svelte/icons/upload';
 	import { onMount } from 'svelte';
 	import type { ImageGuide } from '$lib/content/image-guides';
 	import { MAX_IMAGE_BYTES, IMAGE_SIZE_LABEL } from '$lib/content/uploads';
@@ -60,7 +64,7 @@
 		se: '-right-[9px] -bottom-[9px] cursor-nwse-resize'
 	};
 	const shapeButton = (active: boolean) => [
-		'rounded-[6px] border px-[14px] py-2',
+		'inline-flex items-center gap-2 rounded-[6px] border px-[14px] py-2',
 		active ? 'border-ink bg-ink text-white' : 'border-[#b7c6c7] bg-transparent text-ink'
 	];
 
@@ -264,14 +268,16 @@
 				class={shapeButton(shape === 'free')}
 				aria-pressed={shape === 'free'}
 				disabled={working}
-				onclick={() => chooseShape('free')}>Free crop</button
+				onclick={() => chooseShape('free')}
+				><CropIcon size={16} aria-hidden="true" />Free crop</button
 			>
 			<button
 				type="button"
 				class={shapeButton(shape === 'website')}
 				aria-pressed={shape === 'website'}
 				disabled={working}
-				onclick={() => chooseShape('website')}>Website shape</button
+				onclick={() => chooseShape('website')}
+				><RectangleHorizontal size={16} aria-hidden="true" />Website shape</button
 			>
 		</div>
 		<p class={help}>
@@ -322,9 +328,11 @@
 			</p>{/if}
 		{#if error}<p class={errorClass} role="alert">{error}</p>{/if}
 		<div class="mt-5 flex flex-wrap justify-end gap-[10px]">
-			<button type="button" class={secondary} disabled={working} onclick={onCancel}>Cancel</button>
+			<button type="button" class={secondary} disabled={working} onclick={onCancel}
+				><X size={18} aria-hidden="true" />Cancel</button
+			>
 			<button type="button" class={primary} disabled={working || !picture} onclick={apply}
-				>{working ? 'Preparing…' : 'Crop and upload'}</button
+				><Upload size={18} aria-hidden="true" />{working ? 'Preparing…' : 'Crop and upload'}</button
 			>
 		</div>
 	</div>

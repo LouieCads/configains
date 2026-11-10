@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Plus from '@lucide/svelte/icons/plus';
 	import { progressMetrics } from '$lib/coaching/progress';
 	import { card, help, primary } from '$lib/features/cms/styles';
 	let { data } = $props();
@@ -30,7 +31,9 @@
 <main class="mx-auto grid max-w-[640px] gap-6 p-6">
 	<p><a href="/app">Back to your program</a></p>
 	<h1>Your progress</h1>
-	<a class={primary} href="/app/log">Log training or a measurement</a>
+	<a class={primary} href="/app/log"
+		><Plus size={18} aria-hidden="true" />Log training or a measurement</a
+	>
 
 	<section class={card}>
 		<h2>Weekly</h2>

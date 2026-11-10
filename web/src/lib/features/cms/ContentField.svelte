@@ -4,6 +4,11 @@
 	`path` must be unique per field; it builds input ids and picks image guides.
 -->
 <script lang="ts">
+	import Upload from '@lucide/svelte/icons/upload';
+	import ArrowUp from '@lucide/svelte/icons/arrow-up';
+	import ArrowDown from '@lucide/svelte/icons/arrow-down';
+	import Trash2 from '@lucide/svelte/icons/trash';
+	import Plus from '@lucide/svelte/icons/plus';
 	import ContentField from './ContentField.svelte';
 	import ImageCropper from './ImageCropper.svelte';
 	import SectionOrderEditor from './SectionOrderEditor.svelte';
@@ -168,14 +173,14 @@
 			class={subtle}
 			disabled={disabled || index === 0}
 			aria-label={`Move ${field.item?.label} ${index + 1} up`}
-			onclick={() => move(index, -1)}>↑</button
+			onclick={() => move(index, -1)}><ArrowUp size={16} aria-hidden="true" /></button
 		>
 		<button
 			type="button"
 			class={subtle}
 			disabled={disabled || index === value.length - 1}
 			aria-label={`Move ${field.item?.label} ${index + 1} down`}
-			onclick={() => move(index, 1)}>↓</button
+			onclick={() => move(index, 1)}><ArrowDown size={16} aria-hidden="true" /></button
 		>
 		<button
 			type="button"
@@ -184,7 +189,7 @@
 			onclick={() => {
 				value = value.filter((_: unknown, i: number) => i !== index);
 				expanded = expanded.filter((_, i) => i !== index);
-			}}>Remove</button
+			}}><Trash2 size={16} aria-hidden="true" />Remove</button
 		>
 	</div>
 	<ContentField
@@ -243,7 +248,7 @@
 			onclick={() => {
 				expanded = [...value.map((_: unknown, index: number) => expanded[index] ?? false), true];
 				value = [...value, defaultFor(field.item!)];
-			}}>+ Add {field.item?.label.toLowerCase()}</button
+			}}><Plus size={18} aria-hidden="true" />Add {field.item?.label.toLowerCase()}</button
 		>
 	</fieldset>
 {:else if field.kind === 'boolean'}
@@ -274,7 +279,7 @@
 				/>{/if}
 			<label
 				class="my-2 inline-flex min-h-11 max-w-full cursor-pointer flex-wrap items-center justify-center gap-2 rounded-[6px] border border-[#b7c6c7] bg-transparent px-[18px] py-[11px] text-[0.875rem] font-semibold text-ink no-underline"
-				>{uploading ? 'Uploading…' : 'Upload image'}<input
+				><Upload size={18} aria-hidden="true" />{uploading ? 'Uploading…' : 'Upload image'}<input
 					class="ml-0 w-[230px] max-w-full min-w-0 text-[0.75rem]"
 					type="file"
 					accept={IMAGE_MIME_TYPES.join(',')}

@@ -1,4 +1,9 @@
 <script lang="ts">
+	import Trash2 from '@lucide/svelte/icons/trash';
+	import LogIn from '@lucide/svelte/icons/log-in';
+	import Save from '@lucide/svelte/icons/save';
+	import Ruler from '@lucide/svelte/icons/ruler';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import { onMount } from 'svelte';
 	import { progressMetrics } from '$lib/coaching/progress';
 	import { enqueue, flush, type OutboxRecord, type OutboxStore } from '$lib/coaching/outbox';
@@ -276,7 +281,7 @@
 								: `Measurement on ${record.item.measured_on}`}
 						</p>
 						<button type="button" class={subtle} onclick={() => discard(record.item.id)}
-							>Discard</button
+							><Trash2 size={16} aria-hidden="true" />Discard</button
 						>
 					</li>
 				{/each}
@@ -287,7 +292,9 @@
 	{#if signedOut}
 		<section class={card}>
 			<p>Sign in to log training and see your program.</p>
-			<a class={primary} href="/login?redirectTo=/app/log">Sign in</a>
+			<a class={primary} href="/login?redirectTo=/app/log"
+				><LogIn size={18} aria-hidden="true" />Sign in</a
+			>
 		</section>
 	{:else if !program}
 		<section class={card}>
@@ -342,7 +349,7 @@
 				>Notes
 				<textarea bind:value={notes} rows="2" maxlength="1000"></textarea>
 			</label>
-			<button class={primary}>Save workout</button>
+			<button class={primary}><Save size={18} aria-hidden="true" />Save workout</button>
 		</form>
 	{/if}
 
@@ -365,11 +372,13 @@
 				><span>Date<span class={requiredMark} aria-hidden="true">*</span></span>
 				<input type="date" bind:value={metricDate} required />
 			</label>
-			<button class={secondary}>Save measurement</button>
+			<button class={secondary}><Ruler size={18} aria-hidden="true" />Save measurement</button>
 		</form>
 	{/if}
 
 	<form method="POST" action="/logout" onsubmit={signOut}>
-		<button class={subtle}>Sign out and clear this device</button>
+		<button class={subtle}
+			><LogOut size={16} aria-hidden="true" />Sign out and clear this device</button
+		>
 	</form>
 </main>

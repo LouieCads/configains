@@ -4,6 +4,7 @@
 	repaired on display; moves are announced to screen readers.
 -->
 <script lang="ts">
+	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 	import { tick } from 'svelte';
 	import { homeSections, orderedHomeSections } from '$lib/content/home-sections';
 	import { help, visuallyHidden } from './styles';
@@ -67,7 +68,7 @@
 
 <fieldset class="m-0 mb-6 min-w-0 p-0 [border:0]" {disabled}>
 	<legend class="text-[1.5rem]">Homepage section order</legend>
-	<p class={help}>Drag ⠿ to reorder. The homepage and the editor tabs follow this order.</p>
+	<p class={help}>Drag the handle to reorder. The homepage and the editor tabs follow this order.</p>
 	<ol bind:this={list} class="mt-[18px] grid list-none gap-2 p-0">
 		{#each sections as id, index (id)}
 			{@const label = labelOf(id)}
@@ -91,7 +92,8 @@
 					draggable={!disabled}
 					ondragstart={(event) => handleDragStart(event, index)}
 					ondragend={handleDragEnd}
-					onkeydown={(event) => handleKey(event, index)}>⠿</button
+					onkeydown={(event) => handleKey(event, index)}
+					><GripVertical size={18} aria-hidden="true" /></button
 				>
 				<span class="min-w-6 text-[0.8rem] text-muted">{index + 1}</span>
 				<strong class="flex-1 text-[0.875rem]">{label}</strong>

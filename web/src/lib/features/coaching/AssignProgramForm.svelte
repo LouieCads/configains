@@ -1,4 +1,5 @@
 <script lang="ts">
+	import UserPlus from '@lucide/svelte/icons/user-plus';
 	import { enhance } from '$app/forms';
 	import type { Recommendation } from '$lib/coaching/matching';
 	import { help, primary, requiredMark } from '$lib/features/cms/styles';
@@ -92,7 +93,9 @@
 			</label>
 		{/if}
 		<div class="flex flex-wrap items-center gap-3">
-			<button class={primary} disabled={pending}>{pending ? 'Assigning…' : submitLabel}</button>
+			<button class={primary} disabled={pending}
+				><UserPlus size={18} aria-hidden="true" />{pending ? 'Assigning…' : submitLabel}</button
+			>
 			{#if note}<p class="{help} m-0!">{note}</p>{/if}
 		</div>
 	</form>

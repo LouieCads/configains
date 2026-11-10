@@ -8,6 +8,10 @@
 	import { onMount, untrack } from 'svelte';
 	import ContentTabs from '$lib/features/cms/ContentTabs.svelte';
 	import ConfirmDialog from '$lib/features/cms/ConfirmDialog.svelte';
+	import Eye from '@lucide/svelte/icons/eye';
+	import Save from '@lucide/svelte/icons/save';
+	import Undo2 from '@lucide/svelte/icons/undo-2';
+	import Upload from '@lucide/svelte/icons/upload';
 	import { cmsRequest, errorMessage } from '$lib/features/cms/api';
 	import { useLeaveGuard } from '$lib/features/cms/leave-guard.svelte';
 	import {
@@ -205,7 +209,7 @@
 			>{/if}</span
 	>
 	<button class={secondary} disabled={locked || data.unavailable} onclick={save}
-		>{busy ? 'Working…' : 'Save draft'}</button
+		><Save size={18} aria-hidden="true" />{busy ? 'Working…' : 'Save draft'}</button
 	>
 	<a
 		class={secondary}
@@ -215,19 +219,20 @@
 		aria-disabled={!canPreview}
 		onclick={(event) => {
 			if (!canPreview) event.preventDefault();
-		}}>Preview draft ↗</a
+		}}><Eye size={18} aria-hidden="true" />Preview draft</a
 	>
 	<button
 		class={primary}
 		disabled={locked || data.unavailable}
-		onclick={() => (dialogAction = 'publish')}>Publish website</button
+		onclick={() => (dialogAction = 'publish')}
+		><Upload size={18} aria-hidden="true" />Publish website</button
 	>
 	<button
 		class={subtle}
 		disabled={locked || !dirty}
 		onclick={() => {
 			if (dirty) dialogAction = 'discard';
-		}}>Discard unsaved edits</button
+		}}><Undo2 size={18} aria-hidden="true" />Discard unsaved edits</button
 	>
 </div>
 {#if message}<p class={success} role="status">{message}</p>{/if}
@@ -293,7 +298,7 @@
 					onUploadChange={trackUpload}
 					onOpenSection={(section) => (active = section)}
 				/>{/if}{/each}<button class={primary} disabled={locked || data.unavailable}
-			>Save draft</button
+			><Save size={18} aria-hidden="true" />Save draft</button
 		>
 	</form>
 </div>

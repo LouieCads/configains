@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Send from '@lucide/svelte/icons/send';
 	import { card, error, help, primary, success, requiredMark } from '$lib/features/cms/styles';
 	let { data, form } = $props();
 
@@ -28,7 +29,7 @@
 				><span>Check-in<span class={requiredMark} aria-hidden="true">*</span></span>
 				<textarea name="body" rows="4" maxlength="4000" required></textarea>
 			</label>
-			<button class={primary}>Send check-in</button>
+			<button class={primary}><Send size={18} aria-hidden="true" />Send check-in</button>
 		</form>
 
 		{#each data.checkIns as checkIn (checkIn.id)}
@@ -68,7 +69,7 @@
 				><span>Message<span class={requiredMark} aria-hidden="true">*</span></span>
 				<textarea name="body" rows="3" maxlength="2000" required></textarea>
 			</label>
-			<button class={primary}>Send message</button>
+			<button class={primary}><Send size={18} aria-hidden="true" />Send message</button>
 		</form>
 	</section>
 </main>

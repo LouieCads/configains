@@ -1,4 +1,8 @@
 <script lang="ts">
+	import MessagesSquare from '@lucide/svelte/icons/messages-square';
+	import Dumbbell from '@lucide/svelte/icons/dumbbell';
+	import TrendingUp from '@lucide/svelte/icons/trending-up';
+	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 	import {
 		card,
 		clientPage,
@@ -35,11 +39,17 @@
 	{#if data.coachingMode === 'human' || data.program}
 		<nav class="flex flex-wrap gap-3" aria-label="Your coaching">
 			{#if data.coachingMode === 'human'}
-				<a class={primary} href="/app/coach">Check-ins and messages with Cash</a>
+				<a class={primary} href="/app/coach"
+					><MessagesSquare size={18} aria-hidden="true" />Check-ins and messages with Cash</a
+				>
 			{/if}
 			{#if data.program}
-				<a class={secondary} href="/app/log">Log training</a>
-				<a class={secondary} href="/app/progress">Progress</a>
+				<a class={secondary} href="/app/log"
+					><Dumbbell size={18} aria-hidden="true" />Log training</a
+				>
+				<a class={secondary} href="/app/progress"
+					><TrendingUp size={18} aria-hidden="true" />Progress</a
+				>
 			{/if}
 		</nav>
 	{/if}
@@ -58,7 +68,9 @@
 				<p class={help}>
 					Complete the coaching assessment to get a program from Cash's approved options.
 				</p>
-				<a class={primary} href="/app/assessment">Take the coaching assessment</a>
+				<a class={primary} href="/app/assessment"
+					><ClipboardList size={18} aria-hidden="true" />Take the coaching assessment</a
+				>
 			{/if}
 		</section>
 	{:else}

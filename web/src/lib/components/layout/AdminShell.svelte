@@ -1,7 +1,26 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { adminNavigation } from '$lib/constants/navigation';
-	import { brand, help, secondaryOnDark, studio, success } from '$lib/features/cms/styles';
+	import { brand, secondaryOnDark, studio, success } from '$lib/features/cms/styles';
+	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
+	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import FilePenLine from '@lucide/svelte/icons/file-pen-line';
+	import Images from '@lucide/svelte/icons/images';
+	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
+	import LayoutTemplate from '@lucide/svelte/icons/layout-template';
+	import LogOut from '@lucide/svelte/icons/log-out';
+	import MessageSquareQuote from '@lucide/svelte/icons/message-square-quote';
+	import Users from '@lucide/svelte/icons/users';
+
+	const icons: Record<string, typeof Users> = {
+		'/admin/dashboard': LayoutDashboard,
+		'/admin/content': FilePenLine,
+		'/admin/testimonials': MessageSquareQuote,
+		'/admin/transformations': Images,
+		'/admin/clients': Users,
+		'/admin/assessments': ClipboardCheck,
+		'/admin/templates': LayoutTemplate
+	};
 	let {
 		children,
 		email,
@@ -13,11 +32,10 @@
 	class="{studio} grid grid-cols-[250px_minmax(0,1fr)] bg-[#f7f8f5] bp-1100:grid-cols-[200px_minmax(0,1fr)] bp-760:grid-cols-1"
 >
 	<aside
-		class="sticky top-0 h-screen [align-self:start] overflow-y-auto bg-ink px-6 py-8 text-white bp-760:static bp-760:h-auto bp-760:overflow-visible bp-760:p-5"
+		class="sticky top-0 flex h-screen flex-col [align-self:start] overflow-hidden bg-ink px-6 py-8 text-white bp-760:static bp-760:h-auto bp-760:p-5"
 	>
 		<a href="/" class={brand}>CONFIGAINS.</a>
-		<p class="text-[0.7rem] font-bold tracking-[1.5px] text-[#a9c7cd]">CONTENT STUDIO</p>
-		<nav class="my-8 grid gap-5 bp-760:my-4 bp-760:gap-2" aria-label="Admin navigation">
+		<nav class="mt-8 mb-6 grid gap-5 bp-760:my-4 bp-760:gap-2" aria-label="Admin navigation">
 			{#each adminNavigation as group (group.heading)}
 				<div class="grid gap-1 bp-760:flex bp-760:flex-wrap bp-760:items-center">
 					{#if group.heading}<p
@@ -25,22 +43,27 @@
 						>
 							{group.heading}
 						</p>{/if}
-					{#each group.items as item (item.href)}<a
+					{#each group.items as item (item.href)}{@const Icon = icons[item.href]}<a
 							class={[
-								'rounded-[6px] px-3 py-2 hover:bg-[#2b444b] hover:text-cyan',
+								'flex items-center gap-3 rounded-[6px] px-3 py-2 hover:bg-[#2b444b] hover:text-cyan',
 								page.url.pathname.startsWith(item.href) && 'bg-[#2b444b] text-cyan'
 							]}
 							aria-current={page.url.pathname.startsWith(item.href) ? 'page' : undefined}
-							href={item.href}>{item.label}</a
+							href={item.href}><Icon size={18} class="shrink-0" aria-hidden="true" />{item.label}</a
 						>{/each}
 				</div>
 			{/each}
 		</nav>
-		<a class={secondaryOnDark} href="/" target="_blank" rel="noopener">View website ↗</a>
-		<p class={help}>{email}</p>
-		<form method="POST" action="/admin/logout">
-			<button class={secondaryOnDark}>Sign out</button>
-		</form>
+		<div class="mt-auto grid gap-3 bp-760:mt-0">
+			<a class={secondaryOnDark} href="/" target="_blank" rel="noopener"
+				><ExternalLink size={18} aria-hidden="true" />View website</a
+			>
+			<form method="POST" action="/admin/logout">
+				<button class="{secondaryOnDark} w-full" title={email}
+					><LogOut size={18} aria-hidden="true" />Sign out</button
+				>
+			</form>
+		</div>
 	</aside>
 	<main class="min-w-0 p-10 bp-1100:p-7 bp-760:p-5">
 		{#if localDemo}<p class={success} role="status">

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import KeyRound from '@lucide/svelte/icons/key-round';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import { enhance } from '$app/forms';
 	import AuthCard from '$lib/features/cms/AuthCard.svelte';
 	import {
@@ -51,12 +53,13 @@
 				/></label
 			>
 			<button class="{primary} {authSubmit}" disabled={busy}
-				>{busy ? 'Updating…' : 'Update password'}</button
+				><KeyRound size={18} aria-hidden="true" />{busy ? 'Updating…' : 'Update password'}</button
 			>
 		</form>
 	{:else}
 		<form method="POST" action="/admin/logout">
-			<button class="{primary} {authSubmit}">Sign out</button>
+			<button class="{primary} {authSubmit}"><LogOut size={18} aria-hidden="true" />Sign out</button
+			>
 		</form>
 	{/if}
 	<a class={authLink} href="/admin/forgot-password">Request a new reset link</a>

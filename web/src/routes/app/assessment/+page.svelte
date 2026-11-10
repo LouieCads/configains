@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Send from '@lucide/svelte/icons/send';
 	import { enhance } from '$app/forms';
 	import { experienceLevels, goals, trainingLocations, dayRange } from '$lib/coaching/options';
 	import { clientSexOptions, healthFlags } from '$lib/coaching/assessment';
@@ -107,6 +108,8 @@
 			{/each}
 		</fieldset>
 
-		<button class={primary} disabled={busy}>{busy ? 'Saving…' : 'Submit answers'}</button>
+		<button class={primary} disabled={busy}
+			><Send size={18} aria-hidden="true" />{busy ? 'Saving…' : 'Submit answers'}</button
+		>
 	</form>
 </main>

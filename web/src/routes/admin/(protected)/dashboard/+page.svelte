@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { card, primary } from '$lib/features/cms/styles';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import FilePenLine from '@lucide/svelte/icons/file-pen-line';
 	let { data } = $props();
 
 	const todo = $derived(
@@ -41,7 +43,7 @@
 				<li>
 					<a
 						class="flex items-center justify-between gap-3 rounded-lg border border-[#efb8ac] bg-[#fff1ee] p-3 font-semibold text-[#962f24] no-underline"
-						href={item.href}>{item.label}<span aria-hidden="true">→</span></a
+						href={item.href}>{item.label}<ChevronRight size={18} aria-hidden="true" /></a
 					>
 				</li>
 			{/each}
@@ -61,4 +63,5 @@
 	{/each}
 </div>
 
-<a class={primary} href="/admin/content">Edit website →</a>
+<a class={primary} href="/admin/content"><FilePenLine size={18} aria-hidden="true" />Edit website</a
+>

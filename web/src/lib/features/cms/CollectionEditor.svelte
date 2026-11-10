@@ -8,6 +8,8 @@
 	Reports unsaved edits and in-flight work through `onDirtyChange`.
 -->
 <script lang="ts">
+	import Save from '@lucide/svelte/icons/save';
+	import Plus from '@lucide/svelte/icons/plus';
 	import ContentField from './ContentField.svelte';
 	import { cmsRequest, errorMessage } from './api';
 	import { card, help as helpClass, primary, requiredMark } from './styles';
@@ -156,7 +158,10 @@
 	{#if message}<p role="status">{message}</p>{/if}
 	<div class="flex flex-wrap gap-3">
 		<button class={primary} disabled={locked}
-			>{busy ? 'Saving…' : row ? 'Save item' : 'Create item'}</button
+			>{#if row}<Save size={18} aria-hidden="true" />{:else}<Plus
+					size={18}
+					aria-hidden="true"
+				/>{/if}{busy ? 'Saving…' : row ? 'Save item' : 'Create item'}</button
 		>
 	</div>
 </form>

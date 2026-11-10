@@ -1,4 +1,11 @@
 <script lang="ts">
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ArrowRightLeft from '@lucide/svelte/icons/arrow-right-left';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Send from '@lucide/svelte/icons/send';
+	import X from '@lucide/svelte/icons/x';
+	import Repeat from '@lucide/svelte/icons/repeat';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { answerSummary, assessmentStatus, healthLabel } from '$lib/coaching/labels';
@@ -79,14 +86,18 @@
 </script>
 
 <svelte:head><title>{data.client.display_name ?? 'Client'} | Configains CMS</title></svelte:head>
-<p class="mb-0"><a class="text-cyan-ink" href="/admin/clients">← All clients</a></p>
+<p class="mb-0">
+	<a class="inline-flex items-center gap-1 text-cyan-ink" href="/admin/clients"
+		><ArrowLeft size={16} aria-hidden="true" />All clients</a
+	>
+</p>
 <header class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2">
 	<h1 class="my-3! mr-auto">{data.client.display_name ?? 'Unnamed client'}</h1>
 	<span class={isHuman ? badgeOk : badgeNeutral}>{isHuman ? 'Human coaching' : 'AI coaching'}</span>
 	<form method="POST" action="?/mode" class="m-0" use:enhance={keepPlace('mode')}>
 		<input type="hidden" name="mode" value={isHuman ? 'ai' : 'human'} />
 		<button class={subtle} disabled={busy === 'mode'}
-			>Switch to {isHuman ? 'AI' : 'human'} coaching</button
+			><ArrowRightLeft size={16} aria-hidden="true" />Switch to {isHuman ? 'AI' : 'human'} coaching</button
 		>
 	</form>
 	<span class="w-full text-[0.85rem] text-muted">Joined {when(data.client.created_at)}</span>
@@ -162,7 +173,11 @@
 						class={subtle}
 						aria-expanded={changing}
 						aria-controls="change-program"
-						onclick={() => (changing = !changing)}>{changing ? 'Cancel' : 'Change program'}</button
+						onclick={() => (changing = !changing)}
+						>{#if changing}<X size={16} aria-hidden="true" />Cancel{:else}<Repeat
+								size={16}
+								aria-hidden="true"
+							/>Change program{/if}</button
 					>
 				{/if}
 			</div>
@@ -203,7 +218,7 @@
 						<a
 							class={secondary}
 							href="/admin/templates/{data.program.workout.id}?client={data.client.id}"
-							>Edit this client's workout</a
+							><Pencil size={18} aria-hidden="true" />Edit this client's workout</a
 						>
 					{:else}
 						<form
@@ -214,7 +229,7 @@
 						>
 							<input type="hidden" name="program_id" value={data.program.id} />
 							<button class={secondary} disabled={busy === 'customise'}
-								>Customise for this client</button
+								><Copy size={18} aria-hidden="true" />Customise for this client</button
 							>
 						</form>
 						<p class="{help} m-0!">Edits a private copy for this client.</p>
@@ -273,7 +288,7 @@
 							placeholder="Your feedback *"
 							onkeydown={sendOnShortcut}></textarea>
 						<button class={primary} disabled={busy === `feedback-${checkIn.id}`}
-							>Send feedback</button
+							><Send size={18} aria-hidden="true" />Send feedback</button
 						>
 					</form>
 				</article>
@@ -301,7 +316,7 @@
 									>
 								</label>
 								<button class={subtle} disabled={busy === `feedback-${checkIn.id}`}
-									>Update feedback</button
+									><Pencil size={16} aria-hidden="true" />Update feedback</button
 								>
 							</form>
 						</article>
@@ -349,7 +364,9 @@
 					placeholder="Write a message *"
 					onkeydown={sendOnShortcut}></textarea>
 				<div class="flex flex-wrap items-center gap-3">
-					<button class={primary} disabled={busy === 'reply'}>Send</button>
+					<button class={primary} disabled={busy === 'reply'}
+						><Send size={18} aria-hidden="true" />Send</button
+					>
 					<span class="{help} m-0!">Ctrl + Enter to send</span>
 				</div>
 			</form>

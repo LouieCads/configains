@@ -1,4 +1,7 @@
 <script lang="ts">
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import CheckCheck from '@lucide/svelte/icons/check-check';
+	import UserCheck from '@lucide/svelte/icons/user-check';
 	import { enhance } from '$app/forms';
 	import { answerSummary, assessmentStatus, healthLabel, openStatuses } from '$lib/coaching/labels';
 	import AssignProgramForm from '$lib/features/coaching/AssignProgramForm.svelte';
@@ -76,7 +79,11 @@
 						<a
 							class="mr-auto text-[1.05rem] font-bold text-ink no-underline hover:text-cyan-ink"
 							href="/admin/clients/{row.client_id}"
-							>{row.client?.display_name ?? 'Unnamed client'} <span aria-hidden="true">→</span></a
+							>{row.client?.display_name ?? 'Unnamed client'}<ChevronRight
+								size={18}
+								class="inline"
+								aria-hidden="true"
+							/></a
 						>
 						<span class={toneClass[status?.tone ?? 'neutral']}>{status?.label ?? row.status}</span>
 						<span class="w-full text-[0.8rem] text-muted"
@@ -122,12 +129,16 @@
 								{#if row.client?.coaching_mode !== 'human'}
 									<form method="POST" action="?/human" class="m-0!" use:enhance>
 										<input type="hidden" name="client_id" value={row.client_id} />
-										<button class={subtle}>Move to human coaching</button>
+										<button class={subtle}
+											><UserCheck size={16} aria-hidden="true" />Move to human coaching</button
+										>
 									</form>
 								{/if}
 								<form method="POST" action="?/review" class="m-0!" use:enhance>
 									<input type="hidden" name="client_id" value={row.client_id} />
-									<button class={subtle}>Mark reviewed</button>
+									<button class={subtle}
+										><CheckCheck size={16} aria-hidden="true" />Mark reviewed</button
+									>
 								</form>
 							</div>
 						</div>

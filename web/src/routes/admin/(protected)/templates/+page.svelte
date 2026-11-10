@@ -1,4 +1,12 @@
 <script lang="ts">
+	import Dumbbell from '@lucide/svelte/icons/dumbbell';
+	import Apple from '@lucide/svelte/icons/apple';
+	import Archive from '@lucide/svelte/icons/archive';
+	import ArchiveRestore from '@lucide/svelte/icons/undo-2';
+	import UserPlus from '@lucide/svelte/icons/user-plus';
+	import Copy from '@lucide/svelte/icons/copy';
+	import X from '@lucide/svelte/icons/x';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { enhance } from '$app/forms';
 	import { goals, templateKinds } from '$lib/coaching/template';
 	import {
@@ -107,12 +115,15 @@
 					type="button"
 					class={rowAction}
 					aria-label="Assign {template.name} to a client"
-					onclick={() => openAssign(template)}>Assign</button
+					onclick={() => openAssign(template)}
+					><UserPlus size={16} aria-hidden="true" />Assign</button
 				>
 			{/if}
 			<form method="POST" action="?/duplicate" class="m-0 flex" use:enhance>
 				<input type="hidden" name="id" value={template.id} />
-				<button class={rowAction} aria-label="Duplicate {template.name}">Duplicate</button>
+				<button class={rowAction} aria-label="Duplicate {template.name}"
+					><Copy size={16} aria-hidden="true" />Duplicate</button
+				>
 			</form>
 			<form method="POST" action="?/archive" class="m-0 flex" use:enhance>
 				<input type="hidden" name="id" value={template.id} />
@@ -120,7 +131,10 @@
 				<button
 					class={rowAction}
 					aria-label="{template.is_archived ? 'Restore' : 'Archive'} {template.name}"
-					>{template.is_archived ? 'Restore' : 'Archive'}</button
+					>{#if template.is_archived}<ArchiveRestore
+							size={16}
+							aria-hidden="true"
+						/>Restore{:else}<Archive size={16} aria-hidden="true" />Archive{/if}</button
 				>
 			</form>
 		</div>
@@ -131,8 +145,12 @@
 	<header class="mt-3 flex flex-wrap items-center justify-between gap-4">
 		<h1 class="m-0!">Templates</h1>
 		<div class="flex flex-wrap gap-3">
-			<a class={primary} href="/admin/templates/new?kind=workout">+ Workout</a>
-			<a class={secondary} href="/admin/templates/new?kind=nutrition">+ Nutrition</a>
+			<a class={primary} href="/admin/templates/new?kind=workout"
+				><Dumbbell size={18} aria-hidden="true" />Workout</a
+			>
+			<a class={secondary} href="/admin/templates/new?kind=nutrition"
+				><Apple size={18} aria-hidden="true" />Nutrition</a
+			>
 		</div>
 	</header>
 
@@ -141,7 +159,8 @@
 			{form.updated}
 			{#if 'assignedClient' in form && form.assignedClient}<a
 					class="ml-2 font-semibold text-[#175e4d]"
-					href="/admin/clients/{form.assignedClient}">Open client →</a
+					href="/admin/clients/{form.assignedClient}"
+					>Open client<ChevronRight size={16} class="inline" aria-hidden="true" /></a
 				>{/if}
 		</p>{/if}
 	{#if data.loadError}<p class="{error} m-0!" role="alert">{data.loadError}</p>{/if}
@@ -254,9 +273,11 @@
 			</label>
 			{#if form?.message}<p class="{error} m-0!" role="alert">{form.message}</p>{/if}
 			<div class="flex flex-wrap justify-end gap-3">
-				<button type="button" class={secondary} onclick={() => dialog?.close()}>Cancel</button>
+				<button type="button" class={secondary} onclick={() => dialog?.close()}
+					><X size={18} aria-hidden="true" />Cancel</button
+				>
 				<button class={primary} disabled={busy || !clientId}
-					>{busy ? 'Assigning…' : 'Assign'}</button
+					><UserPlus size={18} aria-hidden="true" />{busy ? 'Assigning…' : 'Assign'}</button
 				>
 			</div>
 		</form>

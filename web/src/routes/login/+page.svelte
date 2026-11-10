@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LogIn from '@lucide/svelte/icons/log-in';
 	import { enhance } from '$app/forms';
 	import {
 		authCard,
@@ -61,7 +62,7 @@
 			/></label
 		>
 		<button class="{primary} {authSubmit}" disabled={busy}
-			>{busy ? 'Signing in…' : 'Sign in'}</button
+			><LogIn size={18} aria-hidden="true" />{busy ? 'Signing in…' : 'Sign in'}</button
 		>
 	</form>
 </main>

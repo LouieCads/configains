@@ -4,6 +4,7 @@
 	remember the last tab per section.
 -->
 <script lang="ts">
+	import Pencil from '@lucide/svelte/icons/pencil';
 	import ContentField from './ContentField.svelte';
 	import { editorPanels } from './editor-panels';
 	import { isQuestionField, websiteSchema, type Content, type Field } from '$lib/content/schema';
@@ -122,7 +123,8 @@
 			type="button"
 			class={secondary}
 			{disabled}
-			onclick={() => onOpenSection?.(selected.linkTo!)}>Edit {target} →</button
+			onclick={() => onOpenSection?.(selected.linkTo!)}
+			><Pencil size={18} aria-hidden="true" />Edit {target}</button
 		>
 	{/if}
 	{#each selected.fields as entry (entry.path.join('.'))}

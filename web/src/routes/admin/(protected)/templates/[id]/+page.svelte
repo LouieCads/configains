@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import TemplateEditor from '$lib/features/coaching/TemplateEditor.svelte';
 	import { help } from '$lib/features/cms/styles';
 	let { data, form } = $props();
@@ -9,9 +10,13 @@
 >
 <p class="mb-0">
 	{#if data.owner}
-		<a class="text-cyan-ink" href="/admin/clients/{data.owner.id}">← {data.owner.name}</a>
+		<a class="inline-flex items-center gap-1 text-cyan-ink" href="/admin/clients/{data.owner.id}"
+			><ArrowLeft size={16} aria-hidden="true" />{data.owner.name}</a
+		>
 	{:else}
-		<a class="text-cyan-ink" href="/admin/templates">← All templates</a>
+		<a class="inline-flex items-center gap-1 text-cyan-ink" href="/admin/templates"
+			><ArrowLeft size={16} aria-hidden="true" />All templates</a
+		>
 	{/if}
 </p>
 <h1 class="my-3!">{data.isNew ? 'New template' : data.template.name}</h1>

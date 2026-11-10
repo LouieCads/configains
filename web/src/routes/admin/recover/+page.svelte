@@ -1,4 +1,5 @@
 <script lang="ts">
+	import KeyRound from '@lucide/svelte/icons/key-round';
 	import { enhance } from '$app/forms';
 	import AuthCard from '$lib/features/cms/AuthCard.svelte';
 	import { authLink, authSubmit, error, primary } from '$lib/features/cms/styles';
@@ -29,7 +30,9 @@
 			{#if data.tokenHash}<input type="hidden" name="token_hash" value={data.tokenHash} />{/if}
 			{#if data.authCode}<input type="hidden" name="code" value={data.authCode} />{/if}
 			<button class="{primary} {authSubmit}" disabled={busy}
-				>{busy ? 'Checking link…' : 'Continue to reset password'}</button
+				><KeyRound size={18} aria-hidden="true" />{busy
+					? 'Checking link…'
+					: 'Continue to reset password'}</button
 			>
 		</form>
 	{/if}

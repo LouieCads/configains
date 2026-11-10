@@ -1,4 +1,14 @@
 <script lang="ts">
+	import ArrowUp from '@lucide/svelte/icons/arrow-up';
+	import ArrowDown from '@lucide/svelte/icons/arrow-down';
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Save from '@lucide/svelte/icons/save';
+	import Trash2 from '@lucide/svelte/icons/trash';
 	import { tick, untrack } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
 	import {
@@ -419,20 +429,24 @@
 					class={subtle}
 					onclick={() => move(template.phases, p, -1)}
 					disabled={p === 0}
-					aria-label="Move phase {p + 1} up">↑</button
+					aria-label="Move phase {p + 1} up"><ArrowUp size={16} aria-hidden="true" /></button
 				>
 				<button
 					type="button"
 					class={subtle}
 					onclick={() => move(template.phases, p, 1)}
 					disabled={p === template.phases.length - 1}
-					aria-label="Move phase {p + 1} down">↓</button
+					aria-label="Move phase {p + 1} down"><ArrowDown size={16} aria-hidden="true" /></button
 				>
 				<button type="button" class={subtle} onclick={() => duplicatePhase(p)}
-					>Duplicate<span class="sr-only"> phase {p + 1}</span></button
+					><Copy size={16} aria-hidden="true" />Duplicate<span class="sr-only">
+						phase {p + 1}</span
+					></button
 				>
 				<button type="button" class={subtleDanger} onclick={() => remove(template.phases, p)}
-					>Remove<span class="sr-only"> phase {p + 1}</span></button
+					><Trash2 size={16} aria-hidden="true" />Remove<span class="sr-only">
+						phase {p + 1}</span
+					></button
 				>
 			</div>
 			<label class="my-2 grid gap-1"
@@ -512,20 +526,23 @@
 										class={subtle}
 										onclick={() => move(phase.exercises, e, -1)}
 										disabled={e === 0}
-										aria-label="Move exercise {e + 1} up">↑</button
+										aria-label="Move exercise {e + 1} up"
+										><ArrowUp size={16} aria-hidden="true" /></button
 									>
 									<button
 										type="button"
 										class={subtle}
 										onclick={() => move(phase.exercises, e, 1)}
 										disabled={e === phase.exercises.length - 1}
-										aria-label="Move exercise {e + 1} down">↓</button
+										aria-label="Move exercise {e + 1} down"
+										><ArrowDown size={16} aria-hidden="true" /></button
 									>
 									<button
 										type="button"
 										class={subtleDanger}
 										onclick={() => remove(phase.exercises, e)}
-										aria-label="Remove exercise {e + 1}">✕</button
+										aria-label="Remove exercise {e + 1}"
+										><Trash2 size={16} aria-hidden="true" /></button
 									>
 								</div>
 							</div>
@@ -540,7 +557,7 @@
 					{/each}
 				</ol>
 				<button type="button" class="{secondary} mt-3" onclick={() => addExercise(phase, p)}
-					>+ Add exercise</button
+					><Plus size={18} aria-hidden="true" />Add exercise</button
 				>
 			{/if}
 		</section>
@@ -605,7 +622,7 @@
 				</p>
 				{@render phases()}
 				<button type="button" class={secondary} onclick={() => template.phases.push(blankPhase())}
-					>+ Add phase</button
+					><Plus size={18} aria-hidden="true" />Add phase</button
 				>
 			</fieldset>
 
@@ -621,7 +638,9 @@
 						<div class="flex items-center justify-between gap-4">
 							<h2 id="review-{group.key}" class="mb-0 text-[1.375rem]/none">{group.title}</h2>
 							<button type="button" class={subtle} onclick={() => edit(group.key)}
-								>Edit<span class="sr-only"> {group.title}</span></button
+								><Pencil size={16} aria-hidden="true" />Edit<span class="sr-only">
+									{group.title}</span
+								></button
 							>
 						</div>
 						<dl class="m-0 mt-2 grid grid-cols-2 gap-x-6 gap-y-2 bp-640:grid-cols-1">
@@ -640,7 +659,9 @@
 							{stepTitles.phases} ({template.phases.length})
 						</h2>
 						<button type="button" class={subtle} onclick={() => edit('phases')}
-							>Edit<span class="sr-only"> {stepTitles.phases}</span></button
+							><Pencil size={16} aria-hidden="true" />Edit<span class="sr-only">
+								{stepTitles.phases}</span
+							></button
 						>
 					</div>
 					<ol class="m-0 mt-2 grid list-none gap-2 p-0">
@@ -667,12 +688,18 @@
 			class="sticky bottom-0 z-10 -mx-1 flex items-center justify-between gap-3 border-t border-line bg-[#f7f8f5] px-1 py-3"
 		>
 			{#if flow.step > 0}
-				<button type="button" class={secondary} onclick={back} disabled={saving}>Back</button>
+				<button type="button" class={secondary} onclick={back} disabled={saving}
+					><ArrowLeft size={18} aria-hidden="true" />Back</button
+				>
 			{:else}<span></span>{/if}
 			<button class={primary} disabled={saving}
-				>{#if flow.step < flow.last}{flow.returnTo === null
-						? 'Next'
-						: 'Back to review'}{:else}{saving ? 'Saving…' : 'Save template'}{/if}</button
+				>{#if flow.step < flow.last}{#if flow.returnTo === null}Next<ArrowRight
+							size={18}
+							aria-hidden="true"
+						/>{:else}<ClipboardCheck size={18} aria-hidden="true" />Back to review{/if}{:else}<Save
+						size={18}
+						aria-hidden="true"
+					/>{saving ? 'Saving…' : 'Save template'}{/if}</button
 			>
 		</div>
 	{:else}
@@ -693,7 +720,8 @@
 		<button
 			type="button"
 			class="{secondary} justify-self-start"
-			onclick={() => template.phases.push(blankPhase())}>+ Add phase</button
+			onclick={() => template.phases.push(blankPhase())}
+			><Plus size={18} aria-hidden="true" />Add phase</button
 		>
 
 		<!-- Pinned to the bottom of the screen, so Save is always in reach on long templates. -->
@@ -704,7 +732,7 @@
 				>{dirty ? 'Unsaved changes' : 'No unsaved changes'}</span
 			>
 			<button class={primary} disabled={saving || !dirty}
-				>{saving ? 'Saving…' : 'Save template'}</button
+				><Save size={18} aria-hidden="true" />{saving ? 'Saving…' : 'Save template'}</button
 			>
 		</div>
 	{/if}
