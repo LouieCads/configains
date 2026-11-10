@@ -58,7 +58,7 @@
 			href={item.href}
 		>
 			<strong class="text-[1.05rem]">{item.title}</strong>
-			<span class="text-[0.85rem] text-muted">{item.note}</span>
+			<span class="text-[0.95rem] font-medium text-muted">{item.note}</span>
 		</a>
 	{/each}
 </div>
