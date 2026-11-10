@@ -1,0 +1,32 @@
+- main [ref=f6e3]:
+  - heading "Welcome, DEMO Ben (Human coaching)." [level=1] [ref=f6e4]
+  - navigation "Your coaching" [ref=f6e5]:
+    - link "Log training" [ref=f6e6] [cursor=pointer]:
+      - /url: /app/log
+    - link "Progress" [ref=f6e13] [cursor=pointer]:
+      - /url: /app/progress
+  - generic [ref=f6e17]:
+    - heading "DEMO Fat Loss Conditioning (4-day split)" [level=2] [ref=f6e18]
+    - paragraph [ref=f6e19]: Higher-volume upper/lower split with conditioning finishers for clients who already train.
+    - tablist "Program phases" [ref=f6e20]:
+      - 'tab "Block 1: Volume" [selected] [ref=f6e21] [cursor=pointer]'
+    - paragraph [ref=f6e22]: This is your current phase.
+    - generic [ref=f6e23]:
+      - paragraph [ref=f6e24]: Keep rest short to raise heart rate.
+      - list [ref=f6e25]:
+        - listitem [ref=f6e26]:
+          - strong [ref=f6e27]: Romanian deadlift
+          - paragraph [ref=f6e28]: 4 sets, 10 reps, 75s rest
+        - listitem [ref=f6e29]:
+          - strong [ref=f6e30]: Walking lunge
+          - paragraph [ref=f6e31]: 3 sets, 12 each leg reps, 60s rest
+        - listitem [ref=f6e32]:
+          - strong [ref=f6e33]: Assault bike intervals
+          - paragraph [ref=f6e34]: 6 sets, 30s on / 30s off reps, 30s rest
+  - generic [ref=f6e35]:
+    - heading "DEMO Fat Loss Nutrition Basics" [level=2] [ref=f6e36]
+    - paragraph [ref=f6e37]: Moderate calorie deficit, high protein, simple plate method.
+    - generic [ref=f6e38]:
+      - paragraph [ref=f6e39]: Daily guide
+      - paragraph [ref=f6e40]: Protein at every meal. Half the plate vegetables. Water with meals. One flexible meal per week.
+    - paragraph [ref=f6e41]: Nutrition guidance supports general fitness and wellness. It is not medical advice.

@@ -1,0 +1,9 @@
+[     208ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/favicon.ico:1
+[   11023ms] DataCloneError: Failed to execute 'put' on 'IDBObjectStore': [object Object] could not be cloned.
+    at Object.put (http://127.0.0.1:5173/src/lib/client/offline.ts:29:37)
+    at enqueue (http://127.0.0.1:5173/src/lib/coaching/outbox.ts:3:14)
+    at queue (http://127.0.0.1:5173/src/routes/app/log/+page.svelte:240:34)
+    at HTMLFormElement.saveWorkout (http://127.0.0.1:5173/src/routes/app/log/+page.svelte:251:48)
+    at http://127.0.0.1:5173/node_modules/.vite/deps/events-Ba1SdzPF.js?v=d8c8c8a5:43:20
+    at without_reactive_context (http://127.0.0.1:5173/node_modules/.vite/deps/runtime-BIfbKZgs.js?v=d8c8c8a5:1286:10)
+    at HTMLFormElement.target_handler (http://127.0.0.1:5173/node_modules/.vite/deps/events-Ba1SdzPF.js?v=d8c8c8a5:42:35)

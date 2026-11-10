@@ -1,0 +1,41 @@
+- generic [ref=f3e2]:
+  - main [ref=f3e57]:
+    - heading "Welcome, DEMO Ana (AI coaching)." [level=1] [ref=f3e58]
+    - navigation "Your coaching" [ref=f3e59]:
+      - link "Log training" [ref=f3e60] [cursor=pointer]:
+        - /url: /app/log
+      - link "Progress" [ref=f3e62] [cursor=pointer]:
+        - /url: /app/progress
+    - region "AI Coaching" [ref=f3e64]:
+      - heading "AI Coaching" [level=2] [ref=f3e65]
+      - paragraph [ref=f3e66]: AI Coaching uses general, Cash-approved templates and the answers you gave. It is not the same as individual coaching from Cash.
+      - paragraph [ref=f3e67]: This program fits your goal, experience, training location and weekly schedule. Cash approved it for that profile.
+      - paragraph [ref=f3e68]: Disclosure version 2026-10-v1.
+    - generic [ref=f3e69]:
+      - heading "DEMO Fat Loss Foundations (3-day full body)" [level=2] [ref=f3e70]
+      - paragraph [ref=f3e71]: Beginner-friendly full-body sessions with steady cardio to build the habit and burn fat.
+      - tablist "Program phases" [ref=f3e72]:
+        - 'tab "Weeks 1-4: Learn the movements" [selected] [ref=f3e73] [cursor=pointer]'
+        - 'tab "Weeks 5-8: Add load" [ref=f3e74] [cursor=pointer]'
+      - paragraph [ref=f3e75]: This is your current phase.
+      - generic [ref=f3e76]:
+        - paragraph [ref=f3e77]: Light loads, focus on form. Walk 20 minutes after each session.
+        - list [ref=f3e78]:
+          - listitem [ref=f3e79]:
+            - strong [ref=f3e80]: Goblet squat
+            - paragraph [ref=f3e81]: 3 sets, 10 reps, 60s rest
+            - paragraph [ref=f3e82]: Control the way down
+          - listitem [ref=f3e83]:
+            - strong [ref=f3e84]: Push-up (incline)
+            - paragraph [ref=f3e85]: 3 sets, 8-10 reps, 60s rest
+          - listitem [ref=f3e86]:
+            - strong [ref=f3e87]: Dumbbell row
+            - paragraph [ref=f3e88]: 3 sets, 10 each side reps, 60s rest
+    - generic [ref=f3e89]:
+      - heading "DEMO Fat Loss Nutrition Basics" [level=2] [ref=f3e90]
+      - paragraph [ref=f3e91]: Moderate calorie deficit, high protein, simple plate method.
+      - generic [ref=f3e92]:
+        - paragraph [ref=f3e93]: Daily guide
+        - paragraph [ref=f3e94]: Protein at every meal. Half the plate vegetables. Water with meals. One flexible meal per week.
+      - paragraph [ref=f3e95]: Nutrition guidance supports general fitness and wellness. It is not medical advice.
+  - generic [ref=f3e56]: Your coaching | Configains

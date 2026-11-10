@@ -1,0 +1,70 @@
+- main [ref=f3e3]:
+  - heading "Coaching assessment" [level=1] [ref=f3e4]
+  - paragraph [ref=f3e5]: Your answers choose from Cash's approved programs. Health answers mean Cash reviews your plan personally. Nothing here replaces medical advice.
+  - generic [ref=f3e6]:
+    - group "What is your main goal?" [ref=f3e7]:
+      - generic [ref=f3e8]: What is your main goal?*
+      - generic [ref=f3e9]:
+        - radio "Fat loss" [ref=f3e10]
+        - text: Fat loss
+      - generic [ref=f3e11]:
+        - radio "Maintenance" [ref=f3e12]
+        - text: Maintenance
+      - generic [ref=f3e13]:
+        - radio "Muscle gain" [ref=f3e14]
+        - text: Muscle gain
+    - group "How would you describe your training experience?" [ref=f3e15]:
+      - generic [ref=f3e16]: How would you describe your training experience?*
+      - generic [ref=f3e17]:
+        - radio "New to structured training (under 6 months)" [ref=f3e18]
+        - text: New to structured training (under 6 months)
+      - generic [ref=f3e19]:
+        - radio "Some consistent training (6 months to 2 years)" [ref=f3e20]
+        - text: Some consistent training (6 months to 2 years)
+      - generic [ref=f3e21]:
+        - radio "Experienced (2+ years)" [ref=f3e22]
+        - text: Experienced (2+ years)
+    - group "Where will you train?" [ref=f3e23]:
+      - generic [ref=f3e24]: Where will you train?*
+      - generic [ref=f3e25]:
+        - radio "Gym" [ref=f3e26]
+        - text: Gym
+      - generic [ref=f3e27]:
+        - radio "Home" [ref=f3e28]
+        - text: Home
+    - group "How many days a week can you train?" [ref=f3e29]:
+      - generic [ref=f3e30]: How many days a week can you train?*
+      - combobox [ref=f3e31]:
+        - option "Choose" [selected]
+        - option "2 days"
+        - option "3 days"
+        - option "4 days"
+        - option "5 days"
+        - option "6 days"
+    - group "Which program variant fits you?" [ref=f3e32]:
+      - generic [ref=f3e33]: Which program variant fits you?*
+      - paragraph [ref=f3e34]: Used only to choose the approved program variant.
+      - generic [ref=f3e35]:
+        - radio "Female" [ref=f3e36]
+        - text: Female
+      - generic [ref=f3e37]:
+        - radio "Male" [ref=f3e38]
+        - text: Male
+      - generic [ref=f3e39]:
+        - radio "Prefer not to say" [ref=f3e40]
+        - text: Prefer not to say
+    - group "Do any of these apply to you?" [ref=f3e41]:
+      - paragraph [ref=f3e43]: Select all that apply. If none do, leave them unticked.
+      - generic [ref=f3e44]:
+        - checkbox "A current or recent injury" [ref=f3e45]
+        - text: A current or recent injury
+      - generic [ref=f3e46]:
+        - checkbox "A medical condition" [ref=f3e47]
+        - text: A medical condition
+      - generic [ref=f3e48]:
+        - checkbox "Pregnancy or recent childbirth" [ref=f3e49]
+        - text: Pregnancy or recent childbirth
+      - generic [ref=f3e50]:
+        - checkbox "Surgery in the last 6 months" [ref=f3e51]
+        - text: Surgery in the last 6 months
+    - button "Submit answers" [ref=f3e52] [cursor=pointer]

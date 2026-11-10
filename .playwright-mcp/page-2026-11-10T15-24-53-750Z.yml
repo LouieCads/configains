@@ -1,0 +1,9 @@
+- generic [ref=f2e2]:
+  - main [ref=f2e20]:
+    - heading "Welcome, DEMO Ana (AI coaching)." [level=1] [ref=f2e21]
+    - generic [ref=f2e22]:
+      - paragraph [ref=f2e23]: Your coach has not assigned a program yet.
+      - paragraph [ref=f2e24]: Complete the coaching assessment to get a program from Cash's approved options.
+      - link "Take the coaching assessment" [ref=f2e25] [cursor=pointer]:
+        - /url: /app/assessment
+  - generic [ref=f2e19]: Your coaching | Configains

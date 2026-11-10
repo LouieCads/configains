@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { experienceLevels, goals, trainingLocations, dayRange } from '$lib/coaching/options';
 	import { clientSexOptions, healthFlags } from '$lib/coaching/assessment';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { card, clientPage, error, help, primary, requiredMark } from '$lib/features/cms/styles';
 	let { form } = $props();
 	let busy = $state(false);
@@ -19,7 +20,10 @@
 	<h1>Coaching assessment</h1>
 	<p>
 		Your answers choose from Cash's approved programs. Health answers mean Cash reviews your plan
-		personally. Nothing here replaces medical advice.
+		personally.<Tooltip
+			label="About this assessment"
+			text="Nothing here replaces medical advice."
+		/>
 	</p>
 
 	<form

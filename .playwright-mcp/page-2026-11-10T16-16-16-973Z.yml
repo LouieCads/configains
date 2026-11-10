@@ -1,0 +1,39 @@
+- main [ref=f17e3]:
+  - paragraph [ref=f17e4]:
+    - link "Back to your program" [ref=f17e5] [cursor=pointer]:
+      - /url: /app
+  - heading "Your coach" [level=1] [ref=f17e6]
+  - generic [ref=f17e7]:
+    - heading "Check-ins" [level=2] [ref=f17e8]
+    - paragraph [ref=f17e9]: Share how training and nutrition are going. Cash replies here.
+    - generic [ref=f17e10]:
+      - generic [ref=f17e11]:
+        - generic [ref=f17e12]: Check-in*
+        - textbox "Check-in" [ref=f17e13]
+      - button "Send check-in" [ref=f17e14] [cursor=pointer]
+    - article [ref=f17e18]:
+      - paragraph [ref=f17e19]: 10 Nov 2026
+      - paragraph [ref=f17e20]: asasas
+      - generic [ref=f17e21]:
+        - strong [ref=f17e22]: Feedback from Cash
+        - text: 11 Nov 2026
+        - paragraph [ref=f17e23]: Nice
+    - article [ref=f17e24]:
+      - paragraph [ref=f17e25]: 10 Nov 2026
+      - paragraph [ref=f17e26]: First week done. Did the 4-day split once so far, 55 min. Knee felt fine on deadlifts but walking lunges were rough. Eating about 2,300 kcal, protein around 150g. Should I keep the loads the same next week?
+      - generic [ref=f17e27]:
+        - strong [ref=f17e28]: Feedback from Cash
+        - text: 11 Nov 2026
+        - paragraph [ref=f17e29]: asas
+  - generic [ref=f17e30]:
+    - heading "Messages" [level=2] [ref=f17e31]
+    - list [ref=f17e32]:
+      - listitem [ref=f17e33]:
+        - strong [ref=f17e34]: You
+        - text: 11 Nov 2026
+        - paragraph [ref=f17e35]: "Quick question: can I swap the assault bike for rowing if my knee feels off?"
+    - generic [ref=f17e36]:
+      - generic [ref=f17e37]:
+        - generic [ref=f17e38]: Message*
+        - textbox "Message" [ref=f17e39]
+      - button "Send message" [ref=f17e40] [cursor=pointer]

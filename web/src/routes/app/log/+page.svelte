@@ -159,7 +159,8 @@
 				duration_minutes: duration,
 				notes: notes.trim() || null,
 				phase_id: phaseId || null,
-				entries: rows
+				// IndexedDB cannot clone a $state proxy.
+				entries: $state.snapshot(rows)
 			},
 			'Workout saved on this device.'
 		);

@@ -1,0 +1,84 @@
+- main [ref=f7e3]:
+  - paragraph [ref=f7e4]:
+    - link "Back to your program" [ref=f7e5] [cursor=pointer]:
+      - /url: /app
+    - link "Progress" [ref=f7e6] [cursor=pointer]:
+      - /url: /app/progress
+  - heading "Log your training" [level=1] [ref=f7e7]
+  - paragraph [ref=f7e9]: Online. 0 waiting to sync.
+  - generic [ref=f7e10]:
+    - heading "DEMO Fat Loss Conditioning (4-day split)" [level=2] [ref=f7e11]
+    - generic [ref=f7e12]:
+      - generic [ref=f7e13]: Date*
+      - textbox "Date" [ref=f7e14]: 2026-11-10
+    - generic [ref=f7e15]:
+      - generic [ref=f7e16]: Phase*
+      - combobox "Phase" [ref=f7e17]:
+        - 'option "Block 1: Volume" [selected]'
+    - group "Romanian deadlift" [ref=f7e18]:
+      - generic [ref=f7e20]:
+        - generic [ref=f7e21]:
+          - text: Sets
+          - spinbutton "Sets" [ref=f7e22]: "4"
+        - generic [ref=f7e23]:
+          - text: Reps
+          - textbox "Reps" [ref=f7e24]: "10"
+        - generic [ref=f7e25]:
+          - text: Load (kg)
+          - spinbutton "Load (kg)" [ref=f7e26]
+      - generic [ref=f7e27]:
+        - checkbox "Done" [checked] [ref=f7e28]
+        - text: Done
+    - group "Walking lunge" [ref=f7e29]:
+      - generic [ref=f7e31]:
+        - generic [ref=f7e32]:
+          - text: Sets
+          - spinbutton "Sets" [ref=f7e33]: "3"
+        - generic [ref=f7e34]:
+          - text: Reps
+          - textbox "Reps" [ref=f7e35]: 12 each leg
+        - generic [ref=f7e36]:
+          - text: Load (kg)
+          - spinbutton "Load (kg)" [ref=f7e37]
+      - generic [ref=f7e38]:
+        - checkbox "Done" [checked] [ref=f7e39]
+        - text: Done
+    - group "Assault bike intervals" [ref=f7e40]:
+      - generic [ref=f7e42]:
+        - generic [ref=f7e43]:
+          - text: Sets
+          - spinbutton "Sets" [ref=f7e44]: "6"
+        - generic [ref=f7e45]:
+          - text: Reps
+          - textbox "Reps" [ref=f7e46]: 30s on / 30s off
+        - generic [ref=f7e47]:
+          - text: Load (kg)
+          - spinbutton "Load (kg)" [ref=f7e48]
+      - generic [ref=f7e49]:
+        - checkbox "Done" [checked] [ref=f7e50]
+        - text: Done
+    - generic [ref=f7e51]:
+      - text: Session length (minutes)
+      - spinbutton "Session length (minutes)" [ref=f7e52]
+    - generic [ref=f7e53]:
+      - checkbox "Session completed" [checked] [ref=f7e54]
+      - text: Session completed
+    - generic [ref=f7e55]:
+      - text: Notes
+      - textbox "Notes" [ref=f7e56]
+    - button "Save workout" [ref=f7e57] [cursor=pointer]
+  - generic [ref=f7e59]:
+    - heading "Measurement" [level=2] [ref=f7e60]
+    - generic [ref=f7e61]:
+      - generic [ref=f7e62]: What*
+      - combobox "What" [ref=f7e63]:
+        - option "Body weight (kg)" [selected]
+        - option "Waist (cm)"
+    - generic [ref=f7e64]:
+      - generic [ref=f7e65]: Value*
+      - spinbutton "Value" [ref=f7e66]
+    - generic [ref=f7e67]:
+      - generic [ref=f7e68]: Date*
+      - textbox "Date" [ref=f7e69]: 2026-11-10
+    - button "Save measurement" [ref=f7e70] [cursor=pointer]
+  - button "Sign out and clear this device" [ref=f7e73] [cursor=pointer]

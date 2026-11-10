@@ -28,11 +28,6 @@
 	const goalLabel = (value: string) => goals.find((goal) => goal.value === value)?.label ?? value;
 	const kindLabel = (value: string) =>
 		templateKinds.find((kind) => kind.value === value)?.label ?? value;
-	const dateFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' });
-	const updatedLabel = (value: string | null) => {
-		const date = value ? new Date(value) : null;
-		return date && !Number.isNaN(date.getTime()) ? dateFormat.format(date) : '';
-	};
 	const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 	const usageOf = (template: Template) => (data.usage as Record<string, number>)[template.id] ?? 0;
 
@@ -86,18 +81,11 @@
 	{@const used = usageOf(template)}
 	<li class={row}>
 		<span class="grid min-w-0 flex-1 basis-56 gap-1">
-			<span class="flex min-w-0 items-baseline gap-2">
-				<a
-					class="truncate text-[0.95rem] font-bold text-ink no-underline after:absolute after:inset-0 after:content-['']"
-					href="/admin/templates/{template.id}"
-					aria-label="Edit {template.name}">{template.name}</a
-				>
-				{#if updatedLabel(template.updated_at)}
-					<span class="shrink-0 text-[0.7rem] text-muted"
-						><span class="sr-only">Updated </span>{updatedLabel(template.updated_at)}</span
-					>
-				{/if}
-			</span>
+			<a
+				class="truncate text-[0.95rem] font-bold text-ink no-underline after:absolute after:inset-0 after:content-['']"
+				href="/admin/templates/{template.id}"
+				aria-label="Edit {template.name}">{template.name}</a
+			>
 			<span class="truncate text-[0.8rem] text-muted"
 				>{[
 					goalLabel(template.goal),

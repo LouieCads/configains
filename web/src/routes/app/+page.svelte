@@ -12,6 +12,7 @@
 		tabIdle,
 		tabSelected
 	} from '$lib/features/cms/styles';
+	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { aiDisclosureVersion } from '$lib/coaching/disclosure';
 	let { data } = $props();
 
@@ -76,13 +77,13 @@
 	{:else}
 		{#if data.program.source === 'ai'}
 			<section class={card} aria-labelledby="ai-disclosure">
-				<h2 id="ai-disclosure">AI Coaching</h2>
-				<p>
-					AI Coaching uses general, Cash-approved templates and the answers you gave. It is not the
-					same as individual coaching from Cash.
-				</p>
+				<h2 id="ai-disclosure" class="flex items-center gap-1">
+					AI Coaching<Tooltip
+						label="About AI Coaching"
+						text="AI Coaching uses general, Cash-approved templates and the answers you gave. It is not the same as individual coaching from Cash. Disclosure version {aiDisclosureVersion}."
+					/>
+				</h2>
 				{#if data.program.explanation}<p>{data.program.explanation}</p>{/if}
-				<p class={help}>Disclosure version {aiDisclosureVersion}.</p>
 			</section>
 		{/if}
 
@@ -139,7 +140,12 @@
 
 		{#if data.program.nutrition}
 			<section class={card}>
-				<h2>{data.program.nutrition.name}</h2>
+				<h2 class="flex items-center gap-1">
+					{data.program.nutrition.name}<Tooltip
+						label="About this nutrition guidance"
+						text="Nutrition guidance supports general fitness and wellness. It is not medical advice."
+					/>
+				</h2>
 				{#if data.program.nutrition.description}<p>{data.program.nutrition.description}</p>{/if}
 				{#each data.program.nutrition.phases as phase (phase.id)}
 					<div class="mt-4">
@@ -147,9 +153,6 @@
 						{#if phase.instructions}<p>{phase.instructions}</p>{/if}
 					</div>
 				{/each}
-				<p class={help}>
-					Nutrition guidance supports general fitness and wellness. It is not medical advice.
-				</p>
 			</section>
 		{/if}
 	{/if}
