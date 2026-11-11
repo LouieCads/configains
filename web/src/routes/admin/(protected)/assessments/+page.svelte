@@ -93,7 +93,7 @@
 
 					<ul class="m-0 flex list-none flex-wrap gap-2 p-0">
 						{#each answerSummary(row.answers) as item (item.label)}
-							<li class="rounded-full bg-[#eef3f3] px-3 py-1 text-[0.85rem]">
+							<li class="rounded-full border border-[#b7c6c7] px-3 py-1 text-[0.85rem]">
 								<span class="text-muted">{item.label}:</span>
 								<strong class="font-semibold">{item.value}</strong>
 							</li>

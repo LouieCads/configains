@@ -99,7 +99,7 @@
 	const rowKey = 'm-0 text-[0.9rem] text-muted';
 	const rowValue = 'm-0 text-right font-semibold';
 	const attention =
-		'inline-flex items-center gap-2 rounded-full border border-[#efb8ac] bg-[#fff1ee] px-4 py-2 text-[0.9rem] font-semibold text-[#962f24] no-underline hover:border-[#962f24]';
+		'inline-flex items-center gap-2 rounded-full border border-current px-4 py-2 text-[0.9rem] font-semibold text-[#962f24] no-underline hover:underline';
 </script>
 
 <svelte:head><title>{data.client.display_name ?? 'Client'} | Configains CMS</title></svelte:head>
@@ -352,7 +352,9 @@
 								<li
 									class={[
 										'max-w-[85%] rounded-xl px-4 py-2',
-										mine ? 'justify-self-end bg-[#e3f3f5]' : 'justify-self-start bg-[#eef3f3]'
+										mine
+											? 'justify-self-end border border-cyan-ink'
+											: 'justify-self-start border border-[#b7c6c7]'
 									]}
 								>
 									<p class="m-0 text-[0.75rem] text-muted">
@@ -418,7 +420,7 @@
 					</div>
 				</dl>
 				{#if data.assessment.explanation}
-					<div class="mt-4 rounded-lg bg-[#eef3f3] p-3 text-[0.9rem]">
+					<div class="mt-4 rounded-lg border border-[#b7c6c7] p-3 text-[0.9rem]">
 						<p class="{label} mb-1">AI note</p>
 						<p class="m-0">{data.assessment.explanation}</p>
 					</div>

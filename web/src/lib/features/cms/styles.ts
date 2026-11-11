@@ -60,24 +60,24 @@ export const subtle = `${action} min-h-9 px-[10px] py-[5px] border-transparent b
 export const subtleDanger = `${action} min-h-9 px-[10px] py-[5px] border-transparent bg-transparent text-[#a23131]`;
 export const dangerSolid = `${action} ${actionSize} border-[#a23131] bg-[#a23131] text-white`;
 
-export const error =
-	'my-[18px] rounded-[6px] border border-[#efb8ac] bg-[#fff1ee] p-4 text-[#962f24]';
-export const success =
-	'my-[18px] rounded-[6px] border border-[#a5d9ca] bg-[#edf9f5] p-4 text-[#175e4d]';
+/** Notices are outlined in their own text colour (`border-current`), with no fill. */
+export const error = 'my-[18px] rounded-[6px] border border-current p-4 text-[#962f24]';
+export const success = 'my-[18px] rounded-[6px] border border-current p-4 text-[#175e4d]';
 
 export const card = 'min-w-0 rounded-[10px] border border-line bg-paper p-7 bp-760:p-5';
 
-/** Status pills, e.g. the assessment status on the coaching admin cards. */
-const pill = 'inline-flex items-center rounded-full border px-3 py-1 text-[0.8rem] font-semibold';
-export const badgeNeutral = `${pill} border-[#b7c6c7] bg-[#eef3f3] text-ink`;
-export const badgeOk = `${pill} border-[#a5d9ca] bg-[#edf9f5] text-[#175e4d]`;
-export const badgeWarn = `${pill} border-[#efb8ac] bg-[#fff1ee] text-[#962f24]`;
+/** Status pills, e.g. the assessment status on the coaching admin cards. Outlined, no fill. */
+const pill =
+	'inline-flex items-center gap-1.5 rounded-full border border-current px-3 py-1 text-[0.8rem] leading-[1.3] font-semibold';
+export const badgeNeutral = `${pill} text-muted`;
+export const badgeOk = `${pill} text-[#175e4d]`;
+export const badgeWarn = `${pill} text-[#962f24]`;
 
 /** Phase tabs on the client program view. */
 const tab =
 	'inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 py-2 font-semibold';
-export const tabSelected = `${tab} border-ink bg-ink text-white`;
-export const tabIdle = `${tab} border-[#b7c6c7] bg-transparent text-ink`;
+export const tabSelected = `${tab} border-current text-cyan-ink`;
+export const tabIdle = `${tab} border-[#b7c6c7] text-muted hover:border-cyan-ink hover:text-ink`;
 
 /** Sign-in and recovery pages. */
 export const loginPage = 'grid place-items-center bg-ink p-6';

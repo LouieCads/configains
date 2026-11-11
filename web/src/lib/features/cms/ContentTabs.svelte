@@ -40,7 +40,7 @@
 	const numbered = $derived(contentPanels.some((panel) => panel.homeSection));
 	const settingsPanels = $derived(panels.filter((panel) => panel.group === 'settings'));
 	const tab =
-		'min-h-11 shrink-0 rounded-[6px] border border-line bg-white px-[14px] py-[10px] text-muted hover:border-cyan-ink aria-selected:border-cyan-ink aria-selected:bg-[#d7f2f1] aria-selected:text-ink';
+		'min-h-11 shrink-0 rounded-[6px] border border-line bg-transparent px-[14px] py-[10px] text-muted hover:border-cyan-ink hover:text-ink aria-selected:border-current aria-selected:text-cyan-ink';
 	const selected = $derived(panels.find((panel) => panel.id === active) ?? panels[0]);
 
 	/** Object holding the field at `keys`, so the last key can be bound directly. */

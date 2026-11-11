@@ -54,8 +54,10 @@
 						</p>{/if}
 					{#each group.items as item (item.href)}{@const Icon = icons[item.href]}<a
 							class={[
-								'flex items-center gap-3 rounded-[6px] px-3 py-2 hover:bg-[#2b444b] hover:text-cyan',
-								current.startsWith(item.href) && 'bg-[#2b444b] text-cyan'
+								'flex items-center gap-3 rounded-[6px] border px-3 py-2',
+								current.startsWith(item.href)
+									? 'border-current text-cyan'
+									: 'border-transparent hover:border-[#506970] hover:text-cyan'
 							]}
 							aria-current={current.startsWith(item.href) ? 'page' : undefined}
 							href={item.href}><Icon size={18} class="shrink-0" aria-hidden="true" />{item.label}</a

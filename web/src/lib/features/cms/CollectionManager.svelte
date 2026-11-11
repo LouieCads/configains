@@ -8,6 +8,7 @@
 -->
 <script lang="ts">
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
+	import ImageOff from '@lucide/svelte/icons/image-off';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash';
@@ -266,10 +267,10 @@
 							alt=""
 							loading="lazy"
 						/>{:else}<span
-							class="grid h-11 w-11 shrink-0 place-items-center rounded-[6px] bg-[#eef3f3] text-muted"
+							class="grid h-11 w-11 shrink-0 place-items-center rounded-[6px] border border-dashed border-current text-muted"
 							title="No photo"
-							aria-hidden="true"
-						></span>{/if}
+							aria-hidden="true"><ImageOff size={18} /></span
+						>{/if}
 					<span class="grid min-w-0 flex-1 basis-40 grid-cols-[minmax(0,1fr)]">
 						<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
 							<strong class="min-w-0 truncate text-[0.95rem]">{title}</strong>

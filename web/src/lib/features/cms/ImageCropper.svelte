@@ -66,7 +66,7 @@
 	};
 	const shapeButton = (active: boolean) => [
 		'inline-flex items-center gap-2 rounded-[6px] border px-[14px] py-2',
-		active ? 'border-ink bg-ink text-white' : 'border-[#b7c6c7] bg-transparent text-ink'
+		active ? 'border-current text-cyan-ink' : 'border-[#b7c6c7] text-muted hover:text-ink'
 	];
 
 	/** Whole image selected: nothing to crop. */

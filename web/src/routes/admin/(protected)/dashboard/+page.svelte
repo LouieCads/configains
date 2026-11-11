@@ -57,7 +57,7 @@
 			{#each todo as item (item.href)}
 				<li>
 					<a
-						class="flex items-center justify-between gap-3 rounded-lg border border-[#efb8ac] bg-[#fff1ee] p-3 font-semibold text-[#962f24] no-underline"
+						class="flex items-center justify-between gap-3 rounded-lg border border-current p-3 font-semibold text-[#962f24] no-underline hover:underline"
 						href={item.href}>{item.label}<ChevronRight size={18} aria-hidden="true" /></a
 					>
 				</li>
@@ -75,7 +75,7 @@
 			<span class="flex items-center justify-between gap-3">
 				<span class="flex items-center gap-2.5">
 					<span
-						class="grid size-9 place-items-center rounded-lg bg-mist text-cyan-deep"
+						class="grid size-9 place-items-center rounded-lg border border-current text-cyan-deep"
 						aria-hidden="true"><item.icon size={20} /></span
 					>
 					<strong class="text-[1.1rem]">{item.title}</strong>

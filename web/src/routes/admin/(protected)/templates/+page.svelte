@@ -72,7 +72,7 @@
 
 	const row =
 		'relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-line bg-paper px-4 py-3 hover:border-cyan-ink focus-within:border-cyan-ink';
-	const rowAction = `${subtle} relative z-10 hover:bg-[#eef3f3] hover:text-ink`;
+	const rowAction = `${subtle} relative z-10 hover:border-current hover:text-ink`;
 </script>
 
 <svelte:head><title>Templates | Configains CMS</title></svelte:head>

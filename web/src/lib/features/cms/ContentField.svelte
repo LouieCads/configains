@@ -226,7 +226,7 @@
 				<details class={disclosure} bind:open={expanded[index]}>
 					<summary class={summary}>
 						<span
-							class="grid size-[26px] shrink-0 place-items-center rounded-[5px] bg-[#e9f3ef] text-[0.75rem] text-cyan-ink"
+							class="grid size-[26px] shrink-0 place-items-center rounded-[5px] border border-current text-[0.75rem] text-cyan-ink"
 							>{index + 1}</span
 						>
 						<span class="min-w-0 truncate">{itemTitle(index)}</span>

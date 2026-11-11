@@ -271,8 +271,10 @@
 					<button
 						type="button"
 						class={[
-							'rounded-[6px] p-3 text-left [border:0] hover:bg-[#e9f3ef]',
-							active === key ? 'bg-[#d7f2f1] text-ink' : 'bg-transparent text-muted'
+							'rounded-[6px] border bg-transparent p-3 text-left',
+							active === key
+								? 'border-current text-cyan-ink'
+								: 'border-transparent text-muted hover:border-[#b7c6c7] hover:text-ink'
 						]}
 						aria-pressed={active === key}
 						disabled={locked}
