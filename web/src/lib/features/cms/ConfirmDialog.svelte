@@ -5,6 +5,7 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
 	import Check from '@lucide/svelte/icons/check';
+	import LogOut from '@lucide/svelte/icons/log-out';
 	import Trash2 from '@lucide/svelte/icons/trash';
 	import { dangerSolid, eyebrow, primary, secondary } from './styles';
 	let {
@@ -31,6 +32,10 @@
 	let dialog: HTMLDialogElement;
 	let cancelButton: HTMLButtonElement;
 	const id = $props.id();
+	// Leaving discards nothing on the server, so it gets an exit icon instead of a bin.
+	const ConfirmIcon = $derived(
+		!danger ? Check : confirmLabel.startsWith('Leave') ? LogOut : Trash2
+	);
 
 	$effect(() => {
 		if (!dialog) return;
@@ -61,10 +66,7 @@
 				><X size={18} aria-hidden="true" />{cancelLabel}</button
 			>
 			<button type="button" class={danger ? dangerSolid : primary} onclick={onConfirm}
-				>{#if danger}<Trash2 size={18} aria-hidden="true" />{:else}<Check
-						size={18}
-						aria-hidden="true"
-					/>{/if}{confirmLabel}</button
+				><ConfirmIcon size={18} aria-hidden="true" />{confirmLabel}</button
 			>
 		</div>
 	</div>

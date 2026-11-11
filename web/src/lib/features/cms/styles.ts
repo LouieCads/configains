@@ -58,8 +58,7 @@ export const secondaryCompact = `${action} min-h-11 min-w-11 p-2 border-[#b7c6c7
 export const secondaryDanger = `${action} ${actionSize} border-[#b7c6c7] bg-transparent text-[#a23131]`;
 export const subtle = `${action} min-h-9 px-[10px] py-[5px] border-transparent bg-transparent text-muted`;
 export const subtleDanger = `${action} min-h-9 px-[10px] py-[5px] border-transparent bg-transparent text-[#a23131]`;
-export const dangerSolid =
-	'min-h-11 rounded-[6px] border border-[#a23131] bg-[#a23131] px-[18px] py-[11px] text-white';
+export const dangerSolid = `${action} ${actionSize} border-[#a23131] bg-[#a23131] text-white`;
 
 export const error =
 	'my-[18px] rounded-[6px] border border-[#efb8ac] bg-[#fff1ee] p-4 text-[#962f24]';
