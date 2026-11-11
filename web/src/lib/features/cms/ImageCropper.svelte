@@ -1,7 +1,8 @@
 <!--
-	Modal cropper shown before an image upload. The admin drags a selection
-	(free or locked to the field's recommended shape); `apply` renders it to a
-	WebP file and passes it to `onApply`. The original file never leaves the browser.
+	Modal cropper shown before an image upload. The whole image starts selected, so it can be
+	uploaded as is; the admin may drag a smaller selection (free or locked to the field's
+	recommended shape). `apply` renders it to a WebP file and passes it to `onApply`.
+	The original file never leaves the browser.
 -->
 <script lang="ts">
 	import CropIcon from '@lucide/svelte/icons/crop';
@@ -39,7 +40,7 @@
 	let stage = $state<HTMLDivElement>();
 	let picture = $state<HTMLImageElement>();
 	let sourceUrl = $state('');
-	let crop = $state<Crop>({ x: 0.1, y: 0.1, width: 0.8, height: 0.8 });
+	let crop = $state<Crop>({ x: 0, y: 0, width: 1, height: 1 });
 	let shape = $state<'free' | 'website'>('free');
 	let working = $state(false);
 	let error = $state('');
@@ -67,6 +68,20 @@
 		'inline-flex items-center gap-2 rounded-[6px] border px-[14px] py-2',
 		active ? 'border-ink bg-ink text-white' : 'border-[#b7c6c7] bg-transparent text-ink'
 	];
+
+	/** Whole image selected: nothing to crop. */
+	const uncropped = $derived(
+		shape === 'free' && crop.x <= 0 && crop.y <= 0 && crop.width >= 1 && crop.height >= 1
+	);
+
+	/**
+	 * Shows the dialog at the end of <body>. The editor disables its fieldsets while an upload is
+	 * pending, and the dialog's buttons would be disabled with them if it stayed inside one.
+	 */
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return { destroy: () => node.remove() };
+	}
 
 	onMount(() => {
 		const url = URL.createObjectURL(file);
@@ -190,12 +205,13 @@
 		event.preventDefault();
 	}
 
-	/** Switching to website shape recentres an aspect-locked selection. */
+	/** Website shape selects the largest centred area with the field's shape. */
 	function chooseShape(next: 'free' | 'website') {
 		shape = next;
 		if (next === 'free' || !picture) return;
+		// Selection width over height, in fractions of the image.
 		const ratio = (guide.width / guide.height) * (picture.naturalHeight / picture.naturalWidth);
-		const width = Math.min(0.8, 0.8 * ratio);
+		const width = Math.min(1, ratio);
 		const height = width / ratio;
 		crop = { x: (1 - width) / 2, y: (1 - height) / 2, width, height };
 	}
@@ -248,7 +264,11 @@
 		if (event.key === 'Escape' && !working) onCancel();
 	}}
 />
-<div class="fixed inset-0 z-[1000] grid place-items-center bg-[#10252bc9] p-5" role="presentation">
+<div
+	class="fixed inset-0 z-[1000] grid place-items-center bg-[#10252bc9] p-5"
+	role="presentation"
+	use:portal
+>
 	<div
 		class="max-h-[calc(100vh-40px)] w-[min(100%,680px)] overflow-auto rounded-xl bg-paper p-6 [box-shadow:0_18px_60px_#0005]"
 		role="dialog"
@@ -281,8 +301,8 @@
 			>
 		</div>
 		<p class={help}>
-			Drag on the photo to select an area. Drag inside the frame to move it, or drag a corner to
-			resize it.
+			The whole photo is selected, so you can upload it as is. To crop, drag on the photo to select
+			an area, drag inside the frame to move it, or drag a corner to resize it.
 		</p>
 		{#if picture}
 			<div
@@ -332,7 +352,11 @@
 				><X size={18} aria-hidden="true" />Cancel</button
 			>
 			<button type="button" class={primary} disabled={working || !picture} onclick={apply}
-				><Upload size={18} aria-hidden="true" />{working ? 'Preparing…' : 'Crop and upload'}</button
+				><Upload size={18} aria-hidden="true" />{working
+					? 'Preparing…'
+					: uncropped
+						? 'Upload'
+						: 'Crop and upload'}</button
 			>
 		</div>
 	</div>

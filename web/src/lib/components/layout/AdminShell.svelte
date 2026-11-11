@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/state';
+	import { navigating, page } from '$app/state';
 	import { adminNavigation } from '$lib/constants/navigation';
 	import { brand, secondaryOnDark, studio, success } from '$lib/features/cms/styles';
 	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
@@ -26,7 +26,16 @@
 		email,
 		localDemo = false
 	}: { children: import('svelte').Snippet; email: string; localDemo?: boolean } = $props();
+
+	// Highlight the link being opened straight away instead of after its data arrives.
+	const current = $derived(navigating.to?.url.pathname ?? page.url.pathname);
 </script>
+
+{#if navigating.to}<div
+		class="nav-progress"
+		role="progressbar"
+		aria-label="Loading page"
+	></div>{/if}
 
 <div
 	class="{studio} grid grid-cols-[250px_minmax(0,1fr)] bg-[#f7f8f5] bp-1100:grid-cols-[200px_minmax(0,1fr)] bp-760:grid-cols-1"
@@ -46,9 +55,9 @@
 					{#each group.items as item (item.href)}{@const Icon = icons[item.href]}<a
 							class={[
 								'flex items-center gap-3 rounded-[6px] px-3 py-2 hover:bg-[#2b444b] hover:text-cyan',
-								page.url.pathname.startsWith(item.href) && 'bg-[#2b444b] text-cyan'
+								current.startsWith(item.href) && 'bg-[#2b444b] text-cyan'
 							]}
-							aria-current={page.url.pathname.startsWith(item.href) ? 'page' : undefined}
+							aria-current={current.startsWith(item.href) ? 'page' : undefined}
 							href={item.href}><Icon size={18} class="shrink-0" aria-hidden="true" />{item.label}</a
 						>{/each}
 				</div>
@@ -71,3 +80,30 @@
 			</p>{/if}{@render children()}
 	</main>
 </div>
+
+<style>
+	.nav-progress {
+		position: fixed;
+		inset: 0 0 auto;
+		z-index: 60;
+		height: 3px;
+		background: linear-gradient(90deg, transparent, var(--color-cyan), transparent) no-repeat;
+		background-size: 40% 100%;
+		animation: nav-progress 0.9s ease-in-out infinite;
+		pointer-events: none;
+	}
+	@keyframes nav-progress {
+		from {
+			background-position: -60% 0;
+		}
+		to {
+			background-position: 160% 0;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.nav-progress {
+			animation: none;
+			background: var(--color-cyan);
+		}
+	}
+</style>

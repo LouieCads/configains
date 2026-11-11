@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 
-type AdminResult = { user: NonNullable<Awaited<ReturnType<App.Locals['safeGetUser']>>['user']> } & {
+type AdminResult = { user: App.AuthUser } & {
 	profile: { id: string; display_name: string | null };
 };
 

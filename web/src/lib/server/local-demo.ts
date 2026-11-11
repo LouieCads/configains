@@ -220,6 +220,12 @@ export async function readDemoImage(key: string) {
 export function createDemoClient(signedIn: boolean): SupabaseClient {
 	return {
 		auth: {
+			getClaims: async () => ({
+				data: signedIn
+					? { claims: { sub: demoId, email: 'local-demo@configains.test', role: 'authenticated' } }
+					: null,
+				error: null
+			}),
 			getUser: async () => ({
 				data: {
 					user: signedIn

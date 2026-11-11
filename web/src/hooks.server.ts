@@ -18,10 +18,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 		: createSupabaseServerClient(event.cookies);
 	let verifiedUser: ReturnType<App.Locals['safeGetUser']> | undefined;
 	event.locals.safeGetUser = () => {
-		// Verify with Auth and share the result across this request's loaders.
-		verifiedUser ??= event.locals.supabase.auth
-			.getUser()
-			.then(({ data, error }) => ({ user: error ? null : data.user }));
+		// Verifies the access token's signature against the project's cached public keys, so no
+		// round trip to Supabase Auth per request (an expired token is refreshed first). Shared
+		// across this request's loaders. RLS still checks the same token on every query.
+		verifiedUser ??= event.locals.supabase.auth.getClaims().then(
+			({ data, error }) => {
+				const claims = error ? null : data?.claims;
+				return {
+					user: claims?.sub
+						? { id: claims.sub, email: typeof claims.email === 'string' ? claims.email : null }
+						: null
+				};
+			},
+			() => ({ user: null })
+		);
 		return verifiedUser;
 	};
 

@@ -146,6 +146,16 @@ const programColumns = `id, source, assessment_id, current_phase_id,
 	workout:program_templates!workout_template_id(id, name, description, owner_client_id, template_phases(${phaseColumns})),
 	nutrition:program_templates!nutrition_template_id(id, name, description, template_phases(${phaseColumns}))`;
 
+/**
+ * Reads the explanation from an embedded `ai_recommendations(explanation)` select on assessments.
+ * The relation is one-to-one, but an array is accepted too.
+ */
+export function explanationOf(embedded: unknown): string | null {
+	const row = Array.isArray(embedded) ? embedded[0] : embedded;
+	const explanation = (row as { explanation?: unknown } | null | undefined)?.explanation;
+	return typeof explanation === 'string' ? explanation : null;
+}
+
 export async function loadActiveProgram(supabase: SupabaseClient, clientId: string) {
 	const { data, error } = await supabase
 		.from('client_programs')

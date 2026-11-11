@@ -5,6 +5,7 @@ import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
 import {
 	assignProgram,
+	explanationOf,
 	listAssignable,
 	markAssessmentsReviewed
 } from '$lib/server/coaching/templates';
@@ -13,21 +14,26 @@ import type { Actions, PageServerLoad } from './$types';
 type Client = { display_name: string | null; coaching_mode: string } | null;
 
 export const load: PageServerLoad = async (event) => {
-	await requireAdmin(event);
 	const empty = {
 		assessments: [],
 		workoutTemplates: [],
 		nutritionTemplates: [],
 		loadError: null
 	};
-	if (event.locals.localAdminDemo) return empty;
+	if (event.locals.localAdminDemo) {
+		await requireAdmin(event);
+		return empty;
+	}
 
+	// Queries run alongside the admin check; RLS still limits what a non-admin could read,
+	// and a failed check discards the results.
 	const supabase = event.locals.supabase;
-	const [{ data: assessments, error }, templates] = await Promise.all([
+	const [, { data: assessments, error }, templates] = await Promise.all([
+		requireAdmin(event),
 		supabase
 			.from('assessments')
 			.select(
-				'id, client_id, status, red_flags, answers, created_at, client_profiles(display_name, coaching_mode)'
+				'id, client_id, status, red_flags, answers, created_at, client_profiles(display_name, coaching_mode), ai_recommendations(explanation)'
 			)
 			.order('created_at', { ascending: false })
 			.limit(100),
@@ -35,24 +41,13 @@ export const load: PageServerLoad = async (event) => {
 	]);
 	if (error) return { ...empty, loadError: 'Assessments could not be loaded. Please try again.' };
 
-	const ids = (assessments ?? []).map((row) => row.id);
-	const { data: recommendations } = ids.length
-		? await supabase
-				.from('ai_recommendations')
-				.select('assessment_id, explanation')
-				.in('assessment_id', ids)
-		: { data: [] };
-	const byAssessment = new Map(
-		(recommendations ?? []).map((row) => [row.assessment_id, row.explanation as string])
-	);
-
 	return {
-		assessments: (assessments ?? []).map(({ client_profiles, ...row }) => ({
+		assessments: (assessments ?? []).map(({ client_profiles, ai_recommendations, ...row }) => ({
 			...row,
 			answers: (row.answers ?? {}) as Record<string, unknown>,
 			red_flags: (row.red_flags ?? []) as string[],
 			client: (Array.isArray(client_profiles) ? client_profiles[0] : client_profiles) as Client,
-			explanation: byAssessment.get(row.id) ?? null,
+			explanation: explanationOf(ai_recommendations),
 			recommended: recommendedPrograms(row.answers, templates)
 		})),
 		workoutTemplates: templates.filter((template) => template.kind === 'workout'),

@@ -5,6 +5,7 @@ import { requireAdmin } from '$lib/server/auth/admin';
 import { requireSameOrigin } from '$lib/server/auth/origin';
 import {
 	assignProgram,
+	explanationOf,
 	listAssignable,
 	loadActiveProgram,
 	markAssessmentsReviewed
@@ -17,43 +18,40 @@ const messageLimit = 2000;
 const feedbackLimit = 4000;
 
 export const load: PageServerLoad = async (event) => {
-	await requireAdmin(event);
 	const clientId = event.params.id;
-	if (!isUuid(clientId)) error(404, 'Client not found.');
+	if (!isUuid(clientId)) {
+		await requireAdmin(event);
+		error(404, 'Client not found.');
+	}
 
-	const { data: profile, error: profileError } = await event.locals.supabase
-		.from('client_profiles')
-		.select('id, display_name, coaching_mode, created_at')
-		.eq('id', clientId)
-		.maybeSingle();
-	if (profileError) error(500, 'The client could not be loaded.');
-	if (!profile) error(404, 'Client not found.');
-
-	const [program, thread, progress, templates, latest] = await Promise.all([
-		loadActiveProgram(event.locals.supabase, clientId),
-		loadCoachingThread(event.locals.supabase, clientId),
-		loadProgress(event.locals.supabase, clientId, new Date().toISOString().slice(0, 10)),
+	// Everything loads in one round: the admin check runs alongside the queries (RLS still limits
+	// what a non-admin could read, and a failed check discards the results).
+	const supabase = event.locals.supabase;
+	const [, profileResult, program, thread, progress, templates, latest] = await Promise.all([
+		requireAdmin(event),
+		supabase
+			.from('client_profiles')
+			.select('id, display_name, coaching_mode, created_at')
+			.eq('id', clientId)
+			.maybeSingle(),
+		loadActiveProgram(supabase, clientId),
+		loadCoachingThread(supabase, clientId),
+		loadProgress(supabase, clientId, new Date().toISOString().slice(0, 10)),
 		// Only active (non-archived) library templates can be assigned.
-		listAssignable(event.locals.supabase),
-		event.locals.supabase
+		listAssignable(supabase),
+		supabase
 			.from('assessments')
-			.select('id, status, answers, red_flags, created_at')
+			.select('id, status, answers, red_flags, created_at, ai_recommendations(explanation)')
 			.eq('client_id', clientId)
 			.order('created_at', { ascending: false })
 			.limit(1)
 			.maybeSingle()
 	]);
+	const { data: profile, error: profileError } = profileResult;
+	if (profileError) error(500, 'The client could not be loaded.');
+	if (!profile) error(404, 'Client not found.');
 
 	const assessment = latest.data;
-	let explanation: string | null = null;
-	if (assessment) {
-		const { data: recommendation } = await event.locals.supabase
-			.from('ai_recommendations')
-			.select('explanation')
-			.eq('assessment_id', assessment.id)
-			.maybeSingle();
-		explanation = recommendation?.explanation ?? null;
-	}
 
 	return {
 		client: profile,
@@ -62,10 +60,12 @@ export const load: PageServerLoad = async (event) => {
 		progress,
 		assessment: assessment
 			? {
-					...assessment,
+					id: assessment.id,
+					status: assessment.status,
+					created_at: assessment.created_at,
 					answers: (assessment.answers ?? {}) as Record<string, unknown>,
 					red_flags: (assessment.red_flags ?? []) as string[],
-					explanation
+					explanation: explanationOf(assessment.ai_recommendations)
 				}
 			: null,
 		recommended: recommendedPrograms(assessment?.answers, templates),

@@ -23,21 +23,26 @@ const blankTemplate = (kind: TemplateKind): TemplateInput => ({
 });
 
 export const load: PageServerLoad = async (event) => {
-	await requireAdmin(event);
 	const { id } = event.params;
 	if (id === 'new') {
+		await requireAdmin(event);
 		const kind = event.url.searchParams.get('kind') === 'nutrition' ? 'nutrition' : 'workout';
 		return { template: blankTemplate(kind), isNew: true, saved: false, owner: null };
 	}
-	const template = await loadTemplate(event.locals.supabase, id);
-	if (!template) error(404, 'Template not found.');
 
-	// A client's customised copy links back to that client instead of the library.
-	const { data: ownership } = await event.locals.supabase
-		.from('program_templates')
-		.select('owner:client_profiles!owner_client_id(id, display_name)')
-		.eq('id', id)
-		.maybeSingle();
+	// Queries run alongside the admin check; RLS still limits what a non-admin could read,
+	// and a failed check discards the results.
+	const [, template, { data: ownership }] = await Promise.all([
+		requireAdmin(event),
+		loadTemplate(event.locals.supabase, id),
+		// A client's customised copy links back to that client instead of the library.
+		event.locals.supabase
+			.from('program_templates')
+			.select('owner:client_profiles!owner_client_id(id, display_name)')
+			.eq('id', id)
+			.maybeSingle()
+	]);
+	if (!template) error(404, 'Template not found.');
 	const raw = ownership?.owner as
 		| { id: string; display_name: string | null }
 		| { id: string; display_name: string | null }[]
