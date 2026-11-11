@@ -201,21 +201,20 @@ export const websiteSchema: Field = group('Website', {
 			'Build strength and confidence with Configains. Cash Fuerte combines practical training, flexible nutrition, and personal coaching built around your life.'
 		),
 		hero: group('Hero', {
-			firstLine: text('First headline line', 'REAL LIFE.'),
-			secondLine: text('Second headline opening', 'REAL'),
-			rotatingWords: list('Rotating headline words', text('Word', 'PROGRESS.'), [
-				'PROGRESS.',
+			firstLine: text('First headline line', 'YOUR LIFE.'),
+			secondLine: text('Second headline opening', 'YOUR'),
+			rotatingWords: list('Rotating headline words', text('Word', 'RESULTS.'), [
 				'RESULTS.',
+				'PROGRESS.',
 				'GROWTH.',
 				'CHANGE.'
 			]),
 			copy: area(
 				'Description',
-				'Build strength and confidence with Configains. Practical training, flexible nutrition, and personal guidance from Cash Fuerte, our founder and coach.'
+				'Practical training, flexible nutrition, and personal guidance from Cash Fuerte, our founder and coach.'
 			),
 			cta: text('Primary button', 'Find your starting point'),
 			explore: text('Coaching link', 'Explore coaching'),
-			visualLabel: text('Illustration label', 'THE CONFIGAINS APPROACH'),
 			visualTitle: area('Illustration heading', 'A LITTLE\nSTRONGER.'),
 			image: image('Hero image (optional; replaces illustration)'),
 			imageAlt: text('Hero image description', 'Configains fitness coaching'),

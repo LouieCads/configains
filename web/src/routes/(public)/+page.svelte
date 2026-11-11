@@ -76,24 +76,27 @@
 
 {#snippet heroSection()}
 	<section
-		class="{container} grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] items-center gap-x-[clamp(32px,5vw,72px)] gap-y-14 pt-[clamp(40px,6vw,88px)] pb-[clamp(64px,8vw,120px)] cq-58:grid-cols-[minmax(0,1fr)]"
+		class="{container} grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] items-center gap-x-[clamp(32px,5vw,72px)] gap-y-14 pt-[clamp(72px,11vw,168px)] pb-[clamp(64px,8vw,120px)] cq-58:grid-cols-[minmax(0,1fr)]"
 		aria-labelledby="hero-title"
 	>
 		<div>
 			<h1 id="hero-title" use:reveal={70}>
-				{c.hero.firstLine}<br />{c.hero.secondLine}
-				<span class="{mark} relative inline-grid align-baseline" data-mark aria-live="off">
-					<!-- Invisible copies of every word size the slot to the widest one. -->
-					{#each c.hero.rotatingWords as word, index (index)}<span
-							class="invisible [grid-area:1/1]"
-							aria-hidden="true">{word}</span
-						>{/each}
-					{#key progressWordIndex}<span
-							class="top-0 left-0 [grid-area:1/1]"
-							in:fly={{ y: 14, duration: 420, delay: 80 }}
-							out:fly={{ y: -14, duration: 320 }}
-							>{c.hero.rotatingWords[progressWordIndex % c.hero.rotatingWords.length]}</span
-						>{/key}
+				<span class="block">{c.hero.firstLine}</span>
+				<span class="block whitespace-nowrap">
+					{c.hero.secondLine}
+					<span class="{mark} relative inline-grid align-baseline" data-mark aria-live="off">
+						<!-- Invisible copies of every word size the slot to the widest one. -->
+						{#each c.hero.rotatingWords as word, index (index)}<span
+								class="invisible [grid-area:1/1]"
+								aria-hidden="true">{word}</span
+							>{/each}
+						{#key progressWordIndex}<span
+								class="top-0 left-0 [grid-area:1/1]"
+								in:fly={{ y: 14, duration: 420, delay: 80 }}
+								out:fly={{ y: -14, duration: 320 }}
+								>{c.hero.rotatingWords[progressWordIndex % c.hero.rotatingWords.length]}</span
+							>{/key}
+					</span>
 				</span>
 			</h1>
 			<p
@@ -133,11 +136,6 @@
 						{c.hero.visualTitle}
 					</div>
 					<div class="absolute inset-x-0 top-[34%] bottom-0"><FitnessScene /></div>{/if}
-				<p
-					class="absolute top-6 left-7 z-[1] m-0 font-display text-[1rem]/none tracking-[0.2em] text-cyan"
-				>
-					{c.hero.visualLabel}
-				</p>
 			</div>
 		</div>
 	</section>

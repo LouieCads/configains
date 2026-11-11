@@ -2,6 +2,10 @@
 	import { card, primary } from '$lib/features/cms/styles';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import FilePenLine from '@lucide/svelte/icons/file-pen-line';
+	import FileText from '@lucide/svelte/icons/file-text';
+	import Images from '@lucide/svelte/icons/images';
+	import MessageSquareQuote from '@lucide/svelte/icons/message-square-quote';
+	import Users from '@lucide/svelte/icons/users';
 	let { data } = $props();
 
 	const todo = $derived(
@@ -17,16 +21,27 @@
 		].filter((item) => !!item)
 	);
 	const shortcuts = $derived([
-		{ href: '/admin/content', title: 'Website pages', note: 'Text, photos and page sections' },
-		{ href: '/admin/testimonials', title: 'Testimonials', note: `${data.testimonials} total` },
+		{
+			href: '/admin/content',
+			title: 'Website pages',
+			icon: FileText,
+			note: 'Text, photos and page sections'
+		},
+		{
+			href: '/admin/testimonials',
+			title: 'Testimonials',
+			icon: MessageSquareQuote,
+			value: data.testimonials
+		},
 		{
 			href: '/admin/transformations',
 			title: 'Transformations',
-			note: `${data.transformations} total`
+			icon: Images,
+			value: data.transformations
 		},
 		...(data.localDemo
 			? []
-			: [{ href: '/admin/clients', title: 'Clients', note: `${data.clients} total` }])
+			: [{ href: '/admin/clients', title: 'Clients', icon: Users, value: data.clients }])
 	]);
 </script>
 
@@ -54,11 +69,31 @@
 <div class="mb-6 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
 	{#each shortcuts as item (item.href)}
 		<a
-			class="grid gap-1 rounded-[10px] border border-line bg-paper p-5 text-ink no-underline hover:border-cyan-ink"
+			class="group grid gap-3 rounded-[10px] border border-line bg-paper p-5 text-ink no-underline shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-ink hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-ink"
 			href={item.href}
 		>
-			<strong class="text-[1.05rem]">{item.title}</strong>
-			<span class="text-[0.95rem] font-medium text-muted">{item.note}</span>
+			<span class="flex items-center justify-between gap-3">
+				<span class="flex items-center gap-2.5">
+					<span
+						class="grid size-9 place-items-center rounded-lg bg-mist text-cyan-deep"
+						aria-hidden="true"><item.icon size={20} /></span
+					>
+					<strong class="text-[1.1rem]">{item.title}</strong>
+				</span>
+				<ChevronRight
+					size={20}
+					class="text-cyan-ink transition-transform group-hover:translate-x-0.5"
+					aria-hidden="true"
+				/>
+			</span>
+			{#if item.value !== undefined}
+				<span class="flex items-baseline gap-1.5">
+					<span class="text-[2rem] leading-none font-bold text-ink">{item.value}</span>
+					<span class="text-base font-medium text-muted">total</span>
+				</span>
+			{:else}
+				<span class="text-base font-medium text-muted">{item.note}</span>
+			{/if}
 		</a>
 	{/each}
 </div>

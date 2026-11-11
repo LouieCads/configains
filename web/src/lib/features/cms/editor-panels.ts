@@ -63,7 +63,6 @@ const layouts: Record<string, PanelDefinition[]> = {
 			'hero.copy',
 			'hero.cta',
 			'hero.explore',
-			'hero.visualLabel',
 			'hero.visualTitle',
 			'hero.image',
 			'hero.imageAlt'
