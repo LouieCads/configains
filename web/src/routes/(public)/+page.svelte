@@ -20,7 +20,6 @@
 		container,
 		labelSpacing,
 		labelText,
-		mark,
 		rail,
 		section as sectionSpacing,
 		statusDot,
@@ -76,7 +75,7 @@
 
 {#snippet heroSection()}
 	<section
-		class="{container} grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] items-center gap-x-[clamp(32px,5vw,72px)] gap-y-14 pt-[clamp(72px,11vw,168px)] pb-[clamp(64px,8vw,120px)] cq-58:grid-cols-[minmax(0,1fr)]"
+		class="{container} grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] items-center gap-x-[clamp(32px,5vw,72px)] gap-y-14 pt-[clamp(24px,4vw,56px)] pb-[clamp(64px,8vw,120px)] cq-58:grid-cols-[minmax(0,1fr)]"
 		aria-labelledby="hero-title"
 	>
 		<div>
@@ -84,7 +83,7 @@
 				<span class="block">{c.hero.firstLine}</span>
 				<span class="block whitespace-nowrap">
 					{c.hero.secondLine}
-					<span class="{mark} relative inline-grid align-baseline" data-mark aria-live="off">
+					<span class="relative inline-grid align-baseline" aria-live="off">
 						<!-- Invisible copies of every word size the slot to the widest one. -->
 						{#each c.hero.rotatingWords as word, index (index)}<span
 								class="invisible [grid-area:1/1]"

@@ -198,7 +198,7 @@ export const websiteSchema: Field = group('Website', {
 		},
 		seo: seo(
 			'Configains | Online Fitness Coaching with Cash Fuerte',
-			'Build strength and confidence with Configains. Cash Fuerte combines practical training, flexible nutrition, and personal coaching built around your life.'
+			'Cash Fuerte combines practical training, flexible nutrition, and personal coaching built around your life.'
 		),
 		hero: group('Hero', {
 			firstLine: text('First headline line', 'YOUR LIFE.'),
