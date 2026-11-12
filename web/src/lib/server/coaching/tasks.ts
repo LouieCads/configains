@@ -100,7 +100,7 @@ export async function loadCoachTasks(
 			clientName: client.name,
 			detail: snippet(row.body as string),
 			at: row.created_at as string,
-			href: `/admin/clients/${client.id}#check-ins`
+			href: `/admin/clients/${client.id}/conversation#check-ins`
 		};
 	});
 
@@ -116,7 +116,7 @@ export async function loadCoachTasks(
 				clientName: client.name,
 				detail: snippet(row.body as string),
 				at: row.created_at as string,
-				href: `/admin/clients/${client.id}#messages`,
+				href: `/admin/clients/${client.id}/conversation#messages`,
 				count: 1
 			});
 	}

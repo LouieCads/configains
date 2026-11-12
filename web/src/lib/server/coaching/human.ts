@@ -41,6 +41,31 @@ export async function loadCoachingThread(supabase: SupabaseClient, clientId: str
 	};
 }
 
+/** Counts for the client page button. A failed count shows as 0. */
+export async function loadConversationCounts(supabase: SupabaseClient, clientId: string) {
+	const head = { count: 'exact' as const, head: true };
+	const [checkIns, pending, messages, unread] = await Promise.all([
+		supabase.from('check_ins').select('*', head).eq('client_id', clientId),
+		supabase
+			.from('check_ins')
+			.select('*', head)
+			.eq('client_id', clientId)
+			.is('coach_feedback', null),
+		supabase.from('messages').select('*', head).eq('client_id', clientId),
+		supabase
+			.from('messages')
+			.select('*', head)
+			.eq('client_id', clientId)
+			.eq('sender_role', 'client')
+			.is('read_at', null)
+	]);
+	return {
+		total: (checkIns.count ?? 0) + (messages.count ?? 0),
+		pendingCheckIns: pending.count ?? 0,
+		unreadMessages: unread.count ?? 0
+	};
+}
+
 export async function submitCheckIn(
 	supabase: SupabaseClient,
 	clientId: string,

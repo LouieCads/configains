@@ -4,7 +4,6 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Pencil from '@lucide/svelte/icons/pencil';
-	import Send from '@lucide/svelte/icons/send';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import X from '@lucide/svelte/icons/x';
 	import Repeat from '@lucide/svelte/icons/repeat';
@@ -13,6 +12,7 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import MessagesSquare from '@lucide/svelte/icons/messages-square';
 	import AtSign from '@lucide/svelte/icons/at-sign';
 	import CalendarDays from '@lucide/svelte/icons/calendar-days';
 	import SkipForward from '@lucide/svelte/icons/skip-forward';
@@ -36,8 +36,7 @@
 		subtle,
 		success,
 		tabIdle,
-		tabSelected,
-		requiredMark
+		tabSelected
 	} from '$lib/features/cms/styles';
 	let { data, form } = $props();
 
@@ -45,7 +44,7 @@
 		new Date(value).toLocaleDateString('en-GB', { dateStyle: 'medium' });
 	const phases = $derived(data.program?.workout?.phases ?? []);
 	const currentPhase = $derived(phases.find((phase) => phase.id === data.program?.currentPhaseId));
-	const pending = $derived(data.checkIns.filter((checkIn) => !checkIn.coach_feedback));
+	const pending = $derived(data.conversation.pendingCheckIns);
 	const timing = $derived(
 		data.program && currentPhase
 			? phaseTiming(data.program.phaseStartedAt, currentPhase.duration_weeks)
@@ -54,18 +53,16 @@
 	const timingLabel = $derived(
 		timing && currentPhase ? phaseTimingLabel(timing, currentPhase.id === phases.at(-1)?.id) : ''
 	);
-	const unread = $derived(
-		data.messages.filter((message) => message.sender_role === 'client' && !message.read_at).length
-	);
-	const answered = $derived(data.checkIns.filter((checkIn) => checkIn.coach_feedback));
+	const unread = $derived(data.conversation.unreadMessages);
 	const thisWeek = $derived(data.progress.weekly[0]);
 	const metricsWithData = $derived(
 		progressMetrics.filter((metric) => thisWeek?.averages[metric.key] !== undefined)
 	);
 	const isHuman = $derived(data.client.coaching_mode === 'human');
 	const flags = $derived(data.assessment?.red_flags ?? []);
-	/** Check-ins and messages belong to human coaching, so AI clients show them only if history exists. */
-	const showThread = $derived(isHuman || data.checkIns.length > 0 || data.messages.length > 0);
+	/** Check-ins and messages belong to human coaching; AI clients only see existing history. */
+	const showThread = $derived(isHuman || data.conversation.total > 0);
+	const conversationHref = $derived(`/admin/clients/${data.client.id}/conversation`);
 	const summary = $derived(answerSummary(data.assessment?.answers));
 	const status = $derived(data.assessment ? assessmentStatus[data.assessment.status] : null);
 	const toneClass = { ok: badgeOk, warn: badgeWarn, neutral: badgeNeutral } as const;
@@ -79,8 +76,6 @@
 	const savedLabel: Record<string, string> = {
 		assign: 'Program assigned.',
 		phase: 'Phase updated.',
-		feedback: 'Feedback sent.',
-		reply: 'Message sent.',
 		mode: 'Coaching changed.',
 		rename: 'Name saved.',
 		archive: 'Client archived.',
@@ -103,14 +98,14 @@
 			},
 			!data.program && { label: 'Assign a program', href: '#program', icon: ClipboardList },
 			timing?.due && { label: timingLabel, href: '#program', icon: CalendarClock },
-			pending.length > 0 && {
-				label: `Answer ${plural(pending.length, 'check-in')}`,
-				href: '#check-ins',
+			pending > 0 && {
+				label: `Answer ${plural(pending, 'check-in')}`,
+				href: `${conversationHref}#check-ins`,
 				icon: MessageSquare
 			},
 			unread > 0 && {
 				label: `Read ${plural(unread, 'new message')}`,
-				href: '#messages',
+				href: `${conversationHref}#messages`,
 				icon: Mail
 			}
 		].filter((item) => !!item)
@@ -120,13 +115,6 @@
 	const nextPhase = $derived(
 		currentPhase ? phases[phases.findIndex((phase) => phase.id === currentPhase.id) + 1] : undefined
 	);
-	function focusReply(event: MouseEvent) {
-		const box = document.getElementById('reply-body');
-		if (!box) return;
-		event.preventDefault();
-		box.scrollIntoView({ block: 'center' });
-		box.focus({ preventScroll: true });
-	}
 	function openChange() {
 		changing = true;
 		document.getElementById('program')?.scrollIntoView({ block: 'start' });
@@ -158,17 +146,6 @@
 				if (result.type === 'success' && key === 'rename') renaming = false;
 			};
 		};
-
-	let messageList = $state<HTMLUListElement>();
-	$effect(() => {
-		void data.messages.length;
-		messageList?.scrollTo({ top: messageList.scrollHeight });
-	});
-	/** Ctrl or Cmd + Enter sends a message or feedback. */
-	function sendOnShortcut(event: KeyboardEvent) {
-		if (event.key === 'Enter' && (event.ctrlKey || event.metaKey))
-			(event.currentTarget as HTMLTextAreaElement).form?.requestSubmit();
-	}
 
 	// Three text levels on every card: card title, small uppercase section label, then content.
 	const cardHead = 'mb-4 flex min-h-9 flex-wrap items-center justify-between gap-3';
@@ -264,11 +241,14 @@
 	</p>
 
 	<!-- Quick actions: the jobs a coach does most, without scrolling. Only relevant ones show. -->
-	{#if invitePending || isHuman || data.program}
+	{#if invitePending || showThread || data.program}
 		<div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Quick actions">
-			{#if isHuman}
-				<a class={quick} href="#reply-body" onclick={focusReply}
-					><Send size={16} aria-hidden="true" />Message</a
+			{#if showThread}
+				<a class={quick} href={conversationHref}
+					><MessagesSquare size={16} aria-hidden="true" />Check-ins and messages{#if pending + unread > 0}<span
+							class="rounded-full bg-[#962f24] px-2 text-[0.75rem] text-white"
+							>{pending + unread}<span class="sr-only"> waiting</span></span
+						>{/if}</a
 				>
 			{/if}
 			{#if data.program && nextPhase}
@@ -339,7 +319,7 @@
 {/if}
 
 <div class="grid items-start gap-6 min-[1100px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-	<!-- Main column: the coaching work. -->
+	<!-- Main column: the program and how the client is doing. -->
 	<div class="grid min-w-0 gap-6">
 		<section id="program" class={card}>
 			<div class={cardHead}>
@@ -432,174 +412,6 @@
 			{/if}
 		</section>
 
-		<section id="conversation" class={card}>
-			<div class={cardHead}>
-				<h2 class={title}>Check-ins and messages</h2>
-			</div>
-
-			{#if !showThread}
-				<p class="m-0 text-muted">Available with human coaching.</p>
-			{:else}
-				<div id="check-ins">
-					<div class="mb-3 flex items-center justify-between gap-3">
-						<h3 class="{sectionLabel} m-0!">Check-ins</h3>
-						{#if pending.length > 0}<span class={badgeWarn}>{pending.length} to answer</span>{/if}
-					</div>
-					{#if data.checkIns.length === 0}
-						<p class="m-0 text-muted">None yet.</p>
-					{:else if pending.length === 0}
-						<p class="m-0 text-muted">All answered.</p>
-					{/if}
-					{#each pending as checkIn (checkIn.id)}
-						<article class="mb-4 grid gap-2 rounded-lg border border-[#efb8ac] p-4 last:mb-0">
-							<p class="m-0 text-[0.85rem] text-muted">{when(checkIn.submitted_on)}</p>
-							<p class="m-0 whitespace-pre-line">{checkIn.body}</p>
-							<form
-								method="POST"
-								action="?/feedback"
-								class="m-0 grid gap-2"
-								use:enhance={keepPlace(`feedback-${checkIn.id}`)}
-							>
-								<input type="hidden" name="check_in_id" value={checkIn.id} />
-								<label class="sr-only" for="feedback-{checkIn.id}">Your feedback</label>
-								<textarea
-									id="feedback-{checkIn.id}"
-									name="feedback"
-									rows="3"
-									maxlength="4000"
-									required
-									placeholder="Your feedback"
-									onkeydown={sendOnShortcut}></textarea>
-								<button class={primary} disabled={busy === `feedback-${checkIn.id}`}
-									><Send size={18} aria-hidden="true" />Send feedback</button
-								>
-							</form>
-						</article>
-					{/each}
-					{#if answered.length > 0}
-						<details class="mt-3">
-							<summary class="cursor-pointer font-semibold text-cyan-ink"
-								>Answered ({answered.length})</summary
-							>
-							{#each answered as checkIn (checkIn.id)}
-								<article class="mt-4 grid gap-2 border-b border-line pb-4 last:border-b-0">
-									<p class="m-0 text-[0.85rem] text-muted">{when(checkIn.submitted_on)}</p>
-									<p class="m-0 whitespace-pre-line">{checkIn.body}</p>
-									<form
-										method="POST"
-										action="?/feedback"
-										class="m-0 grid gap-2"
-										use:enhance={keepPlace(`feedback-${checkIn.id}`, false)}
-									>
-										<input type="hidden" name="check_in_id" value={checkIn.id} />
-										<label class="grid gap-1 text-[0.85rem] font-semibold"
-											><span
-												>Your feedback<span class={requiredMark} aria-hidden="true">*</span></span
-											>
-											<textarea name="feedback" rows="2" maxlength="4000" required
-												>{checkIn.coach_feedback ?? ''}</textarea
-											>
-										</label>
-										<button class={subtle} disabled={busy === `feedback-${checkIn.id}`}
-											><Pencil size={16} aria-hidden="true" />Update</button
-										>
-									</form>
-								</article>
-							{/each}
-						</details>
-					{/if}
-				</div>
-
-				<div id="messages" class="mt-6 border-t border-line pt-6">
-					<div class="mb-3 flex items-center justify-between gap-3">
-						<h3 class="{sectionLabel} m-0!">Messages</h3>
-						{#if unread > 0}<span class={badgeWarn}>{unread} new</span>{/if}
-					</div>
-					{#if data.messages.length === 0}
-						<p class="m-0 text-muted">None yet.</p>
-					{:else}
-						<ul bind:this={messageList} class="{rows} max-h-[420px] gap-2 overflow-y-auto">
-							{#each data.messages as message (message.id)}
-								{@const mine = message.sender_role === 'coach'}
-								<li
-									class={[
-										'max-w-[85%] rounded-xl px-4 py-2',
-										mine
-											? 'justify-self-end border border-cyan-ink'
-											: 'justify-self-start border border-[#b7c6c7]'
-									]}
-								>
-									<p class="m-0 text-[0.75rem] text-muted">
-										<span class="font-semibold">{mine ? 'You' : 'Client'}</span>
-										<span class="ml-2">{when(message.created_at)}</span>
-										{#if !mine && !message.read_at}<span class="{badgeWarn} ml-2">New</span>{/if}
-									</p>
-									<p class="m-0 whitespace-pre-line">{message.body}</p>
-								</li>
-							{/each}
-						</ul>
-					{/if}
-					{#if isHuman}
-						<form
-							method="POST"
-							action="?/reply"
-							class="mt-4 grid gap-2"
-							use:enhance={keepPlace('reply')}
-						>
-							<label class="sr-only" for="reply-body">Message</label>
-							<textarea
-								id="reply-body"
-								name="body"
-								rows="2"
-								maxlength="2000"
-								required
-								placeholder="Write a message"
-								onkeydown={sendOnShortcut}></textarea>
-							<div class="flex flex-wrap items-center gap-3">
-								<button class={primary} disabled={busy === 'reply'} title="Ctrl + Enter"
-									><Send size={18} aria-hidden="true" />Send</button
-								>
-							</div>
-						</form>
-					{:else}
-						<p class="{help} mb-0!">Switch to Human to reply.</p>
-					{/if}
-				</div>
-			{/if}
-		</section>
-	</div>
-
-	<!-- Side column: context about the client. -->
-	<div class={['grid min-w-0 gap-6', !data.program && 'order-first min-[1100px]:order-none']}>
-		<section id="assessment" class={card}>
-			<div class={cardHead}>
-				<h2 class={title}>Assessment</h2>
-				{#if status}<span class={toneClass[status.tone]}>{status.label}</span>{/if}
-			</div>
-			{#if !data.assessment}
-				<p class="m-0 text-muted">Not taken yet.</p>
-			{:else}
-				<dl class={rows}>
-					{#each summary as item (item.label)}
-						<div class={row}>
-							<dt class={rowKey}>{item.label}</dt>
-							<dd class={rowValue}>{item.value}</dd>
-						</div>
-					{/each}
-					<div class={row}>
-						<dt class={rowKey}>Submitted</dt>
-						<dd class={rowValue}>{when(data.assessment.created_at)}</dd>
-					</div>
-				</dl>
-				{#if data.assessment.explanation}
-					<div class="mt-4 rounded-lg border border-[#b7c6c7] p-3 text-[0.9rem]">
-						<h3 class="{sectionLabel} mb-1!">AI note</h3>
-						<p class="m-0">{data.assessment.explanation}</p>
-					</div>
-				{/if}
-			{/if}
-		</section>
-
 		<section id="progress" class={card}>
 			<div class={cardHead}>
 				<h2 class={title}>Progress</h2>
@@ -633,6 +445,38 @@
 						</li>
 					{/each}
 				</ul>
+			{/if}
+		</section>
+	</div>
+
+	<!-- Side column: assessment answers and account actions. -->
+	<div class={['grid min-w-0 gap-6', !data.program && 'order-first min-[1100px]:order-none']}>
+		<section id="assessment" class={card}>
+			<div class={cardHead}>
+				<h2 class={title}>Assessment</h2>
+				{#if status}<span class={toneClass[status.tone]}>{status.label}</span>{/if}
+			</div>
+			{#if !data.assessment}
+				<p class="m-0 text-muted">Not taken yet.</p>
+			{:else}
+				<dl class={rows}>
+					{#each summary as item (item.label)}
+						<div class={row}>
+							<dt class={rowKey}>{item.label}</dt>
+							<dd class={rowValue}>{item.value}</dd>
+						</div>
+					{/each}
+					<div class={row}>
+						<dt class={rowKey}>Submitted</dt>
+						<dd class={rowValue}>{when(data.assessment.created_at)}</dd>
+					</div>
+				</dl>
+				{#if data.assessment.explanation}
+					<div class="mt-4 rounded-lg border border-[#b7c6c7] p-3 text-[0.9rem]">
+						<h3 class="{sectionLabel} mb-1!">AI note</h3>
+						<p class="m-0">{data.assessment.explanation}</p>
+					</div>
+				{/if}
 			{/if}
 		</section>
 

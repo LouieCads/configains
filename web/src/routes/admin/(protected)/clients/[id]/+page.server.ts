@@ -10,14 +10,12 @@ import {
 	loadActiveProgram,
 	markAssessmentsReviewed
 } from '$lib/server/coaching/templates';
-import { loadCoachingThread, saveCheckInFeedback, sendMessage } from '$lib/server/coaching/human';
 import { loadProgress } from '$lib/server/coaching/progress';
-import { markMessagesRead } from '$lib/server/coaching/tasks';
+import { loadConversationCounts } from '$lib/server/coaching/human';
 import { inviteState, resendInvite, type InviteState } from '$lib/server/auth/invites';
 import { createServiceClient } from '$lib/server/supabase-admin';
 import type { Actions, PageServerLoad } from './$types';
 
-const messageLimit = 2000;
 const nameLimit = 120;
 
 /** Service-role client, or null when the secret is not configured (local development). */
@@ -34,7 +32,6 @@ async function readInviteState(clientId: string): Promise<InviteState | null> {
 	const admin = serviceClient();
 	return admin ? inviteState(admin, clientId).catch(() => null) : null;
 }
-const feedbackLimit = 4000;
 
 export const load: PageServerLoad = async (event) => {
 	const clientId = event.params.id;
@@ -46,8 +43,8 @@ export const load: PageServerLoad = async (event) => {
 	// Everything loads in one round: the admin check runs alongside the queries (RLS still limits
 	// what a non-admin could read, and a failed check discards the results).
 	const supabase = event.locals.supabase;
-	const [, profileResult, program, thread, progress, templates, latest, invite] = await Promise.all(
-		[
+	const [, profileResult, program, conversation, progress, templates, latest, invite] =
+		await Promise.all([
 			requireAdmin(event),
 			supabase
 				.from('client_profiles')
@@ -55,7 +52,7 @@ export const load: PageServerLoad = async (event) => {
 				.eq('id', clientId)
 				.maybeSingle(),
 			loadActiveProgram(supabase, clientId),
-			loadCoachingThread(supabase, clientId),
+			loadConversationCounts(supabase, clientId),
 			loadProgress(supabase, clientId, new Date().toISOString().slice(0, 10)),
 			// Only active (non-archived) library templates can be assigned.
 			listAssignable(supabase),
@@ -67,22 +64,18 @@ export const load: PageServerLoad = async (event) => {
 				.limit(1)
 				.maybeSingle(),
 			readInviteState(clientId)
-		]
-	);
+		]);
 	const { data: profile, error: profileError } = profileResult;
 	if (profileError) error(500, 'The client could not be loaded.');
 	if (!profile) error(404, 'Client not found.');
 
 	const assessment = latest.data;
-	// Opening the client counts as reading their messages. This load's copy still shows which were new.
-	if (thread.messages.some((message) => message.sender_role === 'client' && !message.read_at))
-		await markMessagesRead(supabase, clientId);
 
 	return {
 		client: profile,
 		invite,
 		program,
-		...thread,
+		conversation,
 		progress,
 		assessment: assessment
 			? {
@@ -201,23 +194,6 @@ export const actions = {
 		redirect(303, `/admin/templates/${copy}?client=${clientId}`);
 	},
 
-	feedback: async (event) => {
-		requireSameOrigin(event);
-		await requireAdmin(event);
-		const clientId = event.params.id;
-		const form = await event.request.formData();
-		const checkInId = String(form.get('check_in_id') ?? '');
-		const feedback = cleanText(form.get('feedback'), feedbackLimit);
-		if (!isUuid(clientId) || !isUuid(checkInId))
-			return fail(400, { message: 'The check-in could not be found.' });
-		if (!feedback)
-			return fail(400, { message: `Write feedback of up to ${feedbackLimit} characters.` });
-
-		const result = await saveCheckInFeedback(event.locals.supabase, clientId, checkInId, feedback);
-		if (!result.ok) return fail(400, { message: 'The feedback could not be saved. Try again.' });
-		return { updated: 'feedback' };
-	},
-
 	rename: async (event) => {
 		requireSameOrigin(event);
 		await requireAdmin(event);
@@ -298,19 +274,5 @@ export const actions = {
 				code: authError.code
 			});
 		redirect(303, '/admin/clients?deleted=1');
-	},
-
-	reply: async (event) => {
-		requireSameOrigin(event);
-		await requireAdmin(event);
-		const clientId = event.params.id;
-		const body = cleanText((await event.request.formData()).get('body'), messageLimit);
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
-		if (!body)
-			return fail(400, { message: `Write a message of up to ${messageLimit} characters.` });
-
-		const result = await sendMessage(event.locals.supabase, clientId, 'coach', body);
-		if (!result.ok) return fail(400, { message: 'The message could not be sent. Try again.' });
-		return { updated: 'reply' };
 	}
 } satisfies Actions;
