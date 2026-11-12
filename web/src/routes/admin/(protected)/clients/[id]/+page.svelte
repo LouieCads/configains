@@ -13,6 +13,9 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import AtSign from '@lucide/svelte/icons/at-sign';
+	import CalendarDays from '@lucide/svelte/icons/calendar-days';
+	import SkipForward from '@lucide/svelte/icons/skip-forward';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { answerSummary, assessmentStatus, healthLabel } from '$lib/coaching/labels';
@@ -113,6 +116,22 @@
 		].filter((item) => !!item)
 	);
 
+	const invitePending = $derived(Boolean(data.invite && !data.invite.accepted));
+	const nextPhase = $derived(
+		currentPhase ? phases[phases.findIndex((phase) => phase.id === currentPhase.id) + 1] : undefined
+	);
+	function focusReply(event: MouseEvent) {
+		const box = document.getElementById('reply-body');
+		if (!box) return;
+		event.preventDefault();
+		box.scrollIntoView({ block: 'center' });
+		box.focus({ preventScroll: true });
+	}
+	function openChange() {
+		changing = true;
+		document.getElementById('program')?.scrollIntoView({ block: 'start' });
+	}
+
 	let renaming = $state(false);
 	const archived = $derived(Boolean(data.client.archived_at));
 	const clientName = $derived(data.client.display_name ?? 'this client');
@@ -154,6 +173,8 @@
 	// Three text levels on every card: card title, small uppercase section label, then content.
 	const cardHead = 'mb-4 flex min-h-9 flex-wrap items-center justify-between gap-3';
 	const title = 'mb-0! text-[1.5rem]!';
+	const quick =
+		'inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-[#b7c6c7] bg-paper px-4 py-2 text-[0.875rem] font-semibold text-ink no-underline hover:border-cyan-ink disabled:cursor-not-allowed disabled:opacity-50';
 	const sectionLabel = 'text-[0.75rem] font-bold tracking-[1px] text-muted uppercase';
 	const rows = 'm-0 grid list-none gap-0 p-0';
 	const row =
@@ -231,22 +252,68 @@
 		</form>
 	</div>
 
-	<p class="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.9rem] text-muted">
-		{#if data.invite?.email}<span>{data.invite.email}</span><span aria-hidden="true">·</span>{/if}
-		<span>Joined {when(data.client.created_at)}</span>
+	<p class="m-0 flex flex-wrap items-center gap-x-5 gap-y-1 text-[0.9rem] text-muted">
+		{#if data.invite?.email}<span class="inline-flex items-center gap-1.5"
+				><AtSign size={15} aria-hidden="true" />{data.invite.email}</span
+			>{/if}
+		<span class="inline-flex items-center gap-1.5"
+			><CalendarDays size={15} aria-hidden="true" />Joined {when(data.client.created_at)}</span
+		>
 		{#if archived}<span class={badgeNeutral}>Archived</span>{/if}
-		{#if data.invite && !data.invite.accepted}
-			<span class={badgeWarn}>Invite pending</span>
-		{/if}
+		{#if invitePending}<span class={badgeWarn}>Invite pending</span>{/if}
 	</p>
-	{#if data.invite && !data.invite.accepted}
-		<form method="POST" action="?/resend" class="m-0" use:enhance={keepPlace('resend')}>
-			<button class="{subtle} -ml-2.5" disabled={busy === 'resend'}
-				><Mail size={16} aria-hidden="true" />{busy === 'resend'
-					? 'Sending…'
-					: 'Resend invite'}</button
-			>
-		</form>
+
+	<!-- Quick actions: the jobs a coach does most, without scrolling. Only relevant ones show. -->
+	{#if invitePending || isHuman || data.program}
+		<div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Quick actions">
+			{#if isHuman}
+				<a class={quick} href="#reply-body" onclick={focusReply}
+					><Send size={16} aria-hidden="true" />Message</a
+				>
+			{/if}
+			{#if data.program && nextPhase}
+				<form method="POST" action="?/phase" class="m-0" use:enhance={keepPlace('phase')}>
+					<input type="hidden" name="program_id" value={data.program.id} />
+					<button
+						class={quick}
+						name="phase_id"
+						value={nextPhase.id}
+						disabled={busy === 'phase'}
+						title="Move to {nextPhase.name}"
+						><SkipForward size={16} aria-hidden="true" />Next phase</button
+					>
+				</form>
+			{/if}
+			{#if data.program?.customised && data.program.workout}
+				<a class={quick} href="/admin/templates/{data.program.workout.id}?client={data.client.id}"
+					><Pencil size={16} aria-hidden="true" />Edit workout</a
+				>
+			{:else if data.program}
+				<form method="POST" action="?/customise" class="m-0" use:enhance={keepPlace('customise')}>
+					<input type="hidden" name="program_id" value={data.program.id} />
+					<button
+						class={quick}
+						disabled={busy === 'customise'}
+						title="Make a copy of the workout to edit for this client only"
+						><Copy size={16} aria-hidden="true" />Customise workout</button
+					>
+				</form>
+			{/if}
+			{#if data.program}
+				<button type="button" class={quick} onclick={openChange}
+					><Repeat size={16} aria-hidden="true" />Change program</button
+				>
+			{/if}
+			{#if invitePending}
+				<form method="POST" action="?/resend" class="m-0" use:enhance={keepPlace('resend')}>
+					<button class={quick} disabled={busy === 'resend'}
+						><Mail size={16} aria-hidden="true" />{busy === 'resend'
+							? 'Sending…'
+							: 'Resend invite'}</button
+					>
+				</form>
+			{/if}
+		</div>
 	{/if}
 </header>
 
@@ -341,36 +408,11 @@
 									{/each}
 								</div>
 							</form>
-							<p class="{help} mb-0!">Select a phase to move the client to it.</p>
 						{:else}
 							<p class="m-0 font-semibold">{currentPhase.name}</p>
 						{/if}
 					</div>
 				{/if}
-
-				<div class="mt-6 flex flex-wrap items-center gap-3 border-t border-line pt-4">
-					{#if data.program.customised && data.program.workout}
-						<a
-							class={secondary}
-							href="/admin/templates/{data.program.workout.id}?client={data.client.id}"
-							><Pencil size={18} aria-hidden="true" />Edit workout</a
-						>
-						<p class="{help} m-0!">Changes apply to this client only.</p>
-					{:else}
-						<form
-							method="POST"
-							action="?/customise"
-							class="m-0"
-							use:enhance={keepPlace('customise')}
-						>
-							<input type="hidden" name="program_id" value={data.program.id} />
-							<button class={secondary} disabled={busy === 'customise'}
-								><Copy size={18} aria-hidden="true" />Customise</button
-							>
-						</form>
-						<p class="{help} m-0!">Makes a copy you can edit for this client only.</p>
-					{/if}
-				</div>
 			{/if}
 
 			{#if !data.program || changing}
@@ -514,14 +556,13 @@
 								placeholder="Write a message"
 								onkeydown={sendOnShortcut}></textarea>
 							<div class="flex flex-wrap items-center gap-3">
-								<button class={primary} disabled={busy === 'reply'}
+								<button class={primary} disabled={busy === 'reply'} title="Ctrl + Enter"
 									><Send size={18} aria-hidden="true" />Send</button
 								>
-								<span class="{help} m-0!">Ctrl + Enter to send</span>
 							</div>
 						</form>
 					{:else}
-						<p class="{help} mb-0!">Read only. Switch to human coaching to reply.</p>
+						<p class="{help} mb-0!">Switch to Human to reply.</p>
 					{/if}
 				</div>
 			{/if}
@@ -602,7 +643,12 @@
 			<div class="flex flex-wrap gap-3">
 				<form method="POST" action="?/archive" class="m-0" use:enhance={keepPlace('archive')}>
 					<input type="hidden" name="archive" value={archived ? '0' : '1'} />
-					<button class={secondary} disabled={busy === 'archive'}
+					<button
+						class={secondary}
+						disabled={busy === 'archive'}
+						title={archived
+							? 'Show the client in your lists again'
+							: 'Hide the client and keep their history'}
 						>{#if archived}<ArchiveRestore size={18} aria-hidden="true" />Restore{:else}<Archive
 								size={18}
 								aria-hidden="true"
@@ -613,12 +659,6 @@
 					<button class={secondaryDanger}><Trash2 size={18} aria-hidden="true" />Delete</button>
 				</form>
 			</div>
-			<p class="{help} mb-0!">
-				{archived
-					? 'Restore puts the client back in your lists.'
-					: 'Archive hides the client but keeps their history.'}
-				Delete removes everything for good.
-			</p>
 		</section>
 	</div>
 </div>
