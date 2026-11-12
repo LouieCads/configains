@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { inviteClient, validInviteEmail } from './invites';
+import { inviteClient, resendInvite, validInviteEmail } from './invites';
 import { validNewPassword, validRecoveryToken } from './recovery';
 
 type InviteReply = {
@@ -17,9 +17,11 @@ function admin(invite: InviteReply, deleteUser = vi.fn(async () => ({ error: nul
 	};
 }
 
-function coach(profileError: { message: string } | null = null) {
+function coach(profileError: { message: string } | null = null, existing = false) {
 	const insert = vi.fn(async () => ({ error: profileError }));
-	const client = { from: vi.fn(() => ({ insert })) } as unknown as SupabaseClient;
+	const maybeSingle = vi.fn(async () => ({ data: existing ? { id: 'user-1' } : null }));
+	const select = vi.fn(() => ({ eq: () => ({ maybeSingle }) }));
+	const client = { from: vi.fn(() => ({ insert, select })) } as unknown as SupabaseClient;
 	return { client, insert };
 }
 
@@ -56,7 +58,7 @@ describe('inviteClient', () => {
 			redirectTo
 		});
 
-		expect(result).toEqual({ ok: true, userId: 'user-1' });
+		expect(result).toEqual({ ok: true, userId: 'user-1', resent: false });
 		expect(service.client.auth.admin.inviteUserByEmail).toHaveBeenCalledWith('sam@example.com', {
 			redirectTo
 		});
@@ -87,6 +89,68 @@ describe('inviteClient', () => {
 		});
 		expect(result.ok).toBe(false);
 		expect(service.deleteUser).toHaveBeenCalledWith('user-2');
+	});
+});
+
+describe('inviting an address that was invited before', () => {
+	it('keeps the existing profile and auth user when Supabase re-sends the invite', async () => {
+		const service = admin({ data: { user: { id: 'user-1' } }, error: null });
+		const session = coach(null, true);
+		const result = await inviteClient({
+			admin: service.client,
+			coach: session.client,
+			email: 'sam@example.com',
+			displayName: 'Sam',
+			redirectTo
+		});
+		expect(result).toEqual({ ok: true, userId: 'user-1', resent: true });
+		expect(session.insert).not.toHaveBeenCalled();
+		expect(service.deleteUser).not.toHaveBeenCalled();
+	});
+});
+
+describe('resendInvite', () => {
+	function service(user: { email: string; email_confirmed_at: string | null } | null) {
+		const inviteUserByEmail = vi.fn(async () => ({ data: { user: {} }, error: null }));
+		const client = {
+			auth: {
+				admin: {
+					getUserById: vi.fn(async () => ({
+						data: { user },
+						error: user ? null : { message: 'x' }
+					})),
+					inviteUserByEmail
+				}
+			}
+		} as unknown as SupabaseClient;
+		return { client, inviteUserByEmail };
+	}
+
+	it('sends a new link to a client who has not accepted', async () => {
+		const { client, inviteUserByEmail } = service({
+			email: 'sam@example.com',
+			email_confirmed_at: null
+		});
+		expect(await resendInvite(client, 'user-1', redirectTo)).toEqual({
+			ok: true,
+			email: 'sam@example.com'
+		});
+		expect(inviteUserByEmail).toHaveBeenCalledWith('sam@example.com', { redirectTo });
+	});
+
+	it('does not resend once the client has accepted', async () => {
+		const { client, inviteUserByEmail } = service({
+			email: 'sam@example.com',
+			email_confirmed_at: '2026-11-01T00:00:00Z'
+		});
+		const result = await resendInvite(client, 'user-1', redirectTo);
+		expect(result.ok).toBe(false);
+		expect(inviteUserByEmail).not.toHaveBeenCalled();
+	});
+
+	it('reports a missing account', async () => {
+		const { client } = service(null);
+		expect((await resendInvite(client, 'user-1', redirectTo)).ok).toBe(false);
 	});
 });
 

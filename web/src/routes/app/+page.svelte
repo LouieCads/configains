@@ -13,6 +13,8 @@
 		tabSelected
 	} from '$lib/features/cms/styles';
 	import Tooltip from '$lib/components/Tooltip.svelte';
+	import ExerciseDemo from '$lib/features/coaching/ExerciseDemo.svelte';
+	import { prescription, rirHelp } from '$lib/coaching/template';
 	import { aiDisclosureVersion } from '$lib/coaching/disclosure';
 	let { data } = $props();
 
@@ -117,17 +119,34 @@
 						{:else}
 							<ol class="mt-3 grid gap-3">
 								{#each selected.exercises as exercise (exercise.id)}
+									{@const varied = exercise.set_plan.length > 0}
 									<li class="rounded-lg border border-line p-4">
-										<strong>{exercise.name}</strong>
-										<p class={help}>
-											{[
-												exercise.sets ? `${exercise.sets} sets` : null,
-												exercise.reps ? `${exercise.reps} reps` : null,
-												exercise.rest_seconds !== null ? `${exercise.rest_seconds}s rest` : null
-											]
-												.filter(Boolean)
-												.join(', ')}
+										<div class="flex flex-wrap items-center justify-between gap-2">
+											<strong>{exercise.name}</strong>
+											{#if exercise.demo}<ExerciseDemo
+													demo={exercise.demo}
+													name={exercise.name}
+												/>{/if}
+										</div>
+										<p class="{help} flex flex-wrap items-center gap-1">
+											{prescription(exercise)}
+											{#if exercise.rir || exercise.set_plan.some((set) => set.rir)}<Tooltip
+													label="What is RIR?"
+													text={rirHelp}
+												/>{/if}
 										</p>
+										{#if varied}
+											<ol class="m-0 mb-2 grid list-none gap-1 p-0 text-[0.9rem]">
+												{#each exercise.set_plan as set, index (index)}
+													<li>
+														<span class="font-semibold">Set {index + 1}:</span>
+														{[set.reps && `${set.reps} reps`, set.rir && `RIR ${set.rir}`]
+															.filter(Boolean)
+															.join(', ') || 'As you feel'}
+													</li>
+												{/each}
+											</ol>
+										{/if}
 										{#if exercise.notes}<p>{exercise.notes}</p>{/if}
 									</li>
 								{/each}

@@ -11,6 +11,7 @@
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import MessageSquareQuote from '@lucide/svelte/icons/message-square-quote';
 	import Users from '@lucide/svelte/icons/users';
+	import Dumbbell from '@lucide/svelte/icons/dumbbell';
 
 	const icons: Record<string, typeof Users> = {
 		'/admin/dashboard': LayoutDashboard,
@@ -19,7 +20,8 @@
 		'/admin/transformations': Images,
 		'/admin/clients': Users,
 		'/admin/assessments': ClipboardCheck,
-		'/admin/templates': LayoutTemplate
+		'/admin/templates': LayoutTemplate,
+		'/admin/exercises': Dumbbell
 	};
 	let {
 		children,

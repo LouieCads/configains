@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { demoFrom } from '$lib/coaching/demo';
 import type {
 	ExerciseInput,
 	PhaseInput,
@@ -6,15 +7,25 @@ import type {
 	TemplateRules
 } from '$lib/coaching/template';
 
-type ExerciseRow = ExerciseInput & { id: string; position: number };
+type LibraryRow = {
+	youtube_id: string | null;
+	media_path: string | null;
+	media_kind: string | null;
+};
+type ExerciseRow = ExerciseInput & {
+	id: string;
+	position: number;
+	library?: LibraryRow | LibraryRow[] | null;
+};
 type PhaseRow = Omit<PhaseInput, 'exercises'> & {
 	id: string;
 	position: number;
 	template_exercises: ExerciseRow[];
 };
 
-const exerciseColumns = 'id, position, name, sets, reps, rest_seconds, notes';
-const phaseColumns = `id, position, name, instructions, template_exercises(${exerciseColumns})`;
+const exerciseColumns =
+	'id, position, name, sets, reps, rir, set_plan, rest_seconds, notes, library:exercise_library(youtube_id, media_path, media_kind)';
+const phaseColumns = `id, position, name, instructions, duration_weeks, template_exercises(${exerciseColumns})`;
 
 function byPosition<T extends { position: number }>(rows: T[] | null | undefined): T[] {
 	return [...(rows ?? [])].sort((a, b) => a.position - b.position);
@@ -25,10 +36,21 @@ function toExerciseInput({
 	name,
 	sets,
 	reps,
+	rir,
+	set_plan,
 	rest_seconds,
 	notes
 }: ExerciseRow): ExerciseInput {
-	return { id, name, sets, reps, rest_seconds, notes };
+	return {
+		id,
+		name,
+		sets,
+		reps,
+		rir: rir ?? null,
+		set_plan: Array.isArray(set_plan) ? set_plan : [],
+		rest_seconds,
+		notes
+	};
 }
 
 /** Turns nested rows from PostgREST into the editor's shape, sorted by position. */
@@ -37,7 +59,22 @@ export function phasesFromRows(rows: PhaseRow[] | null | undefined) {
 		id: phase.id,
 		name: phase.name,
 		instructions: phase.instructions,
+		duration_weeks: phase.duration_weeks ?? null,
 		exercises: byPosition(phase.template_exercises).map(toExerciseInput)
+	}));
+}
+
+/** Program view for clients: like phasesFromRows, plus each exercise's demonstration. */
+export function programPhasesFromRows(rows: PhaseRow[] | null | undefined) {
+	return byPosition(rows).map((phase) => ({
+		id: phase.id,
+		name: phase.name,
+		instructions: phase.instructions,
+		duration_weeks: phase.duration_weeks ?? null,
+		exercises: byPosition(phase.template_exercises).map((row) => {
+			const library = Array.isArray(row.library) ? row.library[0] : row.library;
+			return { ...toExerciseInput(row), demo: demoFrom(library) };
+		})
 	}));
 }
 
@@ -142,7 +179,7 @@ export async function assignProgram(
 	};
 }
 
-const programColumns = `id, source, assessment_id, current_phase_id,
+const programColumns = `id, source, assessment_id, current_phase_id, phase_started_at,
 	workout:program_templates!workout_template_id(id, name, description, owner_client_id, template_phases(${phaseColumns})),
 	nutrition:program_templates!nutrition_template_id(id, name, description, template_phases(${phaseColumns}))`;
 
@@ -179,7 +216,7 @@ export async function loadActiveProgram(supabase: SupabaseClient, clientId: stri
 					id: template.id,
 					name: template.name,
 					description: template.description,
-					phases: phasesFromRows(template.template_phases)
+					phases: programPhasesFromRows(template.template_phases)
 				}
 			: null;
 
@@ -203,6 +240,7 @@ export async function loadActiveProgram(supabase: SupabaseClient, clientId: stri
 		explanation,
 		customised: Boolean(workoutOwner),
 		currentPhaseId: data.current_phase_id as string | null,
+		phaseStartedAt: data.phase_started_at as string,
 		workout: shape(data.workout as never),
 		nutrition: shape(data.nutrition as never)
 	};

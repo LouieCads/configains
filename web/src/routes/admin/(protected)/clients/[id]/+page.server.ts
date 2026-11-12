@@ -12,9 +12,28 @@ import {
 } from '$lib/server/coaching/templates';
 import { loadCoachingThread, saveCheckInFeedback, sendMessage } from '$lib/server/coaching/human';
 import { loadProgress } from '$lib/server/coaching/progress';
+import { markMessagesRead } from '$lib/server/coaching/tasks';
+import { inviteState, resendInvite, type InviteState } from '$lib/server/auth/invites';
+import { createServiceClient } from '$lib/server/supabase-admin';
 import type { Actions, PageServerLoad } from './$types';
 
 const messageLimit = 2000;
+const nameLimit = 120;
+
+/** Service-role client, or null when the secret is not configured (local development). */
+function serviceClient() {
+	try {
+		return createServiceClient();
+	} catch {
+		return null;
+	}
+}
+
+/** Email and invite status. Read with the service role; missing setup just hides them. */
+async function readInviteState(clientId: string): Promise<InviteState | null> {
+	const admin = serviceClient();
+	return admin ? inviteState(admin, clientId).catch(() => null) : null;
+}
 const feedbackLimit = 4000;
 
 export const load: PageServerLoad = async (event) => {
@@ -27,34 +46,41 @@ export const load: PageServerLoad = async (event) => {
 	// Everything loads in one round: the admin check runs alongside the queries (RLS still limits
 	// what a non-admin could read, and a failed check discards the results).
 	const supabase = event.locals.supabase;
-	const [, profileResult, program, thread, progress, templates, latest] = await Promise.all([
-		requireAdmin(event),
-		supabase
-			.from('client_profiles')
-			.select('id, display_name, coaching_mode, created_at')
-			.eq('id', clientId)
-			.maybeSingle(),
-		loadActiveProgram(supabase, clientId),
-		loadCoachingThread(supabase, clientId),
-		loadProgress(supabase, clientId, new Date().toISOString().slice(0, 10)),
-		// Only active (non-archived) library templates can be assigned.
-		listAssignable(supabase),
-		supabase
-			.from('assessments')
-			.select('id, status, answers, red_flags, created_at, ai_recommendations(explanation)')
-			.eq('client_id', clientId)
-			.order('created_at', { ascending: false })
-			.limit(1)
-			.maybeSingle()
-	]);
+	const [, profileResult, program, thread, progress, templates, latest, invite] = await Promise.all(
+		[
+			requireAdmin(event),
+			supabase
+				.from('client_profiles')
+				.select('id, display_name, coaching_mode, created_at, archived_at')
+				.eq('id', clientId)
+				.maybeSingle(),
+			loadActiveProgram(supabase, clientId),
+			loadCoachingThread(supabase, clientId),
+			loadProgress(supabase, clientId, new Date().toISOString().slice(0, 10)),
+			// Only active (non-archived) library templates can be assigned.
+			listAssignable(supabase),
+			supabase
+				.from('assessments')
+				.select('id, status, answers, red_flags, created_at, ai_recommendations(explanation)')
+				.eq('client_id', clientId)
+				.order('created_at', { ascending: false })
+				.limit(1)
+				.maybeSingle(),
+			readInviteState(clientId)
+		]
+	);
 	const { data: profile, error: profileError } = profileResult;
 	if (profileError) error(500, 'The client could not be loaded.');
 	if (!profile) error(404, 'Client not found.');
 
 	const assessment = latest.data;
+	// Opening the client counts as reading their messages. This load's copy still shows which were new.
+	if (thread.messages.some((message) => message.sender_role === 'client' && !message.read_at))
+		await markMessagesRead(supabase, clientId);
 
 	return {
 		client: profile,
+		invite,
 		program,
 		...thread,
 		progress,
@@ -190,6 +216,88 @@ export const actions = {
 		const result = await saveCheckInFeedback(event.locals.supabase, clientId, checkInId, feedback);
 		if (!result.ok) return fail(400, { message: 'The feedback could not be saved. Try again.' });
 		return { updated: 'feedback' };
+	},
+
+	rename: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		const name = cleanText((await event.request.formData()).get('display_name'), nameLimit);
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		if (!name) return fail(400, { message: `Enter a name of up to ${nameLimit} characters.` });
+
+		const { error: renameError } = await event.locals.supabase
+			.from('client_profiles')
+			.update({ display_name: name })
+			.eq('id', clientId);
+		if (renameError) return fail(400, { message: 'The name could not be saved. Try again.' });
+		return { updated: 'rename' };
+	},
+
+	archive: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		const archive = (await event.request.formData()).get('archive') === '1';
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+
+		const { error: archiveError } = await event.locals.supabase
+			.from('client_profiles')
+			.update({ archived_at: archive ? new Date().toISOString() : null })
+			.eq('id', clientId);
+		if (archiveError) return fail(400, { message: 'The client could not be updated. Try again.' });
+		return { updated: archive ? 'archive' : 'restore' };
+	},
+
+	resend: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		const admin = serviceClient();
+		if (!admin)
+			return fail(503, {
+				message: 'Invitations are not set up yet. Add the service-role secret in Netlify.'
+			});
+
+		const result = await resendInvite(
+			admin,
+			clientId,
+			new URL('/account/accept-invite', event.url.origin).href
+		);
+		if (!result.ok) return fail(400, { message: result.message });
+		return { updated: 'resend' };
+	},
+
+	delete: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		// Check the secret first, so coaching data is never removed while the login is left behind.
+		const admin = serviceClient();
+		if (!admin)
+			return fail(503, {
+				message: 'Deleting clients needs the service-role secret in Netlify.'
+			});
+
+		const { error: deleteError } = await event.locals.supabase.rpc('delete_client', {
+			p_client_id: clientId
+		});
+		if (deleteError)
+			return fail(400, {
+				message:
+					deleteError.code === '22023'
+						? deleteError.message
+						: 'The client could not be deleted. Try again.'
+			});
+		const { error: authError } = await admin.auth.admin.deleteUser(clientId);
+		if (authError)
+			console.error('Client data was deleted but the login could not be removed', {
+				clientId,
+				code: authError.code
+			});
+		redirect(303, '/admin/clients?deleted=1');
 	},
 
 	reply: async (event) => {

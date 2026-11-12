@@ -33,6 +33,15 @@ export async function inviteClient({ admin, coach, email, displayName, redirectT
 	}
 
 	const userId = data.user.id;
+	// Supabase re-sends the invite when the address was invited before but never accepted. That
+	// client already has a profile: keep it, and never remove their auth user.
+	const { data: existing } = await coach
+		.from('client_profiles')
+		.select('id')
+		.eq('id', userId)
+		.maybeSingle();
+	if (existing) return { ok: true as const, userId, resent: true };
+
 	const { error: profileError } = await coach
 		.from('client_profiles')
 		.insert({ id: userId, display_name: displayName });
@@ -40,5 +49,42 @@ export async function inviteClient({ admin, coach, email, displayName, redirectT
 		await admin.auth.admin.deleteUser(userId);
 		return { ok: false as const, message: 'The client profile could not be created. Try again.' };
 	}
-	return { ok: true as const, userId };
+	return { ok: true as const, userId, resent: false };
+}
+
+export type InviteState = { email: string | null; accepted: boolean };
+
+/** Email and whether the client has accepted their invitation. Null when it cannot be read. */
+export async function inviteState(
+	admin: SupabaseClient,
+	userId: string
+): Promise<InviteState | null> {
+	const { data, error } = await admin.auth.admin.getUserById(userId);
+	if (error || !data.user) return null;
+	return { email: data.user.email ?? null, accepted: Boolean(data.user.email_confirmed_at) };
+}
+
+/**
+ * Sends a fresh invitation link to an existing client who has not accepted yet, for example
+ * after the first link expired. The account, profile and any program stay as they are.
+ */
+export async function resendInvite(admin: SupabaseClient, userId: string, redirectTo: string) {
+	const state = await inviteState(admin, userId);
+	if (!state?.email)
+		return { ok: false as const, message: 'The client account could not be found.' };
+	if (state.accepted)
+		return {
+			ok: false as const,
+			message: 'This client has already accepted their invitation and set a password.'
+		};
+	const { error } = await admin.auth.admin.inviteUserByEmail(state.email, { redirectTo });
+	if (error)
+		return {
+			ok: false as const,
+			message:
+				error.status === 429
+					? 'Too many emails were sent recently. Wait a few minutes and try again.'
+					: 'The invitation could not be sent. Try again.'
+		};
+	return { ok: true as const, email: state.email };
 }

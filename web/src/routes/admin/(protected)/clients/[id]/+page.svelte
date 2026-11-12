@@ -9,10 +9,17 @@
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import X from '@lucide/svelte/icons/x';
 	import Repeat from '@lucide/svelte/icons/repeat';
+	import Archive from '@lucide/svelte/icons/archive';
+	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
+	import Check from '@lucide/svelte/icons/check';
+	import Mail from '@lucide/svelte/icons/mail';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { answerSummary, assessmentStatus, healthLabel } from '$lib/coaching/labels';
 	import { progressMetrics } from '$lib/coaching/progress';
+	import { phaseTiming, phaseTimingLabel } from '$lib/coaching/phase-timing';
+	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 	import AssignProgramForm from '$lib/features/coaching/AssignProgramForm.svelte';
 	import {
 		badgeNeutral,
@@ -23,6 +30,7 @@
 		help,
 		primary,
 		secondary,
+		secondaryDanger,
 		subtle,
 		success,
 		tabIdle,
@@ -36,6 +44,17 @@
 	const phases = $derived(data.program?.workout?.phases ?? []);
 	const currentPhase = $derived(phases.find((phase) => phase.id === data.program?.currentPhaseId));
 	const pending = $derived(data.checkIns.filter((checkIn) => !checkIn.coach_feedback));
+	const timing = $derived(
+		data.program && currentPhase
+			? phaseTiming(data.program.phaseStartedAt, currentPhase.duration_weeks)
+			: null
+	);
+	const timingLabel = $derived(
+		timing && currentPhase ? phaseTimingLabel(timing, currentPhase.id === phases.at(-1)?.id) : ''
+	);
+	const unread = $derived(
+		data.messages.filter((message) => message.sender_role === 'client' && !message.read_at).length
+	);
 	const answered = $derived(data.checkIns.filter((checkIn) => checkIn.coach_feedback));
 	const thisWeek = $derived(data.progress.weekly[0]);
 	const metricsWithData = $derived(
@@ -60,7 +79,23 @@
 		phase: 'Phase updated.',
 		feedback: 'Feedback sent.',
 		reply: 'Message sent.',
-		mode: 'Coaching mode changed.'
+		mode: 'Coaching mode changed.',
+		rename: 'Name saved.',
+		archive: 'Client archived.',
+		restore: 'Client restored.',
+		resend: 'A new invitation was sent.'
+	};
+
+	let renaming = $state(false);
+	const archived = $derived(Boolean(data.client.archived_at));
+	const clientName = $derived(data.client.display_name ?? 'this client');
+	const confirmDelete = (event: SubmitEvent) => {
+		if (
+			!confirm(
+				`Delete ${clientName} for good? Their login, assessments, programs, logs, check-ins and messages are removed. This cannot be undone. To keep their history, archive them instead.`
+			)
+		)
+			event.preventDefault();
 	};
 
 	let changing = $state(false);
@@ -74,6 +109,7 @@
 				await update({ reset });
 				busy = null;
 				if (result.type === 'success' && key === 'assign') changing = false;
+				if (result.type === 'success' && key === 'rename') renaming = false;
 			};
 		};
 
@@ -110,7 +146,44 @@
 	>
 </p>
 <header class="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1">
-	<h1 class="my-3! mr-auto">{data.client.display_name ?? 'Unnamed client'}</h1>
+	{#if renaming}
+		<form
+			method="POST"
+			action="?/rename"
+			class="my-3 mr-auto flex flex-wrap items-center gap-2"
+			use:enhance={keepPlace('rename', false)}
+		>
+			<label class="sr-only" for="client-name">Client name</label>
+			<!-- svelte-ignore a11y_autofocus -->
+			<input
+				id="client-name"
+				name="display_name"
+				maxlength="120"
+				required
+				autofocus
+				value={data.client.display_name ?? ''}
+				class="max-w-[320px]"
+			/>
+			<button class={primary} disabled={busy === 'rename'}
+				><Check size={18} aria-hidden="true" />Save</button
+			>
+			<button type="button" class={subtle} onclick={() => (renaming = false)}
+				><X size={16} aria-hidden="true" />Cancel</button
+			>
+		</form>
+	{:else}
+		<h1 class="my-3! mr-auto flex flex-wrap items-center gap-2">
+			{data.client.display_name ?? 'Unnamed client'}
+			<button
+				type="button"
+				class={subtle}
+				aria-label="Edit name"
+				title="Edit name"
+				onclick={() => (renaming = true)}><Pencil size={18} aria-hidden="true" /></button
+			>
+		</h1>
+	{/if}
+	{#if archived}<span class={badgeNeutral}>Archived</span>{/if}
 	<span class={isHuman ? badgeOk : badgeNeutral}>{isHuman ? 'Human coaching' : 'AI coaching'}</span>
 	<form method="POST" action="?/mode" class="m-0" use:enhance={keepPlace('mode')}>
 		<input type="hidden" name="mode" value={isHuman ? 'ai' : 'human'} />
@@ -118,7 +191,20 @@
 			><ArrowRightLeft size={16} aria-hidden="true" />Switch to {isHuman ? 'AI' : 'human'}</button
 		>
 	</form>
-	<span class="w-full text-[0.85rem] text-muted">Joined {when(data.client.created_at)}</span>
+	<span class="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-[0.85rem] text-muted">
+		{#if data.invite?.email}<span>{data.invite.email}</span>{/if}
+		<span>Joined {when(data.client.created_at)}</span>
+		{#if data.invite && !data.invite.accepted}
+			<span class={badgeWarn}>Invite not accepted</span>
+			<form method="POST" action="?/resend" class="m-0" use:enhance={keepPlace('resend')}>
+				<button class={subtle} disabled={busy === 'resend'}
+					><Mail size={16} aria-hidden="true" />{busy === 'resend'
+						? 'Sending…'
+						: 'Resend invitation'}</button
+				>
+			</form>
+		{/if}
+	</span>
 </header>
 
 {#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
@@ -127,7 +213,7 @@
 	</p>{/if}
 
 <!-- Only what needs the coach right now. Nothing renders when the client is up to date. -->
-{#if flags.length > 0 || pending.length > 0 || !data.program}
+{#if flags.length > 0 || pending.length > 0 || !data.program || timing?.due || unread > 0}
 	<ul class="mb-6 flex list-none flex-wrap gap-2 p-0" aria-label="Needs your attention">
 		{#if flags.length > 0}
 			<li>
@@ -142,6 +228,22 @@
 			<li>
 				<a class={attention} href="#program"
 					><ClipboardList size={16} aria-hidden="true" />No program assigned</a
+				>
+			</li>
+		{/if}
+		{#if timing?.due}
+			<li>
+				<a class={attention} href="#program"
+					><CalendarClock size={16} aria-hidden="true" />{timingLabel}</a
+				>
+			</li>
+		{/if}
+		{#if unread > 0}
+			<li>
+				<a class={attention} href="#messages"
+					><MessageSquare size={16} aria-hidden="true" />{unread} new message{unread === 1
+						? ''
+						: 's'}</a
 				>
 			</li>
 		{/if}
@@ -219,6 +321,17 @@
 					</form>
 				{:else if currentPhase}
 					<p class="{help} mt-3! mb-0!">Phase: {currentPhase.name}</p>
+				{/if}
+				{#if timingLabel}
+					<p
+						class={[
+							'mt-2! mb-0! text-[0.85rem]',
+							timing?.due ? 'font-semibold text-[#962f24]' : 'text-muted'
+						]}
+					>
+						{currentPhase?.name}: {timingLabel}{#if !timing?.weeks}. Set a phase length in the
+							template to get reminders.{/if}
+					</p>
 				{/if}
 
 				<div class="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-4">
@@ -360,6 +473,7 @@
 									<p class="m-0 text-[0.75rem] text-muted">
 										<span class="font-semibold">{mine ? 'You' : 'Client'}</span>
 										<span class="ml-2">{when(message.created_at)}</span>
+										{#if !mine && !message.read_at}<span class="{badgeWarn} ml-2">New</span>{/if}
 									</p>
 									<p class="m-0 whitespace-pre-line">{message.body}</p>
 								</li>
@@ -462,6 +576,41 @@
 					{/each}
 				</ul>
 			{/if}
+		</section>
+
+		<section id="manage" class={card}>
+			<div class={cardHead}>
+				<h2 class={title}>Manage client</h2>
+			</div>
+			<div class="grid gap-4">
+				<form
+					method="POST"
+					action="?/archive"
+					class="m-0 grid gap-1"
+					use:enhance={keepPlace('archive')}
+				>
+					<input type="hidden" name="archive" value={archived ? '0' : '1'} />
+					<button class={secondary} disabled={busy === 'archive'}
+						>{#if archived}<ArchiveRestore size={18} aria-hidden="true" />Restore client{:else}<Archive
+								size={18}
+								aria-hidden="true"
+							/>Archive client{/if}</button
+					>
+					<p class="{help} m-0!">
+						{archived
+							? 'Brings the client back into your lists and to-dos.'
+							: 'Hides the client from your lists and to-dos. Their login and history stay.'}
+					</p>
+				</form>
+				<form method="POST" action="?/delete" class="m-0 grid gap-1" onsubmit={confirmDelete}>
+					<button class={secondaryDanger}
+						><Trash2 size={18} aria-hidden="true" />Delete client</button
+					>
+					<p class="{help} m-0!">
+						Removes the login and all coaching data for good. Useful for test accounts.
+					</p>
+				</form>
+			</div>
 		</section>
 	</div>
 </div>

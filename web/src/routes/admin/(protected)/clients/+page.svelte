@@ -19,7 +19,9 @@
 		tabSelected,
 		requiredMark
 	} from '$lib/features/cms/styles';
+	import { page } from '$app/state';
 	let { form, data } = $props();
+	const deleted = $derived(page.url.searchParams.get('deleted') === '1');
 
 	let inviteOpen = $state(false);
 	let inviting = $state(false);
@@ -33,23 +35,30 @@
 		[
 			client.pendingCheckIns > 0 &&
 				`${client.pendingCheckIns} check-in${client.pendingCheckIns === 1 ? '' : 's'}`,
+			client.unreadMessages > 0 &&
+				`${client.unreadMessages} new message${client.unreadMessages === 1 ? '' : 's'}`,
 			client.assessmentStatus && openStatuses.includes(client.assessmentStatus) && 'New assessment',
 			!client.program && client.assessmentStatus && 'No program'
 		].filter((item): item is string => !!item);
 
 	let query = $state('');
-	let filter = $state<'all' | 'attention' | 'human' | 'ai'>('all');
+	let filter = $state<'all' | 'attention' | 'human' | 'ai' | 'archived'>('all');
 	const filters = [
 		{ value: 'all', label: 'All' },
 		{ value: 'attention', label: 'To do' },
 		{ value: 'human', label: 'Human' },
-		{ value: 'ai', label: 'AI' }
+		{ value: 'ai', label: 'AI' },
+		{ value: 'archived', label: 'Archived' }
 	] as const;
+	/** Archived clients only show under their own filter. */
 	const matchesFilter = (client: Client, value: typeof filter) =>
-		value === 'all' ||
-		(value === 'attention' && needs(client).length > 0) ||
-		(value === 'human' && client.coaching_mode === 'human') ||
-		(value === 'ai' && client.coaching_mode !== 'human');
+		value === 'archived'
+			? Boolean(client.archived_at)
+			: !client.archived_at &&
+				(value === 'all' ||
+					(value === 'attention' && needs(client).length > 0) ||
+					(value === 'human' && client.coaching_mode === 'human') ||
+					(value === 'ai' && client.coaching_mode !== 'human'));
 
 	const visible = $derived.by(() => {
 		const text = query.trim().toLowerCase();
@@ -82,7 +91,11 @@
 		>
 	</header>
 
-	{#if form?.invited}<p class="{success} m-0!" role="status">Invite sent to {form.email}.</p>{/if}
+	{#if form?.invited}<p class="{success} m-0!" role="status">
+			{form.resent ? 'A new invite was sent to' : 'Invite sent to'}
+			{form.email}.
+		</p>{/if}
+	{#if deleted && !form}<p class="{success} m-0!" role="status">Client deleted.</p>{/if}
 
 	<section id="invite-client" class={card} hidden={!inviteOpen}>
 		<h2 class="text-[1.5rem]!">Invite a client</h2>

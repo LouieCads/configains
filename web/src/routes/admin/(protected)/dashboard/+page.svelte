@@ -6,20 +6,39 @@
 	import Images from '@lucide/svelte/icons/images';
 	import MessageSquareQuote from '@lucide/svelte/icons/message-square-quote';
 	import Users from '@lucide/svelte/icons/users';
+	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
+	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
+	import Mail from '@lucide/svelte/icons/mail';
+	import MessageSquare from '@lucide/svelte/icons/message-square';
 	let { data } = $props();
 
-	const todo = $derived(
+	const groups = $derived(
 		[
-			data.checkIns > 0 && {
-				href: '/admin/clients',
-				label: `${data.checkIns} check-in${data.checkIns === 1 ? '' : 's'} waiting for feedback`
+			{
+				key: 'assessments',
+				title: 'Assessments to review',
+				icon: ClipboardList,
+				items: data.tasks.assessments
 			},
-			data.assessments > 0 && {
-				href: '/admin/assessments',
-				label: `${data.assessments} assessment${data.assessments === 1 ? '' : 's'} need your review`
+			{
+				key: 'checkIns',
+				title: 'Check-ins waiting for feedback',
+				icon: MessageSquare,
+				items: data.tasks.checkIns
+			},
+			{ key: 'messages', title: 'New client messages', icon: Mail, items: data.tasks.messages },
+			{
+				key: 'phases',
+				title: 'Program or phase updates due',
+				icon: CalendarClock,
+				items: data.tasks.phases
 			}
-		].filter((item) => !!item)
+		].filter((group) => group.items.length > 0)
 	);
+	const waiting = $derived(groups.reduce((total, group) => total + group.items.length, 0));
+	const when = (value: string) =>
+		new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
 	const shortcuts = $derived([
 		{
 			href: '/admin/content',
@@ -48,21 +67,50 @@
 <svelte:head><title>Dashboard | Configains CMS</title></svelte:head>
 <h1>Dashboard</h1>
 
-<section class="{card} mb-6">
-	<h2 class="text-[1.5rem]!">To do</h2>
-	{#if todo.length === 0}
+<section class="{card} mb-6" aria-labelledby="todo-title">
+	<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+		<h2 id="todo-title" class="m-0! text-[1.5rem]!">Today</h2>
+		{#if waiting > 0}<span class="text-[0.9rem] text-muted"
+				>{waiting} item{waiting === 1 ? '' : 's'} waiting</span
+			>{/if}
+	</div>
+	{#if data.localDemo}
+		<p class="m-0 text-muted">Coaching tasks are not available in the local demo.</p>
+	{:else if groups.length === 0}
 		<p class="m-0 text-muted">Nothing waiting. You're all caught up.</p>
 	{:else}
-		<ul class="m-0 grid list-none gap-2 p-0">
-			{#each todo as item (item.href)}
-				<li>
-					<a
-						class="flex items-center justify-between gap-3 rounded-lg border border-current p-3 font-semibold text-[#962f24] no-underline hover:underline"
-						href={item.href}>{item.label}<ChevronRight size={18} aria-hidden="true" /></a
+		<div class="grid gap-6 min-[900px]:grid-cols-2">
+			{#each groups as group (group.key)}
+				<section aria-labelledby="todo-{group.key}">
+					<h3
+						id="todo-{group.key}"
+						class="mb-2 flex items-center gap-2 text-[0.8rem] font-bold tracking-[1px] text-muted uppercase"
 					>
-				</li>
+						<group.icon size={16} aria-hidden="true" />{group.title}
+						<span class="font-normal">({group.items.length})</span>
+					</h3>
+					<ul class="m-0 grid list-none gap-2 p-0">
+						{#each group.items as item, index (`${item.clientId}-${index}`)}
+							<li>
+								<a
+									class="flex items-center gap-3 rounded-lg border border-line p-3 text-ink no-underline hover:border-cyan-ink"
+									href={item.href}
+								>
+									<span class="grid min-w-0 flex-1 gap-0.5">
+										<strong class="truncate text-[0.95rem]">{item.clientName}</strong>
+										<span class="truncate text-[0.85rem] text-muted">{item.detail}</span>
+									</span>
+									{#if group.key !== 'phases'}<span class="shrink-0 text-[0.8rem] text-muted"
+											>{when(item.at)}</span
+										>{/if}
+									<ChevronRight size={18} class="shrink-0 text-cyan-ink" aria-hidden="true" />
+								</a>
+							</li>
+						{/each}
+					</ul>
+				</section>
 			{/each}
-		</ul>
+		</div>
 	{/if}
 </section>
 

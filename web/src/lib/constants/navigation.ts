@@ -22,7 +22,8 @@ export const adminNavigation = [
 		items: [
 			{ href: '/admin/clients', label: 'Clients' },
 			{ href: '/admin/assessments', label: 'Assessments' },
-			{ href: '/admin/templates', label: 'Templates' }
+			{ href: '/admin/templates', label: 'Templates' },
+			{ href: '/admin/exercises', label: 'Exercise library' }
 		]
 	}
 ] as const;

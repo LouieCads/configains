@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { validateTemplate } from './template';
+import {
+	asLibraryTemplate,
+	prescription,
+	repsSummary,
+	setTargets,
+	validateTemplate
+} from './template';
 
 const phase = {
 	name: 'Week 1',
@@ -64,5 +70,103 @@ describe('validateTemplate', () => {
 			ok: false,
 			message: 'The template could not be read.'
 		});
+	});
+});
+
+describe('RIR and per-set targets', () => {
+	const exercise = (extra: Record<string, unknown>) =>
+		validateTemplate({
+			...workout,
+			phases: [{ ...phase, duration_weeks: 4, exercises: [{ ...phase.exercises[0], ...extra }] }]
+		});
+
+	it('keeps one RIR for every set and the phase length', () => {
+		const result = exercise({ rir: ' 2 ' });
+		if (!result.ok) throw new Error(result.message);
+		expect(result.value.phases[0].duration_weeks).toBe(4);
+		expect(result.value.phases[0].exercises[0]).toMatchObject({ rir: '2', set_plan: [] });
+	});
+
+	it('stores a varied plan, with sets taken from the plan and a reps summary', () => {
+		const set_plan = [
+			{ reps: '6-10', rir: '2' },
+			{ reps: '8-12', rir: '1' },
+			{ reps: '8-12', rir: '1' }
+		];
+		const result = exercise({ sets: 5, set_plan });
+		if (!result.ok) throw new Error(result.message);
+		expect(result.value.phases[0].exercises[0]).toMatchObject({
+			sets: 3,
+			reps: '6-10, 8-12 x2',
+			rir: null,
+			set_plan
+		});
+	});
+
+	it('folds a plan where every set is the same back into plain sets', () => {
+		const result = exercise({
+			set_plan: [
+				{ reps: '10', rir: '2' },
+				{ reps: '10', rir: '2' }
+			]
+		});
+		if (!result.ok) throw new Error(result.message);
+		expect(result.value.phases[0].exercises[0]).toMatchObject({
+			sets: 2,
+			reps: '10',
+			rir: '2',
+			set_plan: []
+		});
+	});
+
+	it('rejects long RIR text, too many sets and impossible phase lengths', () => {
+		expect(exercise({ rir: '12345678901' }).ok).toBe(false);
+		expect(exercise({ set_plan: Array.from({ length: 21 }, () => ({ reps: '5' })) }).ok).toBe(
+			false
+		);
+		expect(validateTemplate({ ...workout, phases: [{ ...phase, duration_weeks: 0 }] }).ok).toBe(
+			false
+		);
+	});
+
+	it('describes an exercise in one line', () => {
+		expect(prescription({ sets: 3, reps: '8-10', rir: '2', set_plan: [], rest_seconds: 90 })).toBe(
+			'3 sets, 8-10 reps, RIR 2, 90s rest'
+		);
+		expect(
+			prescription({
+				sets: 2,
+				reps: 'x',
+				rir: null,
+				set_plan: [
+					{ reps: '5', rir: null },
+					{ reps: '8', rir: null }
+				],
+				rest_seconds: null
+			})
+		).toBe('2 sets');
+		expect(setTargets({ sets: 2, reps: '10', rir: '1', set_plan: [] })).toEqual([
+			{ reps: '10', rir: '1' },
+			{ reps: '10', rir: '1' }
+		]);
+		expect(repsSummary([{ reps: null, rir: '1' }])).toBeNull();
+	});
+});
+
+describe('asLibraryTemplate', () => {
+	it('drops every row id and archiving, and renames the copy', () => {
+		const id = '11111111-2222-3333-4444-555555555555';
+		const result = validateTemplate({
+			...workout,
+			id,
+			is_archived: true,
+			phases: [{ ...phase, id, exercises: [{ ...phase.exercises[0], id }] }]
+		});
+		if (!result.ok) throw new Error(result.message);
+		const copy = asLibraryTemplate(result.value, 'Strength for Sam');
+		expect(copy).toMatchObject({ id: undefined, name: 'Strength for Sam', is_archived: false });
+		expect(copy.phases[0].id).toBeUndefined();
+		expect(copy.phases[0].exercises[0].id).toBeUndefined();
+		expect(result.value.phases[0].id).toBe(id);
 	});
 });

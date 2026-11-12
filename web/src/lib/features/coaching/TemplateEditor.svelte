@@ -8,8 +8,13 @@
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Save from '@lucide/svelte/icons/save';
+	import LibraryBig from '@lucide/svelte/icons/library-big';
 	import Trash2 from '@lucide/svelte/icons/trash';
 	import { tick, untrack } from 'svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
+	import Rows3 from '@lucide/svelte/icons/rows-3';
+	import Equal from '@lucide/svelte/icons/equal';
+	import X from '@lucide/svelte/icons/x';
 	import { beforeNavigate } from '$app/navigation';
 	import {
 		experienceLevels,
@@ -19,6 +24,7 @@
 	} from '$lib/coaching/options';
 	import {
 		goals,
+		rirHelp,
 		templateKinds,
 		type ExerciseInput,
 		type PhaseInput,
@@ -46,29 +52,81 @@
 		isNew,
 		message = null,
 		saved = false,
-		clientCopy = false
+		clientCopy = false,
+		clientName = 'this client',
+		libraryId = null,
+		libraryNames = []
 	}: {
 		initial: TemplateInput;
 		isNew: boolean;
 		message?: string | null;
 		saved?: boolean;
+		clientName?: string;
+		/** Set after "Save as template": the new library template's id. */
+		libraryId?: string | null;
+		/** Exercise library names, suggested while typing. A matching name shows its demo to clients. */
+		libraryNames?: string[];
 		/** A client's private copy: matching rules and archiving do not apply. */
 		clientCopy?: boolean;
 	} = $props();
 
 	// The whole template lives here and is posted as one JSON payload, so a save is one transaction.
 	// svelte-ignore state_referenced_locally
-	let template = $state<TemplateInput>(structuredClone(initial));
+	let template = $state<TemplateInput>(normalised(structuredClone(initial)));
+
+	/** Fills fields added after a template was saved (or kept from an older draft). */
+	function normalised(value: TemplateInput): TemplateInput {
+		for (const phase of value.phases) {
+			phase.duration_weeks ??= null;
+			for (const exercise of phase.exercises) {
+				exercise.rir ??= null;
+				exercise.set_plan ??= [];
+			}
+		}
+		return value;
+	}
 	const isWorkout = $derived(template.kind === 'workout');
 
 	/** A new exercise repeats the previous one's sets, reps and rest, which usually stay the same. */
 	const blankExercise = (previous?: ExerciseInput): ExerciseInput => ({
 		name: '',
 		sets: previous?.sets ?? 3,
-		reps: previous?.reps ?? '',
+		reps: previous?.set_plan.length ? '' : (previous?.reps ?? ''),
+		rir: previous?.set_plan.length ? null : (previous?.rir ?? null),
+		set_plan: [],
 		rest_seconds: previous?.rest_seconds ?? 90,
 		notes: null
 	});
+
+	const maxSets = 20;
+	/** Turns on per-set targets, starting every set from the current reps and RIR. */
+	function varySets(exercise: ExerciseInput) {
+		const count = Math.min(Math.max(exercise.sets ?? 3, 2), maxSets);
+		exercise.set_plan = Array.from({ length: count }, () => ({
+			reps: exercise.reps || null,
+			rir: exercise.rir || null
+		}));
+		exercise.sets = count;
+	}
+	/** Back to one target for every set, keeping the first set's values. */
+	function sameSets(exercise: ExerciseInput) {
+		const first = exercise.set_plan[0];
+		exercise.sets = exercise.set_plan.length || exercise.sets;
+		exercise.reps = first?.reps ?? exercise.reps;
+		exercise.rir = first?.rir ?? exercise.rir;
+		exercise.set_plan = [];
+	}
+	function addSet(exercise: ExerciseInput) {
+		if (exercise.set_plan.length >= maxSets) return;
+		const last = exercise.set_plan.at(-1);
+		exercise.set_plan.push({ reps: last?.reps ?? null, rir: last?.rir ?? null });
+		exercise.sets = exercise.set_plan.length;
+	}
+	function removeSet(exercise: ExerciseInput, index: number) {
+		exercise.set_plan.splice(index, 1);
+		exercise.sets = exercise.set_plan.length;
+		if (exercise.set_plan.length <= 1) sameSets(exercise);
+	}
 	async function addExercise(phase: PhaseInput, p: number) {
 		phase.exercises.push(blankExercise(phase.exercises.at(-1)));
 		await tick();
@@ -81,12 +139,14 @@
 		template.phases.splice(p + 1, 0, {
 			name: `${source.name} (copy)`.slice(0, 120),
 			instructions: source.instructions,
+			duration_weeks: source.duration_weeks,
 			exercises: source.exercises.map((exercise) => ({ ...exercise, id: undefined }))
 		});
 	}
 	const blankPhase = (): PhaseInput => ({
 		name: `Phase ${template.phases.length + 1}`,
 		instructions: null,
+		duration_weeks: null,
 		exercises: []
 	});
 
@@ -138,6 +198,10 @@
 	let form = $state<HTMLFormElement>();
 	let notice = $state('');
 	let saving = $state(false);
+	/** Client copies only: shows the name field for a new library template. */
+	let asTemplate = $state(false);
+	// svelte-ignore state_referenced_locally
+	let libraryName = $state(initial.name);
 	const currentKey = $derived(stepKeys[flow.step]);
 	const stepIndex = (key: StepKey) => stepKeys.indexOf(key);
 
@@ -449,18 +513,39 @@
 					></button
 				>
 			</div>
-			<label class="my-2 grid gap-1"
-				><span>Phase name<span class={requiredMark} aria-hidden="true">*</span></span>
-				<input
-					name="phase-{p}-name"
-					bind:value={phase.name}
-					maxlength="120"
-					required
-					oninput={recheck}
-					{...aria(`phase-${p}-name`)}
-				/>
-				{@render fieldError(`phase-${p}-name`)}
-			</label>
+			<div class="grid grid-cols-[minmax(0,1fr)_9rem] items-start gap-x-3 bp-480:grid-cols-1">
+				<label class="my-2 grid gap-1"
+					><span>Phase name<span class={requiredMark} aria-hidden="true">*</span></span>
+					<input
+						name="phase-{p}-name"
+						bind:value={phase.name}
+						maxlength="120"
+						required
+						oninput={recheck}
+						{...aria(`phase-${p}-name`)}
+					/>
+					{@render fieldError(`phase-${p}-name`)}
+				</label>
+				<label class="my-2 grid gap-1"
+					>Length (weeks)
+					<input
+						name="phase-{p}-weeks"
+						type="number"
+						min="1"
+						max="52"
+						step="1"
+						bind:value={phase.duration_weeks}
+						oninput={recheck}
+						{...aria(`phase-${p}-weeks`)}
+					/>
+					{@render fieldError(`phase-${p}-weeks`)}
+				</label>
+			</div>
+			{#if isWorkout && p === 0}
+				<p class="{help} mt-0!">
+					With a length set, your dashboard reminds you when a client is due for the next phase.
+				</p>
+			{/if}
 			<label class="my-2 grid gap-1"
 				>Instructions for clients
 				<textarea bind:value={phase.instructions} rows="2" maxlength="2000"></textarea>
@@ -472,9 +557,10 @@
 				</h3>
 				<ol class="m-0 grid list-none gap-2 p-0">
 					{#each phase.exercises as exercise, e (e)}
+						{@const varied = exercise.set_plan.length > 0}
 						<li class="grid gap-2 rounded-lg border border-[#b7c6c7] p-3">
 							<div
-								class="grid grid-cols-[minmax(0,1fr)_4.5rem_6rem_5.5rem_auto] items-end gap-2 bp-760:grid-cols-3"
+								class="grid grid-cols-[minmax(0,1fr)_4.5rem_6rem_5rem_5.5rem_auto] items-end gap-2 bp-760:grid-cols-3"
 							>
 								<label class="grid gap-1 text-[0.8rem] bp-760:col-span-3"
 									><span
@@ -486,6 +572,8 @@
 										maxlength="120"
 										required
 										placeholder="e.g. Goblet squat"
+										list={libraryNames.length ? 'exercise-library-names' : undefined}
+										autocomplete="off"
 										oninput={recheck}
 										{...aria(`phase-${p}-exercise-${e}-name`)}
 									/>
@@ -499,14 +587,28 @@
 										max="20"
 										step="1"
 										bind:value={exercise.sets}
+										disabled={varied}
+										title={varied ? 'Add or remove sets below' : undefined}
 										oninput={recheck}
 										{...aria(`phase-${p}-exercise-${e}-sets`)}
 									/>
 								</label>
-								<label class="grid gap-1 text-[0.8rem]"
-									>Reps
-									<input bind:value={exercise.reps} maxlength="40" placeholder="8-10" />
-								</label>
+								{#if varied}
+									<p class="col-span-2 m-0 self-center text-[0.8rem] text-muted bp-760:col-span-2">
+										Reps and RIR are set per set below.
+									</p>
+								{:else}
+									<label class="grid gap-1 text-[0.8rem]"
+										>Reps
+										<input bind:value={exercise.reps} maxlength="40" placeholder="8-10" />
+									</label>
+									<label class="grid gap-1 text-[0.8rem]"
+										><span class="inline-flex items-center gap-0.5"
+											>RIR<Tooltip label="What is RIR?" text={rirHelp} /></span
+										>
+										<input bind:value={exercise.rir} maxlength="10" placeholder="2" />
+									</label>
+								{/if}
 								<label class="grid gap-1 text-[0.8rem]"
 									>Rest (s)
 									<input
@@ -546,6 +648,50 @@
 									>
 								</div>
 							</div>
+							{#if varied}
+								<ol class="m-0 grid list-none gap-2 p-0" aria-label="Sets for exercise {e + 1}">
+									{#each exercise.set_plan as set, s (s)}
+										<li
+											class="grid grid-cols-[3.5rem_minmax(0,8rem)_minmax(0,6rem)_auto] items-end gap-2"
+										>
+											<span class="pb-3 text-[0.8rem] font-semibold">Set {s + 1}</span>
+											<label class="grid gap-1 text-[0.8rem]"
+												>Reps
+												<input bind:value={set.reps} maxlength="40" placeholder="8-12" />
+											</label>
+											<label class="grid gap-1 text-[0.8rem]"
+												>RIR
+												<input bind:value={set.rir} maxlength="10" placeholder="2" />
+											</label>
+											<button
+												type="button"
+												class={subtleDanger}
+												onclick={() => removeSet(exercise, s)}
+												aria-label="Remove set {s + 1} of exercise {e + 1}"
+												><X size={16} aria-hidden="true" /></button
+											>
+										</li>
+									{/each}
+								</ol>
+							{/if}
+							<div class="flex flex-wrap gap-1">
+								{#if varied}
+									<button
+										type="button"
+										class={subtle}
+										onclick={() => addSet(exercise)}
+										disabled={exercise.set_plan.length >= maxSets}
+										><Plus size={16} aria-hidden="true" />Add set</button
+									>
+									<button type="button" class={subtle} onclick={() => sameSets(exercise)}
+										><Equal size={16} aria-hidden="true" />Same for every set</button
+									>
+								{:else}
+									<button type="button" class={subtle} onclick={() => varySets(exercise)}
+										><Rows3 size={16} aria-hidden="true" />Different reps per set</button
+									>
+								{/if}
+							</div>
 							{@render fieldError(`phase-${p}-exercise-${e}-name`)}
 							{@render fieldError(`phase-${p}-exercise-${e}-sets`)}
 							{@render fieldError(`phase-${p}-exercise-${e}-rest`)}
@@ -564,6 +710,12 @@
 	{/each}
 {/snippet}
 
+{#if libraryNames.length}
+	<datalist id="exercise-library-names">
+		{#each libraryNames as name (name)}<option value={name}></option>{/each}
+	</datalist>
+{/if}
+
 <form
 	method="POST"
 	action="?/save"
@@ -575,7 +727,14 @@
 	<input type="hidden" name="payload" value={JSON.stringify(payload)} />
 
 	{#if message}<p class={error} role="alert">{message}</p>{/if}
-	{#if saved}<p class={success} role="status">Template saved.</p>{/if}
+	{#if saved && libraryId}
+		<p class={success} role="status">
+			Saved for {clientName}, and added to your Program Library as a new template.
+			<a class="text-cyan-ink" href="/admin/templates/{libraryId}">Open the library template</a>
+		</p>
+	{:else if saved}<p class={success} role="status">
+			{clientCopy ? `Saved for ${clientName}.` : 'Template saved.'}
+		</p>{/if}
 
 	{#if isNew}
 		<div class="mt-3">
@@ -731,9 +890,46 @@
 			<span class="mr-auto text-[0.85rem] text-muted" aria-live="polite"
 				>{dirty ? 'Unsaved changes' : 'No unsaved changes'}</span
 			>
-			<button class={primary} disabled={saving || !dirty}
-				><Save size={18} aria-hidden="true" />{saving ? 'Saving…' : 'Save template'}</button
+			{#if clientCopy}
+				{#if asTemplate}
+					<label class="flex flex-wrap items-center gap-2 text-[0.85rem] font-semibold"
+						>Library template name
+						<input
+							name="library_name"
+							bind:value={libraryName}
+							maxlength="120"
+							required
+							class="w-[260px] max-w-full"
+						/>
+					</label>
+					<button class={secondary} formaction="?/saveAsTemplate" disabled={saving}
+						><LibraryBig size={18} aria-hidden="true" />Create template</button
+					>
+					<button type="button" class={subtle} onclick={() => (asTemplate = false)}>Cancel</button>
+				{:else}
+					<button
+						type="button"
+						class={secondary}
+						disabled={saving}
+						title="Also saves this client's copy, then adds a reusable template to your Program Library"
+						onclick={() => (asTemplate = true)}
+						><LibraryBig size={18} aria-hidden="true" />Save as template</button
+					>
+				{/if}
+			{/if}
+			<button class={primary} formaction="?/save" disabled={saving || !dirty}
+				><Save size={18} aria-hidden="true" />{saving
+					? 'Saving…'
+					: clientCopy
+						? 'Save for this client'
+						: 'Save template'}</button
 			>
 		</div>
+		{#if clientCopy}
+			<p class="{help} mt-0! text-right">
+				Save for this client changes only {clientName}'s program. Save as template also adds a
+				reusable copy to your Program Library for other clients.
+			</p>
+		{/if}
 	{/if}
 </form>

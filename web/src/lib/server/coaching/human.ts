@@ -13,6 +13,8 @@ export type Message = {
 	sender_role: 'client' | 'coach';
 	body: string;
 	created_at: string;
+	/** When the coach read a client message. Null while unread. */
+	read_at: string | null;
 };
 
 /** Check-ins and messages for one client. Row-level security limits clients to their own rows. */
@@ -26,7 +28,7 @@ export async function loadCoachingThread(supabase: SupabaseClient, clientId: str
 			.limit(50),
 		supabase
 			.from('messages')
-			.select('id, sender_role, body, created_at')
+			.select('id, sender_role, body, created_at, read_at')
 			.eq('client_id', clientId)
 			.order('created_at', { ascending: true })
 			.limit(200)

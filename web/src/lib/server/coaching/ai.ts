@@ -80,7 +80,9 @@ export async function runAiMatching(input: MatchInput): Promise<MatchOutcome> {
 	const { data: templates, error: templatesError } = await admin
 		.from('program_templates')
 		.select('id, kind, goal, name, description, rules')
-		.eq('is_archived', false);
+		.eq('is_archived', false)
+		// Library templates only: a coach's customised copy for one client must never match another.
+		.is('owner_client_id', null);
 	if (templatesError) throw templatesError;
 
 	const answers = assessment.answers as Answers;

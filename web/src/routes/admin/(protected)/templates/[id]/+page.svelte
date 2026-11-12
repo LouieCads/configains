@@ -33,5 +33,8 @@
 		message={form?.message ?? null}
 		saved={data.saved}
 		clientCopy={!!data.owner}
+		clientName={data.owner?.name}
+		libraryId={data.libraryId}
+		libraryNames={data.libraryNames}
 	/>
 {/key}
