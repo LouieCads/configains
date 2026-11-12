@@ -43,12 +43,15 @@
 	class="{studio} grid grid-cols-[250px_minmax(0,1fr)] bg-[#f7f8f5] bp-1100:grid-cols-[200px_minmax(0,1fr)] bp-760:grid-cols-1"
 >
 	<aside
-		class="sticky top-0 flex h-screen flex-col [align-self:start] overflow-hidden bg-ink px-6 py-8 text-white bp-760:static bp-760:h-auto bp-760:p-5"
+		class="sticky top-0 flex h-screen flex-col [align-self:start] overflow-hidden bg-ink px-6 py-6 text-white bp-760:static bp-760:h-auto bp-760:p-5"
 	>
 		<a href="/" class={brand}>CONFIGAINS.</a>
-		<nav class="mt-8 mb-6 grid gap-5 bp-760:my-4 bp-760:gap-2" aria-label="Admin navigation">
+		<nav
+			class="mt-6 mb-4 grid min-h-0 content-start gap-4 overflow-y-auto bp-760:my-4 bp-760:gap-2 bp-760:overflow-visible"
+			aria-label="Admin navigation"
+		>
 			{#each adminNavigation as group (group.heading)}
-				<div class="grid gap-1 bp-760:flex bp-760:flex-wrap bp-760:items-center">
+				<div class="grid gap-0.5 bp-760:flex bp-760:flex-wrap bp-760:items-center">
 					{#if group.heading}<p
 							class="m-0 px-3 text-[0.7rem] font-bold tracking-[1.5px] text-[#a9c7cd] uppercase bp-760:w-full"
 						>
@@ -56,7 +59,7 @@
 						</p>{/if}
 					{#each group.items as item (item.href)}{@const Icon = icons[item.href]}<a
 							class={[
-								'flex items-center gap-3 rounded-[6px] border px-3 py-2',
+								'flex items-center gap-3 rounded-[6px] border px-3 py-1.5',
 								current.startsWith(item.href)
 									? 'border-current text-cyan'
 									: 'border-transparent hover:border-[#506970] hover:text-cyan'
@@ -67,7 +70,7 @@
 				</div>
 			{/each}
 		</nav>
-		<div class="mt-auto grid gap-3 bp-760:mt-0">
+		<div class="mt-auto grid shrink-0 gap-2 bp-760:mt-0">
 			<a class={secondaryOnDark} href="/" target="_blank" rel="noopener"
 				><ExternalLink size={18} aria-hidden="true" />View website</a
 			>
