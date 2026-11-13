@@ -9,7 +9,6 @@
 	import Repeat from '@lucide/svelte/icons/repeat';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
-	import Check from '@lucide/svelte/icons/check';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import MessagesSquare from '@lucide/svelte/icons/messages-square';
@@ -30,7 +29,6 @@
 		card,
 		error,
 		help,
-		primary,
 		secondary,
 		secondaryDanger,
 		subtle,
@@ -121,6 +119,22 @@
 	}
 
 	let renaming = $state(false);
+	let renameForm = $state<HTMLFormElement>();
+	let renameCancelled = false;
+	function startRename() {
+		renameCancelled = false;
+		renaming = true;
+	}
+	/** Clicking away saves a changed name, or just closes when nothing changed. */
+	function finishRename(event: FocusEvent) {
+		if (renameCancelled || busy === 'rename') return;
+		const name = (event.currentTarget as HTMLInputElement).value.trim();
+		if (!name || name === (data.client.display_name ?? '')) {
+			renaming = false;
+			return;
+		}
+		renameForm?.requestSubmit();
+	}
 	const archived = $derived(Boolean(data.client.archived_at));
 	const clientName = $derived(data.client.display_name ?? 'this client');
 	const confirmDelete = (event: SubmitEvent) => {
@@ -179,6 +193,7 @@
 				action="?/rename"
 				class="my-3 flex flex-wrap items-center gap-2"
 				use:enhance={keepPlace('rename', false)}
+				bind:this={renameForm}
 			>
 				<label class="sr-only" for="client-name">Client name</label>
 				<!-- svelte-ignore a11y_autofocus -->
@@ -190,23 +205,32 @@
 					autofocus
 					value={data.client.display_name ?? ''}
 					class="max-w-[320px]"
+					onblur={finishRename}
+					onkeydown={(event) => {
+						if (event.key === 'Escape') {
+							renameCancelled = true;
+							renaming = false;
+						}
+					}}
 				/>
-				<button class={primary} disabled={busy === 'rename'}
-					><Check size={18} aria-hidden="true" />Save</button
-				>
-				<button type="button" class={subtle} onclick={() => (renaming = false)}
-					><X size={16} aria-hidden="true" />Cancel</button
+				<span class="text-[0.85rem] text-muted" role="status"
+					>{busy === 'rename' ? 'Saving…' : 'Saves when you click away'}</span
 				>
 			</form>
 		{:else}
-			<h1 class="my-3! flex flex-wrap items-center gap-2">
+			<!-- Double-click the name to edit. The pencil is the keyboard route. -->
+			<h1
+				class="my-3! flex flex-wrap items-center gap-2"
+				title="Double-click to edit the name"
+				ondblclick={startRename}
+			>
 				{data.client.display_name ?? 'Unnamed client'}
 				<button
 					type="button"
 					class={subtle}
 					aria-label="Edit name"
 					title="Edit name"
-					onclick={() => (renaming = true)}><Pencil size={18} aria-hidden="true" /></button
+					onclick={startRename}><Pencil size={18} aria-hidden="true" /></button
 				>
 			</h1>
 		{/if}
@@ -411,7 +435,10 @@
 				</div>
 			{/if}
 		</section>
+	</div>
 
+	<!-- Side column, most important first: progress, assessment answers, then account actions. -->
+	<div class="grid min-w-0 gap-6">
 		<section id="progress" class={card}>
 			<div class={cardHead}>
 				<h2 class={title}>Progress</h2>
@@ -447,10 +474,7 @@
 				</ul>
 			{/if}
 		</section>
-	</div>
 
-	<!-- Side column: assessment answers and account actions. -->
-	<div class={['grid min-w-0 gap-6', !data.program && 'order-first min-[1100px]:order-none']}>
 		<section id="assessment" class={card}>
 			<div class={cardHead}>
 				<h2 class={title}>Assessment</h2>
