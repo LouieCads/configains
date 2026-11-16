@@ -56,3 +56,15 @@ Every write endpoint calls `requireSameOrigin` (CSRF) and `requireAdmin`. Databa
 - `normalizeContent` never throws. Unknown keys are dropped; invalid values fall back to defaults.
 - Images are cropped in the browser and uploaded as WebP of at most 4 MB. Source files stay local.
 - Uploaded files are never overwritten or deleted, so content that still references them keeps working.
+
+## Client area
+
+Clients sign in at `/login` (the public header and footer link to it as **Client sign in**) and use `/app`.
+
+**Targets.** The coach sets per-client targets on the client page in the admin: daily steps, cardio (minutes, sessions a week, heart-rate range, instructions), and nutrition (calories, protein, fat, carbs, reminders). They live in `client_targets`, one row per client, and every field is optional. Targets are validated in `lib/coaching/targets.ts`; the limits there match the table's check constraints.
+
+**Logging.** `/app/log` queues entries in the offline outbox (`lib/coaching/sync.ts`): workouts, measurements, steps and cardio. Rows are insert-only. A second step count for the same day is a correction: the newest entry wins when read (`dailySteps` in `lib/coaching/dashboard.ts`).
+
+**Dashboard.** `/app/progress` and the coach's `/admin/clients/[id]/progress` render `features/progress/ProgressDashboard.svelte`. The numbers come from pure functions in `lib/coaching/dashboard.ts` (this week against targets, streaks, a four-week review, weight and waist trends, strength). Strength is an estimated one-rep max (Epley) from logged load and reps, so the same weight for more reps counts as stronger. Weight direction is never coloured good or bad: that depends on the client's goal.
+
+**Sign-in and invitations.** An invitation link works once. A client who opens it again (or whose link expired) is led to sign in rather than asked for a new password. A client who is already signed in is told so and the link is left unused. `/forgot-password` emails a reset link; reset emails land on `/admin/recover`, which sends an admin to the admin reset screen and a client to `/account/reset-password`. The branded invite email in `supabase/templates/invite.html` points existing clients to `/login`, but the template that sends is the one set in the Supabase dashboard: update it there too.

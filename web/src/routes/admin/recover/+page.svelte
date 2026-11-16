@@ -9,7 +9,7 @@
 
 <AuthCard
 	title="Reset your password."
-	intro="Continue to choose a new password for your Configains admin account."
+	intro="Continue to choose a new password for your Configains account."
 >
 	{#if data.localAdminDemo}
 		<p class={error} role="alert">Recovery links cannot be used in the local demo.</p>

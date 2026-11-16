@@ -2,6 +2,7 @@
 	import { publicHref } from '$lib/content/links';
 	import type { Content } from '$lib/content/schema';
 	import { container } from '$lib/components/landing/styles';
+	import { clientSignIn } from '$lib/constants/navigation';
 	let { site, preview = false }: { site: Content; preview?: boolean } = $props();
 	const link =
 		'inline-flex min-h-11 items-center text-[0.9375rem] text-[#d3e1e3] [transition:color_0.2s] hover:text-cyan';
@@ -26,6 +27,9 @@
 						</li>{/if}{/each}
 				<li>
 					<a class={link} href={publicHref('/contact', preview)}>{site.navigation.contactLink}</a>
+				</li>
+				<li>
+					<a class={link} href={clientSignIn.href}>{clientSignIn.label}</a>
 				</li>
 			</ul>
 		</nav>

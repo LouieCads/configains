@@ -15,10 +15,14 @@
 	import AtSign from '@lucide/svelte/icons/at-sign';
 	import CalendarDays from '@lucide/svelte/icons/calendar-days';
 	import SkipForward from '@lucide/svelte/icons/skip-forward';
+	import Save from '@lucide/svelte/icons/save';
+	import TrendingUp from '@lucide/svelte/icons/trending-up';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { answerSummary, assessmentStatus, healthLabel } from '$lib/coaching/labels';
 	import { progressMetrics } from '$lib/coaching/progress';
+	import { weekStatus } from '$lib/coaching/dashboard';
+	import { macroCalories, targetLimits } from '$lib/coaching/targets';
 	import { phaseTiming, phaseTimingLabel } from '$lib/coaching/phase-timing';
 	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 	import AssignProgramForm from '$lib/features/coaching/AssignProgramForm.svelte';
@@ -53,6 +57,48 @@
 	);
 	const unread = $derived(data.conversation.unreadMessages);
 	const thisWeek = $derived(data.progress.weekly[0]);
+	const targets = $derived(data.progress.targets);
+	const week = $derived(
+		weekStatus(
+			{
+				logs: data.progress.logs,
+				metrics: data.progress.metrics,
+				steps: data.progress.steps,
+				cardio: data.progress.cardio
+			},
+			targets,
+			new Date().toISOString().slice(0, 10)
+		)
+	);
+	const anyActivity = $derived(
+		data.progress.logs.length > 0 ||
+			data.progress.steps.length > 0 ||
+			data.progress.cardio.length > 0 ||
+			data.progress.metrics.length > 0
+	);
+
+	// The calorie check follows what the coach is typing, so it updates before saving.
+	type Macros = Pick<typeof targets, 'calories_kcal' | 'protein_g' | 'fat_g' | 'carbs_g'>;
+	let typedMacros = $state<Macros | null>(null);
+	function readMacros(event: Event) {
+		const fields = new FormData(event.currentTarget as HTMLFormElement);
+		const read = (name: string) => {
+			const value = String(fields.get(name) ?? '').trim();
+			return /^\d+$/.test(value) ? Number(value) : null;
+		};
+		typedMacros = {
+			calories_kcal: read('calories_kcal'),
+			protein_g: read('protein_g'),
+			fat_g: read('fat_g'),
+			carbs_g: read('carbs_g')
+		};
+	}
+	const macros = $derived<Macros>(typedMacros ?? targets);
+	const macroKcal = $derived(macroCalories(macros));
+	const macroGap = $derived(
+		macroKcal !== null && macros.calories_kcal !== null ? macroKcal - macros.calories_kcal : null
+	);
+
 	const metricsWithData = $derived(
 		progressMetrics.filter((metric) => thisWeek?.averages[metric.key] !== undefined)
 	);
@@ -78,7 +124,9 @@
 		rename: 'Name saved.',
 		archive: 'Client archived.',
 		restore: 'Client restored.',
-		resend: 'Invite sent again.'
+		resend: 'Invite sent again.',
+		activity: 'Steps and cardio targets saved.',
+		nutrition: 'Nutrition guidance saved.'
 	};
 
 	const modes = [
@@ -435,6 +483,192 @@
 				</div>
 			{/if}
 		</section>
+
+		<!-- What the client is asked to do each day and week, and what to eat. Blank fields stay unset. -->
+		<section id="targets" class={card}>
+			<div class={cardHead}>
+				<h2 class={title}>Targets</h2>
+			</div>
+			<p class="mt-0 mb-5 text-[0.9rem] text-muted">
+				The client sees these on their dashboard and tracks against them. Leave a field blank to
+				remove that target.
+			</p>
+
+			<form
+				method="POST"
+				action="?/activity"
+				class="m-0 grid gap-4"
+				use:enhance={keepPlace('activity', false)}
+			>
+				<h3 class="{sectionLabel} mb-0!">Steps and cardio</h3>
+				<label class="grid max-w-[260px] gap-1 font-semibold"
+					>Daily steps (minimum)
+					<input
+						name="daily_steps_target"
+						type="number"
+						inputmode="numeric"
+						min={targetLimits.steps.min}
+						max={targetLimits.steps.max}
+						step="1"
+						placeholder="8000"
+						value={targets.daily_steps_target ?? ''}
+					/>
+				</label>
+				<div class="grid gap-4 min-[560px]:grid-cols-2">
+					<label class="grid gap-1 font-semibold"
+						>Cardio minutes per session
+						<input
+							name="cardio_minutes"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.cardioMinutes.min}
+							max={targetLimits.cardioMinutes.max}
+							step="1"
+							placeholder="30"
+							value={targets.cardio_minutes ?? ''}
+						/>
+					</label>
+					<label class="grid gap-1 font-semibold"
+						>Cardio sessions per week
+						<input
+							name="cardio_sessions_per_week"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.cardioSessions.min}
+							max={targetLimits.cardioSessions.max}
+							step="1"
+							placeholder="4"
+							value={targets.cardio_sessions_per_week ?? ''}
+						/>
+					</label>
+					<label class="grid gap-1 font-semibold"
+						>Heart rate, lowest (BPM)
+						<input
+							name="cardio_hr_min"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.heartRate.min}
+							max={targetLimits.heartRate.max}
+							step="1"
+							placeholder="140"
+							value={targets.cardio_hr_min ?? ''}
+						/>
+					</label>
+					<label class="grid gap-1 font-semibold"
+						>Heart rate, highest (BPM)
+						<input
+							name="cardio_hr_max"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.heartRate.min}
+							max={targetLimits.heartRate.max}
+							step="1"
+							placeholder="150"
+							value={targets.cardio_hr_max ?? ''}
+						/>
+					</label>
+				</div>
+				<label class="grid gap-1 font-semibold"
+					>Cardio instructions
+					<textarea
+						name="cardio_notes"
+						rows="3"
+						maxlength={targetLimits.cardioNotes}
+						placeholder="Any cardio mode is acceptable. Avoid HIIT."
+						value={targets.cardio_notes ?? ''}></textarea>
+				</label>
+				<button class={secondary} disabled={busy === 'activity'}
+					><Save size={18} aria-hidden="true" />{busy === 'activity'
+						? 'Saving…'
+						: 'Save steps and cardio'}</button
+				>
+			</form>
+
+			<form
+				method="POST"
+				action="?/nutrition"
+				class="m-0 mt-8 grid gap-4 border-t border-line pt-6"
+				oninput={readMacros}
+				use:enhance={keepPlace('nutrition', false)}
+			>
+				<h3 class="{sectionLabel} mb-0!">Nutrition guidance</h3>
+				<div class="grid gap-4 min-[560px]:grid-cols-2">
+					<label class="grid gap-1 font-semibold"
+						>Calories (kcal)
+						<input
+							name="calories_kcal"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.calories.min}
+							max={targetLimits.calories.max}
+							step="1"
+							placeholder="2030"
+							value={targets.calories_kcal ?? ''}
+						/>
+					</label>
+					<label class="grid gap-1 font-semibold"
+						>Protein (g)
+						<input
+							name="protein_g"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.protein.min}
+							max={targetLimits.protein.max}
+							step="1"
+							placeholder="130"
+							value={targets.protein_g ?? ''}
+						/>
+					</label>
+					<label class="grid gap-1 font-semibold"
+						>Fat (g)
+						<input
+							name="fat_g"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.fat.min}
+							max={targetLimits.fat.max}
+							step="1"
+							placeholder="30"
+							value={targets.fat_g ?? ''}
+						/>
+					</label>
+					<label class="grid gap-1 font-semibold"
+						>Carbs (g)
+						<input
+							name="carbs_g"
+							type="number"
+							inputmode="numeric"
+							min={targetLimits.carbs.min}
+							max={targetLimits.carbs.max}
+							step="1"
+							placeholder="310"
+							value={targets.carbs_g ?? ''}
+						/>
+					</label>
+				</div>
+				{#if macroKcal !== null}
+					<p class="m-0 text-[0.85rem] text-muted" role="status">
+						The macros add up to {macroKcal.toLocaleString('en-GB')} kcal (4 per gram of protein and carbs,
+						9 per gram of fat).{macroGap !== null && Math.abs(macroGap) > 50
+							? ` That is ${Math.abs(macroGap).toLocaleString('en-GB')} kcal ${macroGap > 0 ? 'above' : 'below'} the calorie target.`
+							: ''}
+					</p>
+				{/if}
+				<label class="grid gap-1 font-semibold"
+					>Coach notes and reminders (one per line)
+					<textarea
+						name="nutrition_notes"
+						rows="5"
+						placeholder="No binging on weekends.&#10;Avoid fatty foods.&#10;Don’t give in to stress eating."
+						value={targets.nutrition_notes.join('\n')}></textarea>
+				</label>
+				<button class={secondary} disabled={busy === 'nutrition'}
+					><Save size={18} aria-hidden="true" />{busy === 'nutrition'
+						? 'Saving…'
+						: 'Save nutrition'}</button
+				>
+			</form>
+		</section>
 	</div>
 
 	<!-- Side column, most important first: progress, assessment answers, then account actions. -->
@@ -442,9 +676,14 @@
 		<section id="progress" class={card}>
 			<div class={cardHead}>
 				<h2 class={title}>Progress</h2>
+				{#if anyActivity}
+					<a class={subtle} href="/admin/clients/{data.client.id}/progress"
+						><TrendingUp size={16} aria-hidden="true" />Charts</a
+					>
+				{/if}
 			</div>
-			{#if data.progress.logs.length === 0 && !thisWeek?.workouts}
-				<p class="m-0 text-muted">No workouts logged yet.</p>
+			{#if !anyActivity}
+				<p class="m-0 text-muted">Nothing logged yet.</p>
 			{:else}
 				<h3 class="{sectionLabel} mb-3!">This week</h3>
 				<dl class={rows}>
@@ -452,6 +691,25 @@
 						<dt class={rowKey}>Workouts</dt>
 						<dd class={rowValue}>{thisWeek?.workouts ?? 0}</dd>
 					</div>
+					{#if week.steps.target !== null}
+						<div class={row}>
+							<dt class={rowKey}>Steps at {week.steps.target.toLocaleString('en-GB')}+</dt>
+							<dd class={rowValue}>{week.steps.daysOnTarget} of {week.daysElapsed} days</dd>
+						</div>
+					{/if}
+					{#if week.cardio.requiredSessions !== null}
+						<div class={row}>
+							<dt class={rowKey}>Cardio</dt>
+							<dd class={rowValue}>
+								{week.cardio.counted} of {week.cardio.requiredSessions} sessions
+							</dd>
+						</div>
+					{:else if week.cardio.sessions > 0}
+						<div class={row}>
+							<dt class={rowKey}>Cardio</dt>
+							<dd class={rowValue}>{week.cardio.sessions} sessions</dd>
+						</div>
+					{/if}
 					{#each metricsWithData as metric (metric.key)}
 						<div class={row}>
 							<dt class={rowKey}>{metric.label}</dt>

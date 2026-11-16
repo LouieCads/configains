@@ -1,7 +1,8 @@
 <script lang="ts">
-	import Plus from '@lucide/svelte/icons/plus';
 	import { progressMetrics } from '$lib/coaching/progress';
-	import { card, help, primary } from '$lib/features/cms/styles';
+	import { formatNumber } from '$lib/features/progress/chart';
+	import ProgressDashboard from '$lib/features/progress/ProgressDashboard.svelte';
+	import { card, clientPage, help } from '$lib/features/cms/styles';
 	let { data } = $props();
 
 	const metricLabel = (key: string) => progressMetrics.find((metric) => metric.key === key);
@@ -28,70 +29,71 @@
 		content="noindex, nofollow"
 	/></svelte:head
 >
-<main class="mx-auto grid max-w-[640px] gap-6 p-6">
-	<p><a href="/app">Back to your program</a></p>
-	<h1>Your progress</h1>
-	<a class={primary} href="/app/log"
-		><Plus size={18} aria-hidden="true" />Log training or a measurement</a
-	>
+<main class="{clientPage} mx-auto grid max-w-[760px] gap-6 p-6">
+	<p class="m-0"><a href="/app">Back to your plan</a></p>
+	<h1 class="m-0">Your progress</h1>
 
-	<section class={card}>
-		<h2>Weekly</h2>
+	<ProgressDashboard {data} today={data.today} />
+
+	<details class={card}>
+		<summary class="cursor-pointer text-xl font-bold">All entries</summary>
+
+		<h2 class="mt-6 mb-0">Weekly</h2>
 		<p class={help}>Completed workouts and average measurements, Monday to Sunday.</p>
-		<table class="w-full text-left">
-			<thead>
-				<tr
-					><th>Week</th><th>Workouts</th>
-					{#each progressMetrics as metric (metric.key)}<th>{metric.label}</th>{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each data.weekly as week (week.key)}
-					<tr>
-						<td>{weekLabel(week.key)}</td>
-						<td>{week.workouts}</td>
-						{#each progressMetrics as metric (metric.key)}
-							<td
-								>{week.averages[metric.key] !== undefined
-									? `${week.averages[metric.key]} ${metric.unit}`
-									: '–'}</td
-							>
-						{/each}
+		<div class="overflow-x-auto">
+			<table class="w-full text-left">
+				<thead>
+					<tr
+						><th>Week</th><th>Workouts</th>
+						{#each progressMetrics as metric (metric.key)}<th>{metric.label}</th>{/each}
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</section>
+				</thead>
+				<tbody>
+					{#each data.weekly as week (week.key)}
+						<tr>
+							<td>{weekLabel(week.key)}</td>
+							<td>{week.workouts}</td>
+							{#each progressMetrics as metric (metric.key)}
+								<td
+									>{week.averages[metric.key] !== undefined
+										? `${week.averages[metric.key]} ${metric.unit}`
+										: '–'}</td
+								>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 
-	<section class={card}>
-		<h2>Monthly</h2>
-		<table class="w-full text-left">
-			<thead>
-				<tr
-					><th>Month</th><th>Workouts</th>
-					{#each progressMetrics as metric (metric.key)}<th>{metric.label}</th>{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each data.monthly as month (month.key)}
-					<tr>
-						<td>{monthLabel(month.key)}</td>
-						<td>{month.workouts}</td>
-						{#each progressMetrics as metric (metric.key)}
-							<td
-								>{month.averages[metric.key] !== undefined
-									? `${month.averages[metric.key]} ${metric.unit}`
-									: '–'}</td
-							>
-						{/each}
+		<h2 class="mt-6">Monthly</h2>
+		<div class="overflow-x-auto">
+			<table class="w-full text-left">
+				<thead>
+					<tr
+						><th>Month</th><th>Workouts</th>
+						{#each progressMetrics as metric (metric.key)}<th>{metric.label}</th>{/each}
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</section>
+				</thead>
+				<tbody>
+					{#each data.monthly as month (month.key)}
+						<tr>
+							<td>{monthLabel(month.key)}</td>
+							<td>{month.workouts}</td>
+							{#each progressMetrics as metric (metric.key)}
+								<td
+									>{month.averages[metric.key] !== undefined
+										? `${month.averages[metric.key]} ${metric.unit}`
+										: '–'}</td
+								>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 
-	<section class={card}>
-		<h2>Recent workouts</h2>
+		<h2 class="mt-6">Recent workouts</h2>
 		{#if data.logs.length === 0}
 			<p>No workouts logged in the last 6 months.</p>
 		{/if}
@@ -118,10 +120,32 @@
 				</li>
 			{/each}
 		</ul>
-	</section>
 
-	<section class={card}>
-		<h2>Recent measurements</h2>
+		<h2 class="mt-6">Recent cardio</h2>
+		{#if data.cardio.length === 0}
+			<p>No cardio logged in the last 6 months.</p>
+		{/if}
+		<ul class="grid gap-2">
+			{#each data.cardio.slice(0, 20) as session (session.id)}
+				<li>
+					{dayLabel(session.logged_on)}: {session.activity ?? 'Cardio'}, {session.duration_minutes} min{session.avg_heart_rate
+						? `, average ${session.avg_heart_rate} BPM`
+						: ''}
+				</li>
+			{/each}
+		</ul>
+
+		<h2 class="mt-6">Recent steps</h2>
+		{#if data.steps.length === 0}
+			<p>No steps logged in the last 6 months.</p>
+		{/if}
+		<ul class="grid gap-2">
+			{#each data.steps.slice(0, 20) as entry (entry.id)}
+				<li>{dayLabel(entry.logged_on)}: {formatNumber(entry.steps)} steps</li>
+			{/each}
+		</ul>
+
+		<h2 class="mt-6">Recent measurements</h2>
 		{#if data.metrics.length === 0}
 			<p>No measurements in the last 6 months.</p>
 		{/if}
@@ -133,5 +157,5 @@
 				</li>
 			{/each}
 		</ul>
-	</section>
+	</details>
 </main>

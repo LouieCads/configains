@@ -44,20 +44,23 @@ export function outboxStore(db: IDBDatabase): OutboxStore {
 	};
 }
 
-export async function cacheProgram(db: IDBDatabase, program: unknown) {
+export async function cacheProgram(db: IDBDatabase, program: unknown, targets: unknown = null) {
 	const tx = db.transaction('program', 'readwrite');
 	await request(
-		tx.objectStore('program').put({ key: 'current', program, savedAt: new Date().toISOString() })
+		tx
+			.objectStore('program')
+			.put({ key: 'current', program, targets, savedAt: new Date().toISOString() })
 	);
 }
 
 export async function readCachedProgram(
 	db: IDBDatabase
-): Promise<{ program: unknown; savedAt: string } | null> {
+): Promise<{ program: unknown; targets: unknown; savedAt: string } | null> {
 	const row = await request(
 		db.transaction('program', 'readonly').objectStore('program').get('current')
 	);
-	return row ? { program: row.program, savedAt: row.savedAt } : null;
+	// Entries cached before targets existed have none.
+	return row ? { program: row.program, targets: row.targets ?? null, savedAt: row.savedAt } : null;
 }
 
 /** Removes the cached program and every queued entry from this device. Used on sign-out. */
@@ -83,11 +86,16 @@ export async function sendBatch(items: SyncItem[]): Promise<SyncResult[]> {
 	return body.results;
 }
 
-/** Returns the live program, or null with `signedOut` set when the session has ended. */
-export async function fetchProgram(): Promise<{ program: unknown; signedOut: boolean }> {
+/** Returns the live program and targets, or nulls with `signedOut` set when the session has ended. */
+export async function fetchProgram(): Promise<{
+	program: unknown;
+	targets: unknown;
+	signedOut: boolean;
+}> {
 	const response = await fetch('/api/coaching/program');
-	if (response.status === 401 || response.status === 403) return { program: null, signedOut: true };
+	if (response.status === 401 || response.status === 403)
+		return { program: null, targets: null, signedOut: true };
 	if (!response.ok) throw new Error(`Program request failed with status ${response.status}.`);
-	const body = (await response.json()) as { program: unknown };
-	return { program: body.program, signedOut: false };
+	const body = (await response.json()) as { program: unknown; targets?: unknown };
+	return { program: body.program, targets: body.targets ?? null, signedOut: false };
 }

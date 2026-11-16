@@ -4,17 +4,13 @@ import { actions, load } from './+page.server';
 const code = 'a'.repeat(64);
 const origin = 'https://configains.fundrstudio.com';
 
-function recoveryEvent(admin = true) {
+function recoveryEvent(role: 'admin' | 'client' | 'none' = 'admin') {
 	const exchangeCodeForSession = vi.fn().mockResolvedValue({
 		data: { user: { id: 'user-1' } },
 		error: null
 	});
 	const verifyOtp = vi.fn();
 	const signOut = vi.fn().mockResolvedValue({ error: null });
-	const maybeSingle = vi.fn().mockResolvedValue({
-		data: admin ? { id: 'user-1' } : null,
-		error: null
-	});
 	const event = {
 		url: new URL(`${origin}/admin/recover?code=${code}`),
 		request: new Request(`${origin}/admin/recover`, {
@@ -26,7 +22,17 @@ function recoveryEvent(admin = true) {
 			localAdminDemo: false,
 			supabase: {
 				auth: { exchangeCodeForSession, verifyOtp, signOut },
-				from: () => ({ select: () => ({ eq: () => ({ maybeSingle }) }) })
+				// The recovered user is a row in one profile table at most.
+				from: (table: string) => ({
+					select: () => ({
+						eq: () => ({
+							maybeSingle: async () => ({
+								data: table === `${role}_profiles` ? { id: 'user-1' } : null,
+								error: null
+							})
+						})
+					})
+				})
 			}
 		}
 	} as unknown as Parameters<typeof actions.default>[0];
@@ -41,7 +47,7 @@ describe('standard Supabase recovery links', () => {
 		expect(exchangeCodeForSession).not.toHaveBeenCalled();
 	});
 
-	it('exchanges the code and checks admin access before opening the password form', async () => {
+	it('exchanges the code and sends an admin to the admin password form', async () => {
 		const { event, exchangeCodeForSession, verifyOtp } = recoveryEvent();
 		await expect(actions.default(event)).rejects.toMatchObject({
 			status: 303,
@@ -51,8 +57,17 @@ describe('standard Supabase recovery links', () => {
 		expect(verifyOtp).not.toHaveBeenCalled();
 	});
 
-	it('rejects a recovered user who is not an admin', async () => {
-		const { event, signOut } = recoveryEvent(false);
+	it('sends a recovered client to their own reset screen', async () => {
+		const { event, signOut } = recoveryEvent('client');
+		await expect(actions.default(event)).rejects.toMatchObject({
+			status: 303,
+			location: '/account/reset-password'
+		});
+		expect(signOut).not.toHaveBeenCalled();
+	});
+
+	it('signs out a recovered user who is neither an admin nor a client', async () => {
+		const { event, signOut } = recoveryEvent('none');
 		const result = await actions.default(event);
 		expect(result).toMatchObject({ status: 403 });
 		expect(signOut).toHaveBeenCalledOnce();

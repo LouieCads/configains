@@ -22,3 +22,13 @@ export async function requireClient(event: RequestEvent) {
 	if (!profile) error(403, 'A Configains client account is required.');
 	return { user, profile };
 }
+
+/**
+ * Where to send a client after they sign in: the page that asked them to, when it is inside the
+ * client area (`/app`). Anything else, such as another site or the admin area, goes to `/app`.
+ */
+export function clientDestination(requested: string | null | undefined): string {
+	if (typeof requested !== 'string' || requested.length > 200) return '/app';
+	if (!/^\/app(?:[/?#][^\\]*)?$/.test(requested) || requested.includes('..')) return '/app';
+	return requested;
+}

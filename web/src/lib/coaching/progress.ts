@@ -25,8 +25,13 @@ function isoDate(date: Date) {
 	return date.toISOString().slice(0, 10);
 }
 
-function shiftDays(iso: string, days: number) {
+export function shiftDays(iso: string, days: number) {
 	return isoDate(new Date(utcDate(iso).getTime() + days * dayMs));
+}
+
+/** Whole days from one date to another (negative when `to` is earlier). */
+export function daysBetween(from: string, to: string) {
+	return Math.round((utcDate(to).getTime() - utcDate(from).getTime()) / dayMs);
 }
 
 function shiftMonths(iso: string, months: number) {

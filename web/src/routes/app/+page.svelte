@@ -3,6 +3,7 @@
 	import Dumbbell from '@lucide/svelte/icons/dumbbell';
 	import TrendingUp from '@lucide/svelte/icons/trending-up';
 	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
+	import { onMount } from 'svelte';
 	import {
 		card,
 		clientPage,
@@ -14,6 +15,10 @@
 	} from '$lib/features/cms/styles';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import ExerciseDemo from '$lib/features/coaching/ExerciseDemo.svelte';
+	import { weekStatus } from '$lib/coaching/dashboard';
+	import { hasCardioTarget, hasNutritionTarget, hasStepTarget } from '$lib/coaching/targets';
+	import NutritionCard from '$lib/features/progress/NutritionCard.svelte';
+	import WeekPlan from '$lib/features/progress/WeekPlan.svelte';
 	import { prescription, rirHelp } from '$lib/coaching/template';
 	import { aiDisclosureVersion } from '$lib/coaching/disclosure';
 	let { data } = $props();
@@ -28,6 +33,35 @@
 	const pending = $derived(data.assessmentStatus === 'submitted');
 	const needsReview = $derived(data.assessmentStatus === 'needs_human_review');
 	const humanRouted = $derived(data.assessmentStatus === 'human_assigned');
+
+	// "This week" follows the client's own date, not the server's (UTC).
+	// svelte-ignore state_referenced_locally
+	let today = $state(data.today);
+	onMount(() => {
+		today = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)
+			.toISOString()
+			.slice(0, 10);
+	});
+	const snapshot = $derived(data.snapshot);
+	const week = $derived(
+		snapshot
+			? weekStatus(
+					{ logs: snapshot.logs, metrics: [], steps: snapshot.steps, cardio: snapshot.cardio },
+					snapshot.targets,
+					today
+				)
+			: null
+	);
+	// Only show the week when there is something to do or something logged, so a new client sees no empty card.
+	const showWeek = $derived(
+		Boolean(
+			snapshot &&
+			(hasStepTarget(snapshot.targets) ||
+				hasCardioTarget(snapshot.targets) ||
+				snapshot.steps.length > 0 ||
+				snapshot.cardio.length > 0)
+		)
+	);
 </script>
 
 <svelte:head
@@ -39,22 +73,26 @@
 <main class="{clientPage} mx-auto grid max-w-[640px] gap-6 p-6">
 	<h1>{data.displayName ? `Welcome, ${data.displayName}.` : 'Welcome.'}</h1>
 
-	{#if data.coachingMode === 'human' || data.program}
-		<nav class="flex flex-wrap gap-3" aria-label="Your coaching">
-			{#if data.coachingMode === 'human'}
-				<a class={primary} href="/app/coach"
-					><MessagesSquare size={18} aria-hidden="true" />Check-ins and messages with Cash</a
-				>
-			{/if}
-			{#if data.program}
-				<a class={secondary} href="/app/log"
-					><Dumbbell size={18} aria-hidden="true" />Log training</a
-				>
-				<a class={secondary} href="/app/progress"
-					><TrendingUp size={18} aria-hidden="true" />Progress</a
-				>
-			{/if}
-		</nav>
+	<!-- Logging and progress do not wait for a program: steps, cardio and weight count from day one. -->
+	<nav class="flex flex-wrap gap-3" aria-label="Your coaching">
+		{#if data.coachingMode === 'human'}
+			<a class={primary} href="/app/coach"
+				><MessagesSquare size={18} aria-hidden="true" />Check-ins and messages with Cash</a
+			>
+		{/if}
+		<a class={data.coachingMode === 'human' ? secondary : primary} href="/app/log"
+			><Dumbbell size={18} aria-hidden="true" />Log</a
+		>
+		<a class={secondary} href="/app/progress"><TrendingUp size={18} aria-hidden="true" />Progress</a
+		>
+	</nav>
+
+	{#if showWeek && week && snapshot}
+		<WeekPlan {week} targets={snapshot.targets} />
+	{/if}
+
+	{#if snapshot && hasNutritionTarget(snapshot.targets)}
+		<NutritionCard targets={snapshot.targets} />
 	{/if}
 
 	{#if !data.program}

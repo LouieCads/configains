@@ -10,7 +10,8 @@ import {
 	loadActiveProgram,
 	markAssessmentsReviewed
 } from '$lib/server/coaching/templates';
-import { loadProgress } from '$lib/server/coaching/progress';
+import { loadDashboard, saveTargets } from '$lib/server/coaching/progress';
+import { parseActivityTargets, parseNutritionTargets } from '$lib/coaching/targets';
 import { loadConversationCounts } from '$lib/server/coaching/human';
 import { inviteState, resendInvite, type InviteState } from '$lib/server/auth/invites';
 import { createServiceClient } from '$lib/server/supabase-admin';
@@ -53,7 +54,7 @@ export const load: PageServerLoad = async (event) => {
 				.maybeSingle(),
 			loadActiveProgram(supabase, clientId),
 			loadConversationCounts(supabase, clientId),
-			loadProgress(supabase, clientId, new Date().toISOString().slice(0, 10)),
+			loadDashboard(supabase, clientId, new Date().toISOString().slice(0, 10)),
 			// Only active (non-archived) library templates can be assigned.
 			listAssignable(supabase),
 			supabase
@@ -192,6 +193,34 @@ export const actions = {
 		const copy = await customiseProgram(event, programId);
 		if (!copy) return fail(400, { message: 'The program could not be customised. Try again.' });
 		redirect(303, `/admin/templates/${copy}?client=${clientId}`);
+	},
+
+	activity: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		const form = await event.request.formData();
+		const parsed = parseActivityTargets((name) => form.get(name));
+		if (!parsed.ok) return fail(400, { message: parsed.message });
+
+		const saved = await saveTargets(event.locals.supabase, clientId, parsed.value);
+		if (!saved.ok) return fail(400, { message: saved.message });
+		return { updated: 'activity' };
+	},
+
+	nutrition: async (event) => {
+		requireSameOrigin(event);
+		await requireAdmin(event);
+		const clientId = event.params.id;
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		const form = await event.request.formData();
+		const parsed = parseNutritionTargets((name) => form.get(name));
+		if (!parsed.ok) return fail(400, { message: parsed.message });
+
+		const saved = await saveTargets(event.locals.supabase, clientId, parsed.value);
+		if (!saved.ok) return fail(400, { message: saved.message });
+		return { updated: 'nutrition' };
 	},
 
 	rename: async (event) => {

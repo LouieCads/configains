@@ -29,7 +29,23 @@ export type MetricItem = {
 	measured_on: string;
 };
 
-export type SyncItem = WorkoutItem | MetricItem;
+export type StepsItem = {
+	kind: 'steps';
+	id: string;
+	logged_on: string;
+	steps: number;
+};
+
+export type CardioItem = {
+	kind: 'cardio';
+	id: string;
+	logged_on: string;
+	duration_minutes: number;
+	avg_heart_rate: number | null;
+	activity: string | null;
+};
+
+export type SyncItem = WorkoutItem | MetricItem | StepsItem | CardioItem;
 
 /** One result per item. A duplicate means the server already has this id, so the item counts as synced. */
 export type SyncResult = {
@@ -112,6 +128,41 @@ export function validateSyncItem(
 		return {
 			ok: true,
 			value: { kind: 'metric', id: item.id, metric: metric.key, value, measured_on: measuredOn }
+		};
+	}
+
+	if (item.kind === 'steps') {
+		const loggedOn = isoDay(item.logged_on, today);
+		if (!loggedOn) return fail('The step count date is not valid.');
+		const steps = optionalNumber(item.steps, 0, 200_000);
+		if (steps === null || steps === undefined)
+			return fail('Steps must be a whole number between 0 and 200,000.');
+		return {
+			ok: true,
+			value: { kind: 'steps', id: item.id, logged_on: loggedOn, steps: Math.round(steps) }
+		};
+	}
+
+	if (item.kind === 'cardio') {
+		const loggedOn = isoDay(item.logged_on, today);
+		if (!loggedOn) return fail('The cardio date is not valid.');
+		const duration = optionalNumber(item.duration_minutes, 1, 600);
+		if (duration === null || duration === undefined)
+			return fail('Cardio time must be between 1 and 600 minutes.');
+		const heartRate = optionalNumber(item.avg_heart_rate, 30, 250);
+		if (heartRate === undefined) return fail('Average heart rate must be between 30 and 250 BPM.');
+		const activity = optionalText(item.activity, 60);
+		if (activity === undefined) return fail('The cardio type must be 60 characters or fewer.');
+		return {
+			ok: true,
+			value: {
+				kind: 'cardio',
+				id: item.id,
+				logged_on: loggedOn,
+				duration_minutes: Math.round(duration),
+				avg_heart_rate: heartRate === null ? null : Math.round(heartRate),
+				activity
+			}
 		};
 	}
 

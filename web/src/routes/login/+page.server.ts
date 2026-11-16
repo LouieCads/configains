@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { clientDestination } from '$lib/server/auth/client';
 import { requireSameOrigin } from '$lib/server/auth/origin';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -10,9 +11,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			.select('id')
 			.eq('id', user.id)
 			.maybeSingle();
-		if (data) redirect(303, '/app');
+		// Already signed in: go straight to the page they wanted.
+		if (data) redirect(303, clientDestination(url.searchParams.get('redirectTo')));
 	}
-	return { passwordSet: url.searchParams.get('password') === 'set' };
+	const notice = url.searchParams.get('password');
+	return {
+		// "set" after accepting an invitation, "updated" after a reset.
+		notice: notice === 'set' || notice === 'updated' ? notice : null
+	};
 };
 
 export const actions = {
@@ -39,6 +45,6 @@ export const actions = {
 			await event.locals.supabase.auth.signOut();
 			return fail(403, { message: 'This account is not a Configains client account.', email });
 		}
-		redirect(303, '/app');
+		redirect(303, clientDestination(event.url.searchParams.get('redirectTo')));
 	}
 } satisfies Actions;

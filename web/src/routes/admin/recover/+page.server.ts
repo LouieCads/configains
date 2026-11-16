@@ -39,10 +39,18 @@ export const actions = {
 			.select('id')
 			.eq('id', data.user.id)
 			.maybeSingle();
-		if (!profile || profileError) {
-			await event.locals.supabase.auth.signOut();
-			return fail(403, { message: 'This account does not have administrator access.' });
-		}
-		redirect(303, '/admin/reset-password');
+		if (profile && !profileError) redirect(303, '/admin/reset-password');
+
+		// This is the page every reset email links to. A client who forgot their password gets their
+		// own reset screen; anyone else is signed out again.
+		const { data: client } = await event.locals.supabase
+			.from('client_profiles')
+			.select('id')
+			.eq('id', data.user.id)
+			.maybeSingle();
+		if (client) redirect(303, '/account/reset-password');
+
+		await event.locals.supabase.auth.signOut();
+		return fail(403, { message: 'This account cannot be reset from this link.' });
 	}
 } satisfies Actions;

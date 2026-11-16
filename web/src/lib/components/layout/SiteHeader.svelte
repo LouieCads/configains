@@ -4,6 +4,7 @@
 	import { publicHref } from '$lib/content/links';
 	import type { Content } from '$lib/content/schema';
 	import Arrow from '$lib/components/landing/Arrow.svelte';
+	import { clientSignIn } from '$lib/constants/navigation';
 	import { container, headerButton, wordmark } from '$lib/components/landing/styles';
 	let { site, preview = false }: { site: Content; preview?: boolean } = $props();
 	let open = $state(false);
@@ -69,9 +70,12 @@
 						aria-current={current(item.href)}>{item.label}</a
 					>{/each}
 			</nav>
-			<a class="{headerButton} cq-58:hidden" href={publicHref('/contact', preview)}
-				>{site.navigation.contactLabel}<Arrow size={16} /></a
-			>
+			<div class="flex items-center gap-6 cq-58:hidden">
+				<a class={desktopLink} href={clientSignIn.href}>{clientSignIn.label}</a>
+				<a class={headerButton} href={publicHref('/contact', preview)}
+					>{site.navigation.contactLabel}<Arrow size={16} /></a
+				>
+			</div>
 			<button
 				class="hidden min-h-11 cursor-pointer items-center gap-3 rounded-[3px] border border-ink/30 bg-transparent px-4 pt-[0.6rem] pb-[0.45rem] font-display text-[1.25rem]/none tracking-[0.09em] text-ink cq-58:flex"
 				bind:this={menuButton}
@@ -117,6 +121,13 @@
 						aria-hidden="true">{String(index + 1).padStart(2, '0')}</span
 					></a
 				>{/each}
+			<a
+				class={mobileLink}
+				href={clientSignIn.href}
+				onclick={() => {
+					open = false;
+				}}>{clientSignIn.label}</a
+			>
 			<a
 				class="mt-6 {headerButton} w-full justify-center py-4"
 				href={publicHref('/contact', preview)}

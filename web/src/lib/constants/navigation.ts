@@ -6,6 +6,12 @@ export const publicNavigation = [
 	{ href: '/contact', label: 'Contact' }
 ] as const;
 
+/**
+ * Where existing clients sign in. Always shown on the public site, so a client who has logged out
+ * (or lost their invitation email) can find the way back. Not editable in the CMS.
+ */
+export const clientSignIn = { href: '/login', label: 'Client sign in' } as const;
+
 /** Admin sidebar, in groups. A group without a heading sits at the top. */
 export const adminNavigation = [
 	{ heading: '', items: [{ href: '/admin/dashboard', label: 'Dashboard' }] },

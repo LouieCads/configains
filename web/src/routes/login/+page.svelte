@@ -4,10 +4,12 @@
 	import {
 		authCard,
 		authLabel,
+		authLink,
 		authSubmit,
 		brand,
 		error,
 		eyebrow,
+		help,
 		loginPage,
 		primary,
 		studio,
@@ -19,7 +21,7 @@
 </script>
 
 <svelte:head
-	><title>Sign in | Configains</title><meta
+	><title>Client sign in | Configains</title><meta
 		name="robots"
 		content="noindex, nofollow"
 	/></svelte:head
@@ -37,12 +39,15 @@
 		}}
 	>
 		<a href="/" class={brand}>CONFIGAINS.</a>
-		<p class={eyebrow}>CLIENT ACCOUNT</p>
+		<p class={eyebrow}>CLIENT SIGN IN</p>
 		<h1>Sign in.</h1>
-		<p>Accounts are by invitation. Use the email address Cash invited.</p>
+		<p>Sign in to see your plan, log your training and follow your progress.</p>
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
-		{#if data.passwordSet}<p class={success} role="status">
+		{#if data.notice === 'set'}<p class={success} role="status">
 				Password set. Sign in to continue.
+			</p>{/if}
+		{#if data.notice === 'updated'}<p class={success} role="status">
+				Password updated. Sign in with your new password.
 			</p>{/if}
 		<label class={authLabel}
 			><span>Email address<span class={requiredMark} aria-hidden="true">*</span></span><input
@@ -64,5 +69,11 @@
 		<button class="{primary} {authSubmit}" disabled={busy}
 			><LogIn size={18} aria-hidden="true" />{busy ? 'Signing in…' : 'Sign in'}</button
 		>
+		<a class={authLink} href="/forgot-password">Forgot your password?</a>
+		<p class="{help} mt-5!">
+			New here? Open the invitation email from Cash and follow its link to choose your password.
+			Once you have, sign in here with that email and password.
+		</p>
+		<a class="{authLink} mt-2!" href="/admin/login">Coach sign in</a>
 	</form>
 </main>

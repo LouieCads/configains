@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RequestEvent } from '@sveltejs/kit';
-import { requireClient } from './client';
+import { clientDestination, requireClient } from './client';
 
 type Profile = { id: string; display_name: string | null; coaching_mode: 'ai' | 'human' } | null;
 
@@ -63,5 +63,30 @@ describe('client account guard', () => {
 			requireClient(event('/api/coaching/recommend', { id: 'admin-1' }, null))
 		);
 		expect(thrown.status).toBe(403);
+	});
+});
+
+describe('client sign-in destination', () => {
+	it('returns the client page that asked for sign-in', () => {
+		expect(clientDestination('/app')).toBe('/app');
+		expect(clientDestination('/app/log')).toBe('/app/log');
+		expect(clientDestination('/app/progress?tab=1')).toBe('/app/progress?tab=1');
+	});
+
+	it('falls back to the client home for anything else', () => {
+		for (const requested of [
+			null,
+			undefined,
+			'',
+			'/',
+			'/admin/dashboard',
+			'/application',
+			'//evil.example/app',
+			'https://evil.example/app',
+			'/app/\\evil',
+			'/app/../admin/dashboard',
+			'/app/' + 'a'.repeat(300)
+		])
+			expect(clientDestination(requested)).toBe('/app');
 	});
 });
