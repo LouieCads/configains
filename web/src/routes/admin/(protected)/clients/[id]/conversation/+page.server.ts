@@ -14,7 +14,7 @@ export const load: PageServerLoad = async (event) => {
 	const clientId = event.params.id;
 	if (!isUuid(clientId)) {
 		await requireAdmin(event);
-		error(404, 'Client not found.');
+		error(404, 'Client not found');
 	}
 	const supabase = event.locals.supabase;
 	const [, profileResult, thread] = await Promise.all([
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async (event) => {
 		loadCoachingThread(supabase, clientId)
 	]);
 	if (profileResult.error) error(500, 'The client could not be loaded.');
-	if (!profileResult.data) error(404, 'Client not found.');
+	if (!profileResult.data) error(404, 'Client not found');
 
 	// Opening this page counts as reading their messages. This load's copy still shows which were new.
 	if (thread.messages.some((message) => message.sender_role === 'client' && !message.read_at))
@@ -45,12 +45,12 @@ export const actions = {
 		const checkInId = String(form.get('check_in_id') ?? '');
 		const feedback = cleanText(form.get('feedback'), feedbackLimit);
 		if (!isUuid(clientId) || !isUuid(checkInId))
-			return fail(400, { message: 'The check-in could not be found.' });
+			return fail(400, { message: 'Check-in not found' });
 		if (!feedback)
-			return fail(400, { message: `Write feedback of up to ${feedbackLimit} characters.` });
+			return fail(400, { message: `Write feedback up to ${feedbackLimit} characters` });
 
 		const result = await saveCheckInFeedback(event.locals.supabase, clientId, checkInId, feedback);
-		if (!result.ok) return fail(400, { message: 'The feedback could not be saved. Try again.' });
+		if (!result.ok) return fail(400, { message: "Couldn't save feedback" });
 		return { updated: 'feedback' };
 	},
 
@@ -59,12 +59,11 @@ export const actions = {
 		await requireAdmin(event);
 		const clientId = event.params.id;
 		const body = cleanText((await event.request.formData()).get('body'), messageLimit);
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
-		if (!body)
-			return fail(400, { message: `Write a message of up to ${messageLimit} characters.` });
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found' });
+		if (!body) return fail(400, { message: `Write a message up to ${messageLimit} characters` });
 
 		const result = await sendMessage(event.locals.supabase, clientId, 'coach', body);
-		if (!result.ok) return fail(400, { message: 'The message could not be sent. Try again.' });
+		if (!result.ok) return fail(400, { message: "Couldn't send message" });
 		return { updated: 'reply' };
 	}
 } satisfies Actions;

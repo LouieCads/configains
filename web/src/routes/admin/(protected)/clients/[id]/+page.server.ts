@@ -38,7 +38,7 @@ export const load: PageServerLoad = async (event) => {
 	const clientId = event.params.id;
 	if (!isUuid(clientId)) {
 		await requireAdmin(event);
-		error(404, 'Client not found.');
+		error(404, 'Client not found');
 	}
 
 	// Everything loads in one round: the admin check runs alongside the queries (RLS still limits
@@ -68,7 +68,7 @@ export const load: PageServerLoad = async (event) => {
 		]);
 	const { data: profile, error: profileError } = profileResult;
 	if (profileError) error(500, 'The client could not be loaded.');
-	if (!profile) error(404, 'Client not found.');
+	if (!profile) error(404, 'Client not found');
 
 	const assessment = latest.data;
 
@@ -116,8 +116,7 @@ export const actions = {
 		const form = await event.request.formData();
 		const workoutId = String(form.get('workout_template_id') ?? '');
 		const nutritionId = String(form.get('nutrition_template_id') ?? '') || null;
-		if (!isUuid(clientId) || !workoutId)
-			return fail(400, { message: 'Choose a workout template.' });
+		if (!isUuid(clientId) || !workoutId) return fail(400, { message: 'Choose a workout template' });
 
 		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
 		if (!result.ok) return fail(400, { message: result.message });
@@ -129,7 +128,7 @@ export const actions = {
 			const copy = program ? await customiseProgram(event, program.id) : null;
 			if (!copy)
 				return fail(400, {
-					message: 'The program was assigned, but the copy could not be made. Use Customise.'
+					message: 'Assigned, but the copy failed. Use Customise'
 				});
 			redirect(303, `/admin/templates/${copy}?client=${clientId}`);
 		}
@@ -142,14 +141,13 @@ export const actions = {
 		const clientId = event.params.id;
 		const mode = String((await event.request.formData()).get('mode') ?? '');
 		if (!isUuid(clientId) || (mode !== 'human' && mode !== 'ai'))
-			return fail(400, { message: 'Choose a coaching mode.' });
+			return fail(400, { message: 'Choose a coaching mode' });
 
 		const { error: modeError } = await event.locals.supabase
 			.from('client_profiles')
 			.update({ coaching_mode: mode })
 			.eq('id', clientId);
-		if (modeError)
-			return fail(400, { message: 'The coaching mode could not be changed. Try again.' });
+		if (modeError) return fail(400, { message: "Couldn't change coaching mode" });
 		if (mode === 'human') await markAssessmentsReviewed(event.locals.supabase, clientId);
 		return { updated: 'mode' };
 	},
@@ -162,9 +160,9 @@ export const actions = {
 		const programId = String(form.get('program_id') ?? '');
 		const phaseId = String(form.get('phase_id') ?? '');
 		if (!isUuid(clientId) || !isUuid(programId) || !isUuid(phaseId))
-			return fail(400, { message: 'Choose a phase to move the client to.' });
+			return fail(400, { message: 'Choose a phase' });
 		if (!(await ownActiveProgram(event, clientId, programId)))
-			return fail(404, { message: 'This program is no longer active.' });
+			return fail(404, { message: 'Program is no longer active' });
 
 		const { error: rpcError } = await event.locals.supabase.rpc('set_client_phase', {
 			p_program_id: programId,
@@ -185,13 +183,12 @@ export const actions = {
 		await requireAdmin(event);
 		const clientId = event.params.id;
 		const programId = String((await event.request.formData()).get('program_id') ?? '');
-		if (!isUuid(clientId) || !isUuid(programId))
-			return fail(400, { message: 'The program could not be found.' });
+		if (!isUuid(clientId) || !isUuid(programId)) return fail(400, { message: 'Program not found' });
 		const program = await ownActiveProgram(event, clientId, programId);
-		if (!program) return fail(404, { message: 'This program is no longer active.' });
+		if (!program) return fail(404, { message: 'Program is no longer active' });
 
 		const copy = await customiseProgram(event, programId);
-		if (!copy) return fail(400, { message: 'The program could not be customised. Try again.' });
+		if (!copy) return fail(400, { message: "Couldn't customise program" });
 		redirect(303, `/admin/templates/${copy}?client=${clientId}`);
 	},
 
@@ -199,7 +196,7 @@ export const actions = {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const clientId = event.params.id;
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found' });
 		const form = await event.request.formData();
 		const parsed = parseActivityTargets((name) => form.get(name));
 		if (!parsed.ok) return fail(400, { message: parsed.message });
@@ -213,7 +210,7 @@ export const actions = {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const clientId = event.params.id;
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found' });
 		const form = await event.request.formData();
 		const parsed = parseNutritionTargets((name) => form.get(name));
 		if (!parsed.ok) return fail(400, { message: parsed.message });
@@ -228,14 +225,14 @@ export const actions = {
 		await requireAdmin(event);
 		const clientId = event.params.id;
 		const name = cleanText((await event.request.formData()).get('display_name'), nameLimit);
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
-		if (!name) return fail(400, { message: `Enter a name of up to ${nameLimit} characters.` });
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found' });
+		if (!name) return fail(400, { message: `Enter a name up to ${nameLimit} characters` });
 
 		const { error: renameError } = await event.locals.supabase
 			.from('client_profiles')
 			.update({ display_name: name })
 			.eq('id', clientId);
-		if (renameError) return fail(400, { message: 'The name could not be saved. Try again.' });
+		if (renameError) return fail(400, { message: "Couldn't save name" });
 		return { updated: 'rename' };
 	},
 
@@ -244,13 +241,13 @@ export const actions = {
 		await requireAdmin(event);
 		const clientId = event.params.id;
 		const archive = (await event.request.formData()).get('archive') === '1';
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found' });
 
 		const { error: archiveError } = await event.locals.supabase
 			.from('client_profiles')
 			.update({ archived_at: archive ? new Date().toISOString() : null })
 			.eq('id', clientId);
-		if (archiveError) return fail(400, { message: 'The client could not be updated. Try again.' });
+		if (archiveError) return fail(400, { message: "Couldn't update client" });
 		return { updated: archive ? 'archive' : 'restore' };
 	},
 
@@ -258,11 +255,11 @@ export const actions = {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const clientId = event.params.id;
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found' });
 		const admin = serviceClient();
 		if (!admin)
 			return fail(503, {
-				message: 'Invitations are not set up yet. Add the service-role secret in Netlify.'
+				message: 'Invites need the service-role secret in Netlify'
 			});
 
 		const result = await resendInvite(
@@ -278,12 +275,12 @@ export const actions = {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const clientId = event.params.id;
-		if (!isUuid(clientId)) return fail(404, { message: 'Client not found.' });
+		if (!isUuid(clientId)) return fail(404, { message: 'Client not found' });
 		// Check the secret first, so coaching data is never removed while the login is left behind.
 		const admin = serviceClient();
 		if (!admin)
 			return fail(503, {
-				message: 'Deleting clients needs the service-role secret in Netlify.'
+				message: 'Deleting needs the service-role secret in Netlify'
 			});
 
 		const { error: deleteError } = await event.locals.supabase.rpc('delete_client', {

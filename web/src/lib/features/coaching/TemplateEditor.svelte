@@ -40,9 +40,10 @@
 		secondary,
 		subtle,
 		subtleDanger,
-		success,
+		subtleAccent,
 		requiredMark
 	} from '$lib/features/cms/styles';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	import FormProgress from '$lib/features/forms/FormProgress.svelte';
 	import type { Control } from '$lib/features/forms/progress';
 	import { StepFlow } from '$lib/features/forms/step-flow.svelte';
@@ -197,6 +198,18 @@
 
 	let form = $state<HTMLFormElement>();
 	let notice = $state('');
+	$effect(() => {
+		if (message) toast.error(message);
+	});
+	$effect(() => {
+		if (!saved) return;
+		if (libraryId)
+			toast.success(`Saved for ${clientName} and added to library`, {
+				label: 'Open',
+				href: `/admin/templates/${libraryId}`
+			});
+		else toast.success(clientCopy ? `Saved for ${clientName}` : 'Template saved');
+	});
 	let saving = $state(false);
 	/** Client copies only: shows the name field for a new library template. */
 	let asTemplate = $state(false);
@@ -726,16 +739,6 @@
 >
 	<input type="hidden" name="payload" value={JSON.stringify(payload)} />
 
-	{#if message}<p class={error} role="alert">{message}</p>{/if}
-	{#if saved && libraryId}
-		<p class={success} role="status">
-			Saved for {clientName}, and added to your Program Library as a new template.
-			<a class="text-cyan-ink" href="/admin/templates/{libraryId}">Open the library template</a>
-		</p>
-	{:else if saved}<p class={success} role="status">
-			{clientCopy ? `Saved for ${clientName}.` : 'Template saved.'}
-		</p>{/if}
-
 	{#if isNew}
 		<div class="mt-3">
 			<FormProgress
@@ -796,7 +799,7 @@
 					<section class="border-t border-line py-3" aria-labelledby="review-{group.key}">
 						<div class="flex items-center justify-between gap-4">
 							<h2 id="review-{group.key}" class="mb-0 text-[1.375rem]/none">{group.title}</h2>
-							<button type="button" class={subtle} onclick={() => edit(group.key)}
+							<button type="button" class={subtleAccent} onclick={() => edit(group.key)}
 								><Pencil size={16} aria-hidden="true" />Edit<span class="sr-only">
 									{group.title}</span
 								></button
@@ -817,7 +820,7 @@
 						<h2 id="review-phases" class="mb-0 text-[1.375rem]/none">
 							{stepTitles.phases} ({template.phases.length})
 						</h2>
-						<button type="button" class={subtle} onclick={() => edit('phases')}
+						<button type="button" class={subtleAccent} onclick={() => edit('phases')}
 							><Pencil size={16} aria-hidden="true" />Edit<span class="sr-only">
 								{stepTitles.phases}</span
 							></button

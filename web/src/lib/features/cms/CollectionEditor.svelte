@@ -12,6 +12,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import ContentField from './ContentField.svelte';
 	import { cmsRequest, errorMessage } from './api';
+	import { toast } from './toast.svelte';
 	import { card, help as helpClass, primary, requiredMark } from './styles';
 	import { onDestroy, untrack } from 'svelte';
 	import {
@@ -49,8 +50,7 @@
 		})
 	);
 	let busy = $state(false),
-		pendingUploads = $state(0),
-		message = $state('');
+		pendingUploads = $state(0);
 	let baseline = $state(untrack(() => JSON.stringify(values)));
 	const locked = $derived(busy || pendingUploads > 0);
 
@@ -73,7 +73,6 @@
 	async function save(event: SubmitEvent) {
 		event.preventDefault();
 		busy = true;
-		message = '';
 		try {
 			const saved = await cmsRequest<CollectionRow>(
 				endpoint,
@@ -81,14 +80,14 @@
 					method: row ? 'PATCH' : 'POST',
 					json: row ? { id: row.id, ...values } : { ...values, sort_order: sortOrder }
 				},
-				'The change could not be saved.'
+				"Couldn't save"
 			);
 			onSaved(saved);
-			message = row ? 'Saved.' : '';
+			toast.success(row ? 'Saved' : 'Added');
 			if (!row) values = emptyValues(fields);
 			baseline = JSON.stringify(values);
 		} catch (error) {
-			message = errorMessage(error, 'Saving failed. Please try again.');
+			toast.error(errorMessage(error, "Couldn't save"));
 		} finally {
 			busy = false;
 		}
@@ -155,7 +154,6 @@
 			{#if field.help}<p id={helpId} class={helpClass}>{field.help}</p>{/if}
 		</div>
 	{/each}
-	{#if message}<p role="status">{message}</p>{/if}
 	<div class="flex flex-wrap gap-3">
 		<button class={primary} disabled={locked}
 			>{#if row}<Save size={18} aria-hidden="true" />{:else}<Plus

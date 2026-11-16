@@ -5,6 +5,7 @@
 	import { enhance } from '$app/forms';
 	import { answerSummary, assessmentStatus, healthLabel, openStatuses } from '$lib/coaching/labels';
 	import AssignProgramForm from '$lib/features/coaching/AssignProgramForm.svelte';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	import {
 		badgeNeutral,
 		badgeOk,
@@ -12,11 +13,14 @@
 		card,
 		error,
 		subtle,
-		success,
 		tabIdle,
 		tabSelected
 	} from '$lib/features/cms/styles';
 	let { data, form } = $props();
+	$effect(() => {
+		if (form?.updated) toast.success(form.updated);
+		else if (form?.message) toast.error(form.message);
+	});
 
 	const toneClass = { ok: badgeOk, warn: badgeWarn, neutral: badgeNeutral } as const;
 	const dateFormat = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' });
@@ -34,8 +38,6 @@
 <div class="grid gap-6">
 	<h1 class="mt-3! mb-0!">Assessments</h1>
 
-	{#if form?.message}<p class="{error} m-0!" role="alert">{form.message}</p>{/if}
-	{#if form?.updated}<p class="{success} m-0!" role="status">{form.updated}</p>{/if}
 	{#if data.loadError}<p class="{error} m-0!" role="alert">{data.loadError}</p>{/if}
 
 	{#if data.assessments.length === 0 && !data.loadError}

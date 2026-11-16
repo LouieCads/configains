@@ -6,18 +6,20 @@
 	import UserPlus from '@lucide/svelte/icons/user-plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import X from '@lucide/svelte/icons/x';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { enhance } from '$app/forms';
 	import { goals, templateKinds } from '$lib/coaching/template';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	import {
 		badgeNeutral,
 		card,
 		error,
 		help,
+		neutral,
 		primary,
 		secondary,
 		subtle,
-		success,
+		subtleAccent,
+		subtleOk,
 		tabIdle,
 		tabSelected,
 		requiredMark
@@ -34,6 +36,7 @@
 	let kind = $state('all');
 	let query = $state('');
 	const filters = [{ value: 'all', label: 'All' }, ...templateKinds];
+	const filterIcons: Record<string, typeof Dumbbell> = { workout: Dumbbell, nutrition: Apple };
 
 	const visible = $derived.by(() => {
 		const text = query.trim().toLowerCase();
@@ -58,6 +61,17 @@
 
 	// One dialog serves every row: it assigns whichever workout was picked.
 	let dialog = $state<HTMLDialogElement>();
+	$effect(() => {
+		// Errors from the assign dialog show inside it, where the toast would sit behind it.
+		if (form?.message && !dialog?.open) toast.error(form.message);
+		if (form?.updated) {
+			const client = 'assignedClient' in form ? form.assignedClient : null;
+			toast.success(
+				form.updated,
+				client ? { label: 'Open client', href: `/admin/clients/${client}` } : undefined
+			);
+		}
+	});
 	let assigning = $state<Template | null>(null);
 	let clientId = $state('');
 	let nutritionChoice = $state('');
@@ -73,6 +87,8 @@
 	const row =
 		'relative flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-line bg-paper px-4 py-3 hover:border-cyan-ink focus-within:border-cyan-ink';
 	const rowAction = `${subtle} relative z-10 hover:border-current hover:text-ink`;
+	const rowAccent = `${subtleAccent} relative z-10 hover:border-current`;
+	const rowOk = `${subtleOk} relative z-10 hover:border-current`;
 </script>
 
 <svelte:head><title>Templates | Configains CMS</title></svelte:head>
@@ -101,7 +117,7 @@
 			{#if template.kind === 'workout' && !template.is_archived && data.clients.length > 0}
 				<button
 					type="button"
-					class={rowAction}
+					class={rowAccent}
 					aria-label="Assign {template.name} to a client"
 					onclick={() => openAssign(template)}
 					><UserPlus size={16} aria-hidden="true" />Assign</button
@@ -117,7 +133,7 @@
 				<input type="hidden" name="id" value={template.id} />
 				<input type="hidden" name="archived" value={template.is_archived ? 'false' : 'true'} />
 				<button
-					class={rowAction}
+					class={template.is_archived ? rowOk : rowAction}
 					aria-label="{template.is_archived ? 'Restore' : 'Archive'} {template.name}"
 					>{#if template.is_archived}<ArchiveRestore
 							size={16}
@@ -142,15 +158,6 @@
 		</div>
 	</header>
 
-	{#if form?.message}<p class="{error} m-0!" role="alert">{form.message}</p>{/if}
-	{#if form?.updated}<p class="{success} m-0!" role="status">
-			{form.updated}
-			{#if 'assignedClient' in form && form.assignedClient}<a
-					class="ml-2 font-semibold text-[#175e4d]"
-					href="/admin/clients/{form.assignedClient}"
-					>Open client<ChevronRight size={16} class="inline" aria-hidden="true" /></a
-				>{/if}
-		</p>{/if}
 	{#if data.loadError}<p class="{error} m-0!" role="alert">{data.loadError}</p>{/if}
 
 	{#if data.templates.length === 0}
@@ -167,12 +174,13 @@
 			</label>
 			<div class="flex flex-wrap gap-2" role="group" aria-label="Filter by type">
 				{#each filters as filter (filter.value)}
+					{@const Icon = filterIcons[filter.value]}
 					<button
 						type="button"
-						class={kind === filter.value ? tabSelected : tabIdle}
+						class={[kind === filter.value ? tabSelected : tabIdle, 'gap-2']}
 						aria-pressed={kind === filter.value}
 						onclick={() => (kind = filter.value)}
-						>{filter.label}
+						>{#if Icon}<Icon size={16} aria-hidden="true" />{/if}{filter.label}
 						<span class="ml-2 text-[0.8rem] font-normal opacity-75">{countFor(filter.value)}</span
 						></button
 					>
@@ -261,7 +269,7 @@
 			</label>
 			{#if form?.message}<p class="{error} m-0!" role="alert">{form.message}</p>{/if}
 			<div class="flex flex-wrap justify-end gap-3">
-				<button type="button" class={secondary} onclick={() => dialog?.close()}
+				<button type="button" class={neutral} onclick={() => dialog?.close()}
 					><X size={18} aria-hidden="true" />Cancel</button
 				>
 				<button class={primary} disabled={busy || !clientId}

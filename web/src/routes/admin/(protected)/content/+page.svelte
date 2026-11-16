@@ -19,9 +19,9 @@
 		eyebrow,
 		primary,
 		secondary,
-		subtle,
-		success
+		subtle
 	} from '$lib/features/cms/styles';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	import {
 		validateWebsite,
 		websitePagePath,
@@ -81,7 +81,6 @@
 		active = $state('home'),
 		pendingUploads = $state(0),
 		busy = $state(false),
-		message = $state(''),
 		errors = $state<string[]>([]);
 	/** Last tab opened in each section, so switching sections keeps your place. */
 	let selectedPanels = $state<Record<string, string>>({});
@@ -121,22 +120,24 @@
 
 	/** Validates and saves the draft. Resolves to whether it succeeded. */
 	async function save() {
-		message = '';
 		errors = validateWebsite(content);
-		if (errors.length) return false;
+		if (errors.length) {
+			toast.error(errors.length === 1 ? errors[0] : `Fix ${errors.length} fields to save`);
+			return false;
+		}
 		busy = true;
 		try {
 			const result = await cmsRequest<{ revision: string }>(
 				'/api/site-content',
 				{ method: 'PUT', json: { content, revision } },
-				'The draft could not be saved.'
+				"Couldn't save draft"
 			);
 			revision = result.revision;
 			baseline = JSON.stringify(content);
-			message = 'Draft saved. Preview it before publishing.';
+			toast.success('Draft saved');
 			return true;
 		} catch (error) {
-			errors = [errorMessage(error, 'Saving failed. Please try again.')];
+			toast.error(errorMessage(error, "Couldn't save draft"));
 			return false;
 		} finally {
 			busy = false;
@@ -147,20 +148,17 @@
 	async function publish() {
 		if ((dirty || !revision) && !(await save())) return;
 		busy = true;
-		message = '';
 		errors = [];
 		try {
 			const result = await cmsRequest<{ publishedRevision: string }>(
 				'/api/site-content',
 				{ method: 'POST', json: { revision } },
-				'Publishing failed.'
+				"Couldn't publish"
 			);
 			publishedRevision = result.publishedRevision;
-			message = data.localAdminDemo
-				? 'Published to your local preview.'
-				: 'Published. Your changes are now live.';
+			toast.success(data.localAdminDemo ? 'Published to local preview' : 'Published');
 		} catch (error) {
-			errors = [errorMessage(error, 'Publishing failed. Please try again.')];
+			toast.error(errorMessage(error, "Couldn't publish"));
 		} finally {
 			busy = false;
 		}
@@ -169,7 +167,7 @@
 	function discard() {
 		content = JSON.parse(baseline);
 		errors = [];
-		message = 'Unsaved edits discarded.';
+		toast.success('Edits discarded');
 	}
 
 	function trackUpload(uploading: boolean) {
@@ -235,7 +233,6 @@
 		}}><Undo2 size={18} aria-hidden="true" />Discard unsaved edits</button
 	>
 </div>
-{#if message}<p class={success} role="status">{message}</p>{/if}
 {#if errors.length}<div class={errorClass} role="alert">
 		<strong>Please review:</strong>
 		<ul>

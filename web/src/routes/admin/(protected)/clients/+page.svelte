@@ -1,5 +1,7 @@
 <script lang="ts">
+	import Bot from '@lucide/svelte/icons/bot';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import User from '@lucide/svelte/icons/user';
 	import UserPlus from '@lucide/svelte/icons/user-plus';
 	import Send from '@lucide/svelte/icons/send';
 	import X from '@lucide/svelte/icons/x';
@@ -12,14 +14,14 @@
 		card,
 		error,
 		help,
+		neutral,
 		primary,
-		secondary,
-		success,
 		tabIdle,
 		tabSelected,
 		requiredMark
 	} from '$lib/features/cms/styles';
 	import { page } from '$app/state';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	let { form, data } = $props();
 	const deleted = $derived(page.url.searchParams.get('deleted') === '1');
 
@@ -27,6 +29,14 @@
 	let inviting = $state(false);
 	$effect(() => {
 		if (form?.message) inviteOpen = true;
+	});
+	$effect(() => {
+		if (form?.invited)
+			toast.success(`${form.resent ? 'Invite resent to' : 'Invite sent to'} ${form.email}`);
+		else if (form?.message) toast.error(form.message);
+	});
+	$effect(() => {
+		if (deleted && !form) toast.success('Client deleted');
 	});
 
 	type Client = (typeof data.clients)[number];
@@ -80,7 +90,7 @@
 		<h1 class="m-0!">Clients</h1>
 		<button
 			type="button"
-			class={inviteOpen ? secondary : primary}
+			class={inviteOpen ? neutral : primary}
 			aria-expanded={inviteOpen}
 			aria-controls="invite-client"
 			onclick={() => (inviteOpen = !inviteOpen)}
@@ -91,15 +101,8 @@
 		>
 	</header>
 
-	{#if form?.invited}<p class="{success} m-0!" role="status">
-			{form.resent ? 'A new invite was sent to' : 'Invite sent to'}
-			{form.email}.
-		</p>{/if}
-	{#if deleted && !form}<p class="{success} m-0!" role="status">Client deleted.</p>{/if}
-
 	<section id="invite-client" class={card} hidden={!inviteOpen}>
 		<h2 class="text-[1.5rem]!">Invite a client</h2>
-		{#if form?.message}<p class="{error} mt-0!" role="alert">{form.message}</p>{/if}
 		<form
 			method="POST"
 			action="?/invite"
@@ -181,9 +184,11 @@
 							{#each todo.filter((item) => item !== 'No program') as item (item)}<span
 									class={badgeWarn}>{item}</span
 								>{/each}
-							<span class={client.coaching_mode === 'human' ? badgeOk : badgeNeutral}
-								>{client.coaching_mode === 'human' ? 'Human' : 'AI'}</span
-							>
+							{#if client.coaching_mode === 'human'}
+								<span class={badgeOk}><User size={14} aria-hidden="true" />Human</span>
+							{:else}
+								<span class={badgeNeutral}><Bot size={14} aria-hidden="true" />AI</span>
+							{/if}
 							<ChevronRight size={18} class="text-muted" aria-hidden="true" />
 						</a>
 					</li>

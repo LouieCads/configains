@@ -69,36 +69,35 @@ export const actions = {
 		const clientId = clientFrom(form);
 		const workoutId = String(form.get('workout_template_id') ?? '');
 		const nutritionId = String(form.get('nutrition_template_id') ?? '') || null;
-		if (!clientId || !workoutId)
-			return fail(400, { message: 'Choose a workout template to assign.' });
+		if (!clientId || !workoutId) return fail(400, { message: 'Choose a workout template' });
 
 		// The database ends any active program, including an AI one, and records this as a coach assignment.
 		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
 		if (!result.ok) return fail(400, { message: result.message });
 		await markAssessmentsReviewed(event.locals.supabase, clientId);
-		return { updated: 'Program assigned.' };
+		return { updated: 'Program assigned' };
 	},
 	human: async (event) => {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const clientId = clientFrom(await event.request.formData());
-		if (!clientId) return fail(400, { message: 'The client could not be found.' });
+		if (!clientId) return fail(400, { message: 'Client not found' });
 
 		const { error: modeError } = await event.locals.supabase
 			.from('client_profiles')
 			.update({ coaching_mode: 'human' })
 			.eq('id', clientId);
-		if (modeError) return fail(400, { message: 'The client could not be switched. Try again.' });
+		if (modeError) return fail(400, { message: "Couldn't switch client" });
 		await markAssessmentsReviewed(event.locals.supabase, clientId);
-		return { updated: 'Moved to human coaching.' };
+		return { updated: 'Moved to human coaching' };
 	},
 	review: async (event) => {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const clientId = clientFrom(await event.request.formData());
-		if (!clientId) return fail(400, { message: 'The client could not be found.' });
+		if (!clientId) return fail(400, { message: 'Client not found' });
 		if (!(await markAssessmentsReviewed(event.locals.supabase, clientId)))
-			return fail(400, { message: 'The assessment could not be updated. Try again.' });
-		return { updated: 'Marked as reviewed.' };
+			return fail(400, { message: "Couldn't update assessment" });
+		return { updated: 'Marked as reviewed' };
 	}
 } satisfies Actions;

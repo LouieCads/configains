@@ -35,16 +35,16 @@ export const actions = {
 		const mediaPath = String(form.get('media_path') ?? '').trim();
 		const values = { id, name, youtube: youtubeInput };
 
-		if (id && !isUuid(id)) return fail(400, { ...values, message: 'The exercise was not found.' });
-		if (!name) return fail(400, { ...values, message: 'Enter the exercise name.' });
+		if (id && !isUuid(id)) return fail(400, { ...values, message: 'Exercise not found' });
+		if (!name) return fail(400, { ...values, message: 'Enter a name' });
 		const youtubeId = youtubeInput ? parseYoutubeId(youtubeInput) : null;
 		if (youtubeInput && !youtubeId)
 			return fail(400, {
 				...values,
-				message: 'Paste a YouTube video link, for example https://youtu.be/…'
+				message: 'Enter a valid YouTube link'
 			});
 		if (mediaPath && !validMediaPath(mediaPath))
-			return fail(400, { ...values, message: 'Upload the demo clip again.' });
+			return fail(400, { ...values, message: 'Upload the clip again' });
 
 		const row = {
 			name,
@@ -70,10 +70,10 @@ export const actions = {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		const id = String((await event.request.formData()).get('id') ?? '');
-		if (!isUuid(id)) return fail(400, { message: 'The exercise was not found.' });
+		if (!isUuid(id)) return fail(400, { message: 'Exercise not found' });
 		// Program exercises keep their names; they only lose the demonstration.
 		const { error } = await event.locals.supabase.from('exercise_library').delete().eq('id', id);
-		if (error) return fail(400, { message: 'The exercise could not be deleted. Try again.' });
+		if (error) return fail(400, { message: "Couldn't delete exercise" });
 		return { deleted: true };
 	}
 } satisfies Actions;

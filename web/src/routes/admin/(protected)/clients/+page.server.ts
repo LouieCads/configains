@@ -91,7 +91,7 @@ export const actions = {
 		requireSameOrigin(event);
 		await requireAdmin(event);
 		if (event.locals.localAdminDemo)
-			return fail(400, { message: 'Invitations cannot be sent in the local demo.' });
+			return fail(400, { message: 'Invites are off in the local demo' });
 
 		const form = await event.request.formData();
 		const email = String(form.get('email') ?? '').trim();
@@ -100,14 +100,14 @@ export const actions = {
 				.trim()
 				.slice(0, 120) || null;
 		if (!validInviteEmail(email))
-			return fail(400, { message: 'Enter a valid email address.', email, displayName });
+			return fail(400, { message: 'Enter a valid email', email, displayName });
 
 		let admin;
 		try {
 			admin = createServiceClient();
 		} catch {
 			return fail(503, {
-				message: 'Invitations are not set up yet. Add the service-role secret in Netlify.',
+				message: 'Invites need the service-role secret in Netlify',
 				email,
 				displayName
 			});

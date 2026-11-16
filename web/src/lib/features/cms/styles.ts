@@ -49,14 +49,25 @@ export const help = 'my-[10px] text-[0.8rem] text-muted';
 const action =
 	'inline-flex cursor-pointer items-center justify-center gap-[10px] rounded-[6px] border font-semibold no-underline';
 const actionSize = 'min-h-11 px-[18px] py-[11px]';
-export const primary = `${action} ${actionSize} border-transparent bg-cyan text-ink`;
-export const secondary = `${action} ${actionSize} border-[#b7c6c7] bg-transparent text-ink`;
+/**
+ * Button colours carry meaning, all from the site palette:
+ * cyan fill = save or confirm, teal outline = other actions, grey outline =
+ * cancel or back, green = restore, red = delete.
+ */
+export const primary = `${action} ${actionSize} border-transparent bg-cyan text-ink not-disabled:hover:bg-[#7fe3ef]`;
+export const secondary = `${action} ${actionSize} border-cyan-ink bg-transparent text-cyan-deep not-disabled:hover:bg-mist`;
+/** Cancel, back and other dismissals. */
+export const neutral = `${action} ${actionSize} border-[#b7c6c7] bg-transparent text-ink not-disabled:hover:bg-floor`;
 /** Secondary action on the dark sidebar. */
 export const secondaryOnDark = `${action} ${actionSize} border-[#506970] bg-transparent text-white`;
 /** Secondary icon button in tight rows. */
 export const secondaryCompact = `${action} min-h-11 min-w-11 p-2 border-[#b7c6c7] bg-transparent text-ink`;
 export const secondaryDanger = `${action} ${actionSize} border-[#b7c6c7] bg-transparent text-[#a23131]`;
 export const subtle = `${action} min-h-9 px-[10px] py-[5px] border-transparent bg-transparent text-muted`;
+/** Row actions that open or change something, e.g. Edit and Assign. */
+export const subtleAccent = `${action} min-h-9 px-[10px] py-[5px] border-transparent bg-transparent text-cyan-deep`;
+/** Row action that brings something back, e.g. Restore. */
+export const subtleOk = `${action} min-h-9 px-[10px] py-[5px] border-transparent bg-transparent text-[#175e4d]`;
 export const subtleDanger = `${action} min-h-9 px-[10px] py-[5px] border-transparent bg-transparent text-[#a23131]`;
 export const dangerSolid = `${action} ${actionSize} border-[#a23131] bg-[#a23131] text-white`;
 

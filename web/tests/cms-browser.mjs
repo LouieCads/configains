@@ -395,7 +395,7 @@ try {
 	assert.equal(new URL(page.url()).pathname, '/admin/content');
 	assert.equal(await page.getByLabel('First headline line').inputValue(), 'TEST YOUR STRENGTH.');
 	await page.getByRole('button', { name: 'Save draft', exact: true }).first().click();
-	await page.getByRole('status').filter({ hasText: 'Draft saved.' }).waitFor();
+	await page.getByRole('status').filter({ hasText: 'Draft saved' }).waitFor();
 	const tabDraft = rows.site_content.find((row) => row.key === 'website.draft').metadata;
 	assert.equal(tabDraft.home.seo.title, 'Configains CMS tab test');
 	assert.equal(tabDraft.faq.items[0].question, 'What is a tabbed CMS?');
@@ -442,7 +442,7 @@ try {
 		.getByRole('dialog', { name: 'Publish your website?' })
 		.getByRole('button', { name: 'Publish website' })
 		.click();
-	await page.getByRole('status').filter({ hasText: 'Published.' }).waitFor();
+	await page.getByRole('status').filter({ hasText: 'Published' }).waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('TEST YOUR STRENGTH.'));
 	await page.getByRole('button', { name: 'Brand and contact', exact: true }).click();
 	await page.getByRole('tab', { name: 'Coach', exact: true }).click();
@@ -507,7 +507,7 @@ try {
 	assert.equal(uploads, 1);
 	await page.getByLabel('Coach portrait', { exact: true }).fill('/og-image.png');
 	await page.getByRole('button', { name: 'Save draft', exact: true }).first().click();
-	await page.getByRole('status').filter({ hasText: 'Draft saved.' }).waitFor();
+	await page.getByRole('status').filter({ hasText: 'Draft saved' }).waitFor();
 	await page.setViewportSize({ width: 1280, height: 850 });
 	await page.screenshot({ path: '.audit/screenshots/cms-desktop.png', fullPage: true });
 	notes.push(
@@ -600,7 +600,7 @@ try {
 	await story.locator('button[aria-expanded]').click();
 	await story.getByLabel('Published', { exact: true }).check();
 	await story.getByRole('button', { name: 'Save item', exact: true }).click();
-	await story.getByRole('status').filter({ hasText: 'Saved.' }).waitFor();
+	await page.getByRole('status').filter({ hasText: 'Saved' }).waitFor();
 	assert((await (await fetch(origin + '/')).text()).includes('Consent test client'));
 	const storySwitch = story.getByRole('switch', {
 		name: 'Show Consent test client on the website'

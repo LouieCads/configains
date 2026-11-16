@@ -3,6 +3,7 @@
 	import Upload from '@lucide/svelte/icons/upload';
 	import X from '@lucide/svelte/icons/x';
 	import { enhance } from '$app/forms';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	import {
 		DEMO_MIME_TYPES,
 		DEMO_SIZE_LABEL,
@@ -10,7 +11,14 @@
 		demoMediaUrl,
 		mediaKindOf
 	} from '$lib/coaching/demo';
-	import { error, help, primary, requiredMark, secondary, subtle } from '$lib/features/cms/styles';
+	import {
+		help,
+		neutral,
+		primary,
+		requiredMark,
+		secondary,
+		subtle
+	} from '$lib/features/cms/styles';
 
 	/** Adds or edits one exercise library entry. The demo clip uploads before the form is saved. */
 	let {
@@ -30,18 +38,15 @@
 	let mediaPath = $state(entry?.media_path ?? '');
 	let uploading = $state(false);
 	let saving = $state(false);
-	let uploadError = $state('');
-	let message = $state('');
 	const accept = Object.keys(DEMO_MIME_TYPES).join(',');
 	const idPrefix = $props.id();
 
 	async function upload(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
-		uploadError = '';
 		if (!file) return;
 		if (!DEMO_MIME_TYPES[file.type] || file.size > MAX_DEMO_BYTES) {
-			uploadError = `Choose a GIF, WebP, MP4 or WebM file no larger than ${DEMO_SIZE_LABEL}.`;
+			toast.error(`Use a GIF, WebP, MP4 or WebM under ${DEMO_SIZE_LABEL}`);
 			input.value = '';
 			return;
 		}
@@ -58,7 +63,7 @@
 				message?: string;
 			};
 			if (!start.ok || !ticket.path || !ticket.signedUrl)
-				throw new Error(ticket.message ?? 'The upload could not be started.');
+				throw new Error(ticket.message ?? "Couldn't start the upload");
 
 			// Same request shape as Supabase's uploadToSignedUrl.
 			const body = new FormData();
@@ -69,10 +74,10 @@
 				headers: { 'x-upsert': 'false' },
 				body
 			});
-			if (!sent.ok) throw new Error('The file could not be uploaded. Try again.');
+			if (!sent.ok) throw new Error("Couldn't upload the file");
 			mediaPath = ticket.path;
 		} catch (problem) {
-			uploadError = problem instanceof Error ? problem.message : 'The upload failed.';
+			toast.error(problem instanceof Error ? problem.message : 'Upload failed');
 		} finally {
 			uploading = false;
 			input.value = '';
@@ -86,11 +91,10 @@
 	class="grid gap-4"
 	use:enhance={() => {
 		saving = true;
-		message = '';
 		return async ({ result, update }) => {
 			saving = false;
 			if (result.type === 'failure') {
-				message = String(result.data?.message ?? 'The exercise could not be saved.');
+				toast.error(String(result.data?.message ?? "Couldn't save exercise"));
 				return;
 			}
 			await update({ reset: !entry });
@@ -103,7 +107,6 @@
 >
 	{#if entry}<input type="hidden" name="id" value={entry.id} />{/if}
 	<input type="hidden" name="media_path" value={mediaPath} />
-	{#if message}<p class="{error} m-0!" role="alert">{message}</p>{/if}
 
 	<div class="grid gap-4 min-[760px]:grid-cols-2">
 		<label class="grid gap-1 font-semibold"
@@ -128,8 +131,7 @@
 		</label>
 	</div>
 	<p class="{help} -mt-2!">
-		The name must match the exercise name in your templates (any capitals). YouTube videos play
-		inside Configains.
+		Must match the exercise name in your templates (capitals ignored). YouTube links play in-app.
 	</p>
 
 	<div class="grid gap-2">
@@ -162,9 +164,8 @@
 			<input class="sr-only" type="file" {accept} disabled={uploading} onchange={upload} />
 		</label>
 		<p class="{help} m-0!">
-			Up to {DEMO_SIZE_LABEL}. Short looping clips (5 to 10 seconds) load fastest on phones.
+			Up to {DEMO_SIZE_LABEL}. Short loops (5 to 10 seconds) load fastest.
 		</p>
-		{#if uploadError}<p class="{error} m-0!" role="alert">{uploadError}</p>{/if}
 	</div>
 
 	<div class="flex flex-wrap gap-3">
@@ -176,7 +177,7 @@
 					: 'Add to library'}</button
 		>
 		{#if onDone && entry}
-			<button type="button" class={subtle} onclick={onDone}>Cancel</button>
+			<button type="button" class={neutral} onclick={onDone}>Cancel</button>
 		{/if}
 	</div>
 </form>

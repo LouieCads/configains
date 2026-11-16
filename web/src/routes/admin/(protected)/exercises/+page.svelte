@@ -4,20 +4,25 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import X from '@lucide/svelte/icons/x';
 	import { enhance } from '$app/forms';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	import ExerciseDemo from '$lib/features/coaching/ExerciseDemo.svelte';
 	import LibraryExerciseForm from '$lib/features/coaching/LibraryExerciseForm.svelte';
 	import {
 		badgeNeutral,
 		card,
 		error,
-		help,
+		neutral,
 		primary,
-		secondary,
-		subtle,
-		subtleDanger,
-		success
+		subtleAccent,
+		subtleDanger
 	} from '$lib/features/cms/styles';
 	let { data, form } = $props();
+
+	$effect(() => {
+		if (form?.saved) toast.success(`${form.saved} saved`);
+		else if (form?.deleted) toast.success('Exercise deleted');
+		else if (form?.message) toast.error(form.message);
+	});
 
 	let adding = $state(false);
 	let editing = $state<string | null>(null);
@@ -39,16 +44,11 @@
 <svelte:head><title>Exercise library | Configains CMS</title></svelte:head>
 <div class="grid gap-6">
 	<header class="mt-3 flex flex-wrap items-center justify-between gap-4">
-		<div>
-			<h1 class="m-0!">Exercise library</h1>
-			<p class="{help} mb-0!">
-				Add a demo once and every program with that exercise shows it to clients.
-			</p>
-		</div>
+		<h1 class="m-0!">Exercise library</h1>
 		{#if !data.localDemo}
 			<button
 				type="button"
-				class={adding ? secondary : primary}
+				class={adding ? neutral : primary}
 				aria-expanded={adding}
 				aria-controls="add-exercise"
 				onclick={() => (adding = !adding)}
@@ -60,11 +60,6 @@
 		{/if}
 	</header>
 
-	{#if form?.saved}<p class="{success} m-0!" role="status">{form.saved} saved.</p>{/if}
-	{#if form?.deleted}<p class="{success} m-0!" role="status">Exercise deleted.</p>{/if}
-	{#if form?.message}<p class="{error} m-0!" role="alert">
-			{form.message}
-		</p>{/if}
 	{#if data.loadError}<p class="{error} m-0!" role="alert">{data.loadError}</p>{/if}
 
 	{#if data.localDemo}
@@ -106,7 +101,7 @@
 								{:else}
 									<span class={badgeNeutral}>No demo</span>
 								{/if}
-								<button type="button" class={subtle} onclick={() => (editing = exercise.id)}
+								<button type="button" class={subtleAccent} onclick={() => (editing = exercise.id)}
 									><Pencil size={16} aria-hidden="true" />Edit<span class="sr-only">
 										{exercise.name}</span
 									></button

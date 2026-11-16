@@ -4,16 +4,8 @@
 	import Send from '@lucide/svelte/icons/send';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import {
-		badgeWarn,
-		card,
-		error,
-		help,
-		primary,
-		requiredMark,
-		subtle,
-		success
-	} from '$lib/features/cms/styles';
+	import { badgeWarn, card, help, primary, requiredMark, subtle } from '$lib/features/cms/styles';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	let { data, form } = $props();
 
 	const when = (value: string) =>
@@ -26,9 +18,13 @@
 		data.messages.filter((message) => message.sender_role === 'client' && !message.read_at).length
 	);
 	const savedLabel: Record<string, string> = {
-		feedback: 'Feedback sent.',
-		reply: 'Message sent.'
+		feedback: 'Feedback sent',
+		reply: 'Message sent'
 	};
+	$effect(() => {
+		if (form?.updated) toast.success(savedLabel[form.updated] ?? 'Saved');
+		else if (form?.message) toast.error(form.message);
+	});
 
 	let busy = $state<string | null>(null);
 	/** Keeps the page where it is after a save and shows which form is working. */
@@ -65,11 +61,6 @@
 	>
 </p>
 <h1 class="my-3!">Check-ins and messages</h1>
-
-{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
-{#if form?.updated}<p class={success} role="status">
-		{savedLabel[form.updated] ?? 'Saved.'}
-	</p>{/if}
 
 <div class="grid items-start gap-6 min-[1100px]:grid-cols-2">
 	<section id="check-ins" class={card} aria-labelledby="check-ins-title">

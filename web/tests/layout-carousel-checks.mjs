@@ -26,7 +26,7 @@ export async function checkLayoutAndCarousel({ page, origin }) {
 	for (let index = 0; index < 9; index++) await page.keyboard.press('ArrowUp');
 	assert.match(await sections.first().innerText(), /Contact/);
 	await page.getByRole('button', { name: 'Save draft', exact: true }).first().click();
-	await page.getByRole('status').filter({ hasText: 'Draft saved.' }).waitFor();
+	await page.getByRole('status').filter({ hasText: 'Draft saved' }).waitFor();
 	const order = (path) =>
 		page.evaluate(async (path) => {
 			const response = await fetch(path);
@@ -47,7 +47,7 @@ export async function checkLayoutAndCarousel({ page, origin }) {
 		.getByRole('dialog', { name: 'Publish your website?' })
 		.getByRole('button', { name: 'Publish website' })
 		.click();
-	await page.getByRole('status').filter({ hasText: 'Published.' }).waitFor();
+	await page.getByRole('status').filter({ hasText: 'Published' }).waitFor();
 	assert.equal(await order('/'), true, 'Publishing updates the public section order');
 
 	const ids = [];

@@ -78,7 +78,7 @@ export const actions = {
 		await requireAdmin(event);
 		const id = String((await event.request.formData()).get('id') ?? '');
 		const source = await loadTemplate(event.locals.supabase, id);
-		if (!source) return fail(404, { message: 'That template no longer exists.' });
+		if (!source) return fail(404, { message: 'Template not found' });
 
 		// A copy gets new row ids, so editing it never touches the original.
 		const copy = {
@@ -106,8 +106,8 @@ export const actions = {
 			.from('program_templates')
 			.update({ is_archived: archived })
 			.eq('id', id);
-		if (error) return fail(400, { message: 'The template could not be updated. Try again.' });
-		return { updated: archived ? 'Template archived.' : 'Template restored.' };
+		if (error) return fail(400, { message: "Couldn't update template" });
+		return { updated: archived ? 'Template archived' : 'Template restored' };
 	},
 	assign: async (event) => {
 		requireSameOrigin(event);
@@ -116,8 +116,7 @@ export const actions = {
 		const clientId = String(form.get('client_id') ?? '');
 		const workoutId = String(form.get('workout_template_id') ?? '');
 		let nutritionId: string | null = String(form.get('nutrition_template_id') ?? '') || null;
-		if (!isUuid(clientId) || !isUuid(workoutId))
-			return fail(400, { message: 'Choose a client to assign this template to.' });
+		if (!isUuid(clientId) || !isUuid(workoutId)) return fail(400, { message: 'Choose a client' });
 
 		// "Keep" carries over the client's current nutrition plan.
 		if (nutritionId === 'keep') {
@@ -133,6 +132,6 @@ export const actions = {
 		const result = await assignProgram(event.locals.supabase, clientId, workoutId, nutritionId);
 		if (!result.ok) return fail(400, { message: result.message });
 		await markAssessmentsReviewed(event.locals.supabase, clientId);
-		return { updated: 'Program assigned.', assignedClient: clientId };
+		return { updated: 'Program assigned', assignedClient: clientId };
 	}
 } satisfies Actions;

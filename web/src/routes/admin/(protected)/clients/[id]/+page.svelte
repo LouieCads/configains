@@ -26,17 +26,17 @@
 	import { phaseTiming, phaseTimingLabel } from '$lib/coaching/phase-timing';
 	import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 	import AssignProgramForm from '$lib/features/coaching/AssignProgramForm.svelte';
+	import { toast } from '$lib/features/cms/toast.svelte';
 	import {
 		badgeNeutral,
 		badgeOk,
 		badgeWarn,
 		card,
-		error,
 		help,
 		secondary,
 		secondaryDanger,
 		subtle,
-		success,
+		subtleAccent,
 		tabIdle,
 		tabSelected
 	} from '$lib/features/cms/styles';
@@ -118,16 +118,20 @@
 	});
 
 	const savedLabel: Record<string, string> = {
-		assign: 'Program assigned.',
-		phase: 'Phase updated.',
-		mode: 'Coaching changed.',
-		rename: 'Name saved.',
-		archive: 'Client archived.',
-		restore: 'Client restored.',
-		resend: 'Invite sent again.',
-		activity: 'Steps and cardio targets saved.',
-		nutrition: 'Nutrition guidance saved.'
+		assign: 'Program assigned',
+		phase: 'Phase updated',
+		mode: 'Coaching mode changed',
+		rename: 'Name saved',
+		archive: 'Client archived',
+		restore: 'Client restored',
+		resend: 'Invite resent',
+		activity: 'Steps and cardio saved',
+		nutrition: 'Nutrition saved'
 	};
+	$effect(() => {
+		if (form?.updated) toast.success(savedLabel[form.updated] ?? 'Saved');
+		else if (form?.message) toast.error(form.message);
+	});
 
 	const modes = [
 		{ value: 'ai', label: 'AI' },
@@ -275,7 +279,7 @@
 				{data.client.display_name ?? 'Unnamed client'}
 				<button
 					type="button"
-					class={subtle}
+					class={subtleAccent}
 					aria-label="Edit name"
 					title="Edit name"
 					onclick={startRename}><Pencil size={18} aria-hidden="true" /></button
@@ -368,11 +372,6 @@
 		</div>
 	{/if}
 </header>
-
-{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
-{#if form?.updated}<p class={success} role="status">
-		{savedLabel[form.updated] ?? 'Saved.'}
-	</p>{/if}
 
 <!-- Only what needs the coach right now. Nothing renders when the client is up to date. -->
 {#if todo.length > 0}

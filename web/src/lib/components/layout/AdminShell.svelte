@@ -2,6 +2,7 @@
 	import { navigating, page } from '$app/state';
 	import { adminNavigation } from '$lib/constants/navigation';
 	import { brand, secondaryOnDark, studio, success } from '$lib/features/cms/styles';
+	import Toaster from '$lib/features/cms/Toaster.svelte';
 	import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import FilePenLine from '@lucide/svelte/icons/file-pen-line';
@@ -86,6 +87,7 @@
 				Local demo: edits and publishing stay on this device.
 			</p>{/if}{@render children()}
 	</main>
+	<Toaster />
 </div>
 
 <style>
