@@ -1,6 +1,8 @@
 <script lang="ts">
+	import Archive from '@lucide/svelte/icons/archive';
 	import Bot from '@lucide/svelte/icons/bot';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ListTodo from '@lucide/svelte/icons/list-todo';
 	import User from '@lucide/svelte/icons/user';
 	import UserPlus from '@lucide/svelte/icons/user-plus';
 	import Send from '@lucide/svelte/icons/send';
@@ -60,6 +62,12 @@
 		{ value: 'ai', label: 'AI' },
 		{ value: 'archived', label: 'Archived' }
 	] as const;
+	const filterIcons: Partial<Record<(typeof filters)[number]['value'], typeof User>> = {
+		attention: ListTodo,
+		human: User,
+		ai: Bot,
+		archived: Archive
+	};
 	/** Archived clients only show under their own filter. */
 	const matchesFilter = (client: Client, value: typeof filter) =>
 		value === 'archived'
@@ -144,12 +152,13 @@
 			</label>
 			<div class="flex flex-wrap gap-2" role="group" aria-label="Filter clients">
 				{#each filters as option (option.value)}
+					{@const Icon = filterIcons[option.value]}
 					<button
 						type="button"
-						class={filter === option.value ? tabSelected : tabIdle}
+						class={[filter === option.value ? tabSelected : tabIdle, 'gap-2']}
 						aria-pressed={filter === option.value}
 						onclick={() => (filter = option.value)}
-						>{option.label}
+						>{#if Icon}<Icon size={16} aria-hidden="true" />{/if}{option.label}
 						<span class="ml-2 text-[0.8rem] font-normal opacity-75">{countFor(option.value)}</span
 						></button
 					>

@@ -62,6 +62,9 @@ export const buttonOnDark = `${buttonBase} bg-cyan text-ink hover:bg-bone`;
 /** Compact header button. */
 export const headerButton =
 	'group inline-flex min-h-11 items-center gap-3 rounded-[3px] bg-ink px-5 pt-[0.7rem] pb-[0.55rem] font-display text-[1.125rem]/none tracking-[0.09em] text-bone [transition:background-color_0.25s,color_0.25s] hover:bg-cyan hover:text-ink';
+/** Compact header button, outlined: transparent until hovered. */
+export const headerButtonOutline =
+	'inline-flex min-h-11 items-center gap-3 rounded-[3px] border border-ink bg-transparent px-5 pt-[0.7rem] pb-[0.55rem] font-display text-[1.125rem]/none tracking-[0.09em] text-ink [transition:background-color_0.25s,color_0.25s] hover:bg-cyan hover:text-ink';
 export const buttonArrow =
 	'flex-none [transition:transform_0.3s_cubic-bezier(0.22,1,0.36,1)] group-hover:[transform:translateX(4px)] motion-reduce:group-hover:[transform:none]';
 

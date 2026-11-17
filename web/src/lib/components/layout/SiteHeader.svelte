@@ -5,7 +5,12 @@
 	import type { Content } from '$lib/content/schema';
 	import Arrow from '$lib/components/landing/Arrow.svelte';
 	import { clientSignIn } from '$lib/constants/navigation';
-	import { container, headerButton, wordmark } from '$lib/components/landing/styles';
+	import {
+		container,
+		headerButton,
+		headerButtonOutline,
+		wordmark
+	} from '$lib/components/landing/styles';
 	let { site, preview = false }: { site: Content; preview?: boolean } = $props();
 	let open = $state(false);
 	let menuButton: HTMLButtonElement;
@@ -71,7 +76,7 @@
 					>{/each}
 			</nav>
 			<div class="flex items-center gap-6 cq-58:hidden">
-				<a class={desktopLink} href={clientSignIn.href}>{clientSignIn.label}</a>
+				<a class={headerButtonOutline} href={clientSignIn.href}>{clientSignIn.label}</a>
 				<a class={headerButton} href={publicHref('/contact', preview)}
 					>{site.navigation.contactLabel}<Arrow size={16} /></a
 				>
