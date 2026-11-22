@@ -81,6 +81,11 @@
 					>{site.navigation.contactLabel}<Arrow size={16} /></a
 				>
 			</div>
+			<!-- The main action stays one tap away on small screens, outside the menu. -->
+			<a
+				class="{headerButton} ml-auto hidden px-4 bp-360:px-3 bp-360:text-[1rem] bp-360:tracking-[0.05em] cq-58:inline-flex"
+				href={publicHref('/contact', preview)}>{site.navigation.contactLabel}</a
+			>
 			<button
 				class="hidden min-h-11 cursor-pointer items-center gap-3 rounded-[3px] border border-ink/30 bg-transparent px-4 pt-[0.6rem] pb-[0.45rem] font-display text-[1.25rem]/none tracking-[0.09em] text-ink cq-58:flex"
 				bind:this={menuButton}

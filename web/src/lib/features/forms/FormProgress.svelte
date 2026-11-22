@@ -20,10 +20,9 @@
 </script>
 
 <div class="mb-3">
-	<div
-		class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 font-display text-[1.125rem]/none tracking-[0.12em] text-ink uppercase"
-	>
-		<span>{counter}</span><span class="text-cyan-deep">{percentage}</span>
+	<!-- One counter is enough to read at a glance; the bar shows the rest. -->
+	<div class="font-display text-[1.125rem]/none tracking-[0.12em] text-ink uppercase">
+		{counter}
 	</div>
 	<div
 		class="mt-2 h-[5px] overflow-hidden bg-ink/12"
