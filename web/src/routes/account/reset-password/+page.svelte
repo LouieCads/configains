@@ -39,7 +39,7 @@
 		<a href="/" class={brand}>CONFIGAINS.</a>
 		<p class={eyebrow}>YOUR ACCOUNT</p>
 		<h1>Choose a new password.</h1>
-		<p>Your program and progress stay exactly as they are.</p>
+		<p>Your plan and progress stay safe.</p>
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 		<label class={authLabel}
 			><span>New password<span class={requiredMark} aria-hidden="true">*</span></span><input
@@ -64,6 +64,6 @@
 		<button class="{primary} {authSubmit}" disabled={busy}
 			><KeyRound size={18} aria-hidden="true" />{busy ? 'Saving…' : 'Update password'}</button
 		>
-		<p class={help}>Use at least 12 characters.</p>
+		<p class={help}>At least 12 characters.</p>
 	</form>
 </main>

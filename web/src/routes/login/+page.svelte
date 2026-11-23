@@ -1,5 +1,7 @@
 <script lang="ts">
 	import LogIn from '@lucide/svelte/icons/log-in';
+	import Mail from '@lucide/svelte/icons/mail';
+	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import { enhance } from '$app/forms';
 	import {
 		authCard,
@@ -9,7 +11,6 @@
 		brand,
 		error,
 		eyebrow,
-		help,
 		loginPage,
 		primary,
 		studio,
@@ -41,13 +42,13 @@
 		<a href="/" class={brand}>CONFIGAINS.</a>
 		<p class={eyebrow}>CLIENT SIGN IN</p>
 		<h1>Sign in.</h1>
-		<p>Sign in to see your plan, log your training and follow your progress.</p>
+		<p>See your plan and track your progress.</p>
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 		{#if data.notice === 'set'}<p class={success} role="status">
-				Password set. Sign in to continue.
+				Password saved. Sign in to start.
 			</p>{/if}
 		{#if data.notice === 'updated'}<p class={success} role="status">
-				Password updated. Sign in with your new password.
+				Password changed. Sign in with the new one.
 			</p>{/if}
 		<label class={authLabel}
 			><span>Email address<span class={requiredMark} aria-hidden="true">*</span></span><input
@@ -70,10 +71,18 @@
 			><LogIn size={18} aria-hidden="true" />{busy ? 'Signing in…' : 'Sign in'}</button
 		>
 		<a class={authLink} href="/forgot-password">Forgot your password?</a>
-		<p class="{help} mt-5!">
-			New here? Open the invitation email from Cash and follow its link to choose your password.
-			Once you have, sign in here with that email and password.
-		</p>
-		<a class="{authLink} mt-2!" href="/admin/login">Coach sign in</a>
+		<!-- Accounts are invite-only: say so in one glance, with the next step, and nothing else. -->
+		<ul class="mt-6 mb-0 grid list-none gap-3 border-t border-line p-0 pt-5 text-[0.9rem]">
+			<li class="flex items-start gap-3">
+				<Mail size={20} class="mt-px shrink-0 text-cyan-deep" aria-hidden="true" />
+				<span>Got an invite email? Tap the link inside to set your password.</span>
+			</li>
+			<li class="flex items-start gap-3">
+				<MessageCircle size={20} class="mt-px shrink-0 text-cyan-deep" aria-hidden="true" />
+				<span
+					>No invite yet? <a class="text-cyan-ink underline" href="/contact">Contact Cash</a>.</span
+				>
+			</li>
+		</ul>
 	</form>
 </main>

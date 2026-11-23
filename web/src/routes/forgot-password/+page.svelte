@@ -30,17 +30,14 @@
 		<a href="/" class={brand}>CONFIGAINS.</a>
 		<p class={eyebrow}>CLIENT SIGN IN</p>
 		<h1>Forgot your password?</h1>
-		<p>
-			Enter the email address you signed up with and we will send you a link to choose a new one.
-		</p>
+		<p>Enter your email and we'll send you a link to choose a new one.</p>
 		{#if form?.sent}
 			<p class={success} role="status">
-				If this email has an account, a reset link will arrive shortly. Check your inbox and spam
-				folder.
+				Check your email. If there's an account, a reset link is on its way. Look in spam too.
 			</p>
 		{:else}
 			{#if data.expired}<p class={error} role="alert">
-					Your reset link has expired. Request a new one.
+					That link has expired. Get a new one below.
 				</p>{/if}
 			<form
 				method="POST"
@@ -67,6 +64,6 @@
 				>
 			</form>
 		{/if}
-		<a class={authLink} href="/login">Back to client sign in</a>
+		<a class={authLink} href="/login">Back to sign in</a>
 	</section>
 </main>

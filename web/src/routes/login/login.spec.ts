@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { actions, load } from './+page.server';
 
@@ -84,5 +85,11 @@ describe('client sign in', () => {
 		expect(await loadPage(loginEvent({ search: '?password=other' }).event)).toEqual({
 			notice: null
 		});
+	});
+
+	it('does not link clients to the admin sign in', () => {
+		const page = readFileSync(new URL('./+page.svelte', import.meta.url), 'utf8');
+		expect(page).not.toMatch(/\/admin/);
+		expect(page).toContain('href="/contact"');
 	});
 });
