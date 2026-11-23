@@ -2,6 +2,7 @@
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import LogIn from '@lucide/svelte/icons/log-in';
+	import Mail from '@lucide/svelte/icons/mail';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import { enhance } from '$app/forms';
 	import {
@@ -49,16 +50,18 @@
 				>
 			</form>
 		{:else if form?.linkUsed}
-			<!-- The usual reason: this client already used the link to set their password. -->
-			<h1>This link was already used.</h1>
-			<p>Your account is ready. Sign in with your email and password.</p>
-			<a class="{primary} {authSubmit}" href="/login"
+			<!-- Expired and already-used links fail the same way, so offer both next steps equally. -->
+			<h1>This link no longer works.</h1>
+			<p>It expired or was already used. Pick what fits you:</p>
+			<p class="{help} mt-5! mb-0!">I already set a password</p>
+			<a class="{secondary} {authSubmit} mt-2!" href="/login"
 				><LogIn size={18} aria-hidden="true" />Sign in</a
 			>
 			<a class={authLink} href="/forgot-password">Forgot your password?</a>
-			<p class="{help} mt-5!">
-				Never set a password? The link may have expired. Ask Cash for a new invite.
-			</p>
+			<p class="{help} mt-6! mb-0!">I never set one</p>
+			<a class="{secondary} {authSubmit} mt-2!" href="/contact"
+				><Mail size={18} aria-hidden="true" />Ask Cash for a new invite</a
+			>
 		{:else}
 			<h1>Welcome to Configains.</h1>
 			{#if hasLink}
@@ -102,12 +105,15 @@
 					>
 				</form>
 				<p class={help}>At least 12 characters.</p>
+				<!-- Always offered: a client who set their password earlier should never feel they must do it again. -->
+				<p class="{help} mt-5! mb-0!">Already set your password?</p>
+				<a class="{authLink} mt-1!" href="/login">Sign in</a>
 			{:else}
-				<p class={error} role="alert">This link is incomplete. Ask Cash for a new invite.</p>
+				<p class={error} role="alert">This link is incomplete.</p>
+				<a class="{secondary} {authSubmit}" href="/contact"
+					><Mail size={18} aria-hidden="true" />Ask Cash for a new invite</a
+				>
 			{/if}
-			<!-- Always offered: a client who set their password earlier should never feel they must do it again. -->
-			<p class="{help} mt-5! mb-0!">Already set your password?</p>
-			<a class="{authLink} mt-1!" href="/login">Sign in</a>
 		{/if}
 	</div>
 </main>
