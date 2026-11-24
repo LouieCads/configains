@@ -78,7 +78,8 @@
 		<ul class="mt-6 mb-0 grid list-none gap-3 border-t border-line p-0 pt-5 text-[0.9rem]">
 			<li class="flex items-start gap-3">
 				<Mail size={20} class="mt-px shrink-0 text-cyan-deep" aria-hidden="true" />
-				<span>Got an invite email? Tap the link inside to set your password.</span>
+				<span>Got an invite? Check your inbox or spam, then tap the link to set your password.</span
+				>
 			</li>
 			<li class="flex items-start gap-3">
 				<MessageCircle size={20} class="mt-px shrink-0 text-cyan-deep" aria-hidden="true" />
