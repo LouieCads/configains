@@ -3,6 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export type CheckIn = {
 	id: string;
 	submitted_on: string;
+	/** The exact time, so a check-in sits in the right place among the messages. */
+	created_at: string;
 	body: string;
 	coach_feedback: string | null;
 	feedback_at: string | null;
@@ -22,7 +24,7 @@ export async function loadCoachingThread(supabase: SupabaseClient, clientId: str
 	const [checkIns, messages] = await Promise.all([
 		supabase
 			.from('check_ins')
-			.select('id, submitted_on, body, coach_feedback, feedback_at')
+			.select('id, submitted_on, created_at, body, coach_feedback, feedback_at')
 			.eq('client_id', clientId)
 			.order('created_at', { ascending: false })
 			.limit(50),

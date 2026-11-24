@@ -35,7 +35,8 @@ export const actions = {
 
 		const program = await loadActiveProgram(event.locals.supabase, user.id);
 		const result = await submitCheckIn(event.locals.supabase, user.id, program?.id ?? null, body);
-		if (!result.ok) return fail(400, { message: 'Your check-in could not be sent. Try again.' });
+		if (!result.ok)
+			return fail(400, { message: 'Your check-in could not be sent. Try again.', draft: body });
 		return { updated: 'checkin' };
 	},
 
@@ -50,7 +51,8 @@ export const actions = {
 			return fail(400, { message: `Write a message of up to ${messageLimit} characters.` });
 
 		const result = await sendMessage(event.locals.supabase, user.id, 'client', body);
-		if (!result.ok) return fail(400, { message: 'Your message could not be sent. Try again.' });
+		if (!result.ok)
+			return fail(400, { message: 'Your message could not be sent. Try again.', draft: body });
 		return { updated: 'message' };
 	}
 } satisfies Actions;

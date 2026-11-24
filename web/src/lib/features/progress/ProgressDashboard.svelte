@@ -1,6 +1,7 @@
 <script lang="ts">
 	// The client's progress, in the order that tells the story: what was asked and what they did this
-	// week, how it adds up over four weeks (effort, consistency, results), then the charts behind it.
+	// week, how it adds up over four weeks, then the charts behind it. A chart with no data is left
+	// out, and one note at the end says what is still missing, so no card is ever an empty box.
 	// Shown to the client on /app/progress and to the coach on the client's own page.
 	import { onMount } from 'svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
@@ -20,7 +21,7 @@
 	import ChartCard from './ChartCard.svelte';
 	import ColumnChart from './ColumnChart.svelte';
 	import LineChart from './LineChart.svelte';
-	import StatTile from './StatTile.svelte';
+	import StatGrid, { type Tile } from './StatGrid.svelte';
 	import WeekPlan from './WeekPlan.svelte';
 
 	let {
@@ -76,162 +77,157 @@
 			? null
 			: { text: `${signed(value)} ${unit}`, direction: direction(value) as 'up' | 'down' | 'flat' };
 
-	const empty = $derived(
-		audience === 'client'
-			? { weight: 'Log your body weight to see your trend.', link: true }
-			: { weight: 'No body weight logged yet.', link: false }
+	// What each chart needs before it is worth showing.
+	const hasWeight = $derived(weight.points.length > 0 || waist.week !== null);
+	const hasStrength = $derived(exercise !== undefined);
+	const hasSteps = $derived(data.steps.length > 0);
+	const hasCardio = $derived(data.cardio.length > 0);
+	const hasWorkouts = $derived(data.logs.length > 0);
+	const missing = $derived(
+		[
+			!hasWeight && 'body weight',
+			!hasStrength && 'strength',
+			!hasSteps && 'steps',
+			!hasCardio && 'cardio',
+			!hasWorkouts && 'workouts'
+		].filter((name): name is string => name !== false)
+	);
+
+	// The last four weeks, one tile each. A figure with nothing behind it is left out.
+	const present = (tiles: (Tile | false | null)[]) =>
+		tiles.filter((tile): tile is Tile => tile !== false && tile !== null);
+
+	const fourWeeks = $derived<Tile[]>(
+		present([
+			{
+				label: 'Workouts',
+				value: String(review.effort.workouts),
+				unit: 'completed'
+			},
+			{
+				label: 'Cardio',
+				value:
+					review.consistency.cardioCounted !== null
+						? String(review.consistency.cardioCounted)
+						: String(review.effort.cardioSessions),
+				unit:
+					review.consistency.cardioRequired !== null
+						? `of ${formatNumber(review.consistency.cardioRequired)} required`
+						: review.effort.cardioSessions === 1
+							? 'session'
+							: 'sessions'
+			},
+			review.effort.averageSteps !== null && {
+				label: 'Steps',
+				value: formatNumber(review.effort.averageSteps),
+				unit: 'a day on average'
+			},
+			review.consistency.stepDaysOnTarget !== null && {
+				label: 'Step target',
+				value: String(review.consistency.stepDaysOnTarget),
+				unit: `of ${review.consistency.stepDays} days reached`
+			},
+			review.results.weightChange !== null && {
+				label: 'Weight',
+				value: signed(review.results.weightChange),
+				unit: `kg over ${plural(review.results.weightWeeks, 'week')}`
+			},
+			review.results.topStrength && {
+				label: 'Top strength gain',
+				value: signed(review.results.topStrength.percent),
+				unit: `% in ${review.results.topStrength.name}`,
+				tone: 'good'
+			}
+		])
+	);
+
+	// Weight and waist figures share one grid so the card reads as a single set.
+	const bodyTiles = $derived<Tile[]>(
+		present([
+			weight.week && {
+				label: weight.week.current ? 'This week' : `Week of ${shortDate(weight.week.key)}`,
+				value: formatFixed(weight.week.average),
+				unit: 'kg',
+				change: change(weight.week.change, 'kg'),
+				changeLabel: 'vs the week before'
+			},
+			weight.month && {
+				label: weight.month.current ? 'This month' : monthName(weight.month.key),
+				value: formatFixed(weight.month.average),
+				unit: 'kg',
+				change: change(weight.month.change, 'kg'),
+				changeLabel: 'vs the month before'
+			},
+			weight.overall && {
+				label: 'Since your first weigh-in',
+				value: signed(weight.overall.change),
+				unit: 'kg'
+			},
+			waist.week && {
+				label: `Waist, ${waist.week.current ? 'this week' : `week of ${shortDate(waist.week.key)}`}`,
+				value: formatFixed(waist.week.average),
+				unit: 'cm',
+				change: change(waist.week.change, 'cm'),
+				changeLabel: 'vs the week before'
+			}
+		])
 	);
 
 	const sectionTitle = 'm-0 text-[1.5rem] font-bold';
-	const groupTitle = 'm-0 text-[0.75rem] font-bold tracking-[1px] text-muted uppercase';
 </script>
 
 <div class="grid gap-6">
 	<!-- 1. This week: what was asked, and what was done. -->
 	<WeekPlan {week} {targets} {streaks} {audience} />
 
-	<!-- 2. The four-week picture: effort, consistency, results. -->
+	<!-- 2. The four-week picture. -->
 	<section class={card} aria-labelledby="four-weeks">
-		<h2 id="four-weeks" class={sectionTitle}>The last four weeks</h2>
-		<p class="{help} mt-1! mb-5!">What you put in, how steady you were, and what moved.</p>
-		<div class="grid gap-6 min-[720px]:grid-cols-3">
-			<div class="grid content-start gap-2">
-				<h3 class={groupTitle}>Effort</h3>
-				<p class="m-0">{plural(review.effort.workouts, 'workout')} completed</p>
-				<p class="m-0">{plural(review.effort.cardioSessions, 'cardio session')}</p>
-				{#if review.effort.averageSteps !== null}
-					<p class="m-0">{formatNumber(review.effort.averageSteps)} steps a day on average</p>
-				{/if}
-			</div>
-			<div class="grid content-start gap-2">
-				<h3 class={groupTitle}>Consistency</h3>
-				{#if review.consistency.stepDaysOnTarget !== null}
-					<p class="m-0">
-						Step target reached on {review.consistency.stepDaysOnTarget} of {review.consistency
-							.stepDays}
-						days
-					</p>
-				{/if}
-				{#if review.consistency.cardioCounted !== null && review.consistency.cardioRequired !== null}
-					<p class="m-0">
-						{review.consistency.cardioCounted} of {review.consistency.cardioRequired} cardio sessions
-					</p>
-				{/if}
-				{#if review.consistency.stepDaysOnTarget === null && review.consistency.cardioCounted === null}
-					<p class="m-0 text-muted">Targets will show here once your coach sets them.</p>
-				{/if}
-			</div>
-			<div class="grid content-start gap-2">
-				<h3 class={groupTitle}>Results</h3>
-				{#if review.results.weightChange !== null}
-					<p class="m-0">
-						Weight {signed(review.results.weightChange)} kg over {plural(
-							review.results.weightWeeks,
-							'week'
-						)}
-					</p>
-				{:else}
-					<p class="m-0 text-muted">Weigh in once a week to see how it changes.</p>
-				{/if}
-				{#if review.results.topStrength}
-					<p class="m-0">
-						{review.results.topStrength.name} strength up {formatNumber(
-							review.results.topStrength.percent,
-							1
-						)}%
-					</p>
-				{/if}
-			</div>
-		</div>
+		<h2 id="four-weeks" class="{sectionTitle} mb-4">The last four weeks</h2>
+		<StatGrid tiles={fourWeeks} />
 	</section>
 
 	<!-- 3. Results: weight and strength. -->
-	<h2 class="{sectionTitle} mt-4">Results</h2>
+	{#if hasWeight || hasStrength}
+		<h2 class="{sectionTitle} mt-4">Results</h2>
+	{/if}
 
-	<ChartCard
-		title="Weight trend"
-		description="Each point is a day you weighed in. Weekly and monthly figures are averages."
-		columns={['Date', 'Weight (kg)']}
-		rows={[...weight.points]
-			.reverse()
-			.map((point) => [longDate(point.date), formatNumber(point.value, 1)])}
-	>
-		{#if weight.points.length === 0}
-			<p class="m-0 text-muted">{empty.weight}</p>
-			{#if empty.link}<p class="mt-3 mb-0">
-					<a class="text-cyan-ink underline" href="/app/log">Log a measurement</a>
-				</p>{/if}
-		{:else}
-			<div class="mb-5 grid grid-cols-1 gap-3 min-[560px]:grid-cols-3">
-				{#if weight.week}
-					<StatTile
-						label={weight.week.current ? 'This week' : `Week of ${shortDate(weight.week.key)}`}
-						value={formatFixed(weight.week.average)}
+	{#if hasWeight}
+		<ChartCard
+			title="Weight trend"
+			description="Each point is a day you weighed in. Weekly and monthly figures are averages."
+			columns={['Date', 'Weight (kg)']}
+			rows={[...weight.points]
+				.reverse()
+				.map((point) => [longDate(point.date), formatNumber(point.value, 1)])}
+		>
+			<StatGrid tiles={bodyTiles} />
+			{#if weight.points.length > 0}
+				<div class={bodyTiles.length > 0 ? 'mt-5' : ''}>
+					<LineChart
+						points={weight.points}
 						unit="kg"
-						change={change(weight.week.change, 'kg')}
-						changeLabel="vs the week before"
+						label="Body weight over time, in kilograms"
+						decimals={1}
 					/>
-				{/if}
-				{#if weight.month}
-					<StatTile
-						label={weight.month.current ? 'This month' : monthName(weight.month.key)}
-						value={formatFixed(weight.month.average)}
-						unit="kg"
-						change={change(weight.month.change, 'kg')}
-						changeLabel="vs the month before"
-					/>
-				{/if}
-				{#if weight.overall}
-					<StatTile
-						label="Since your first weigh-in"
-						value={signed(weight.overall.change)}
-						unit="kg"
-						change={null}
-					/>
-				{/if}
-			</div>
-			<LineChart
-				points={weight.points}
-				unit="kg"
-				label="Body weight over time, in kilograms"
-				decimals={1}
-			/>
-		{/if}
-		{#if waist.week}
-			<div class="mt-5 grid grid-cols-1 gap-3 min-[560px]:grid-cols-3">
-				<StatTile
-					label="Waist, {waist.week.current ? 'this week' : `week of ${shortDate(waist.week.key)}`}"
-					value={formatFixed(waist.week.average)}
-					unit="cm"
-					change={change(waist.week.change, 'cm')}
-					changeLabel="vs the week before"
-				/>
-			</div>
-		{/if}
-	</ChartCard>
+				</div>
+			{/if}
+		</ChartCard>
+	{/if}
 
-	<ChartCard
-		title="Strength"
-		description="Based on the weights and reps you log in your workouts."
-		columns={['Date', 'Load (kg)', 'Reps', 'Estimated strength (kg)']}
-		rows={exercise
-			? [...exercise.sessions]
-					.reverse()
-					.map((session) => [
-						longDate(session.date),
-						formatNumber(session.load, 1),
-						session.reps ?? '–',
-						formatNumber(session.strength, 1)
-					])
-			: []}
-	>
-		{#if !exercise}
-			<p class="m-0 text-muted">
-				{audience === 'client'
-					? 'Log the weight and reps for an exercise in a workout to see your strength grow.'
-					: 'No exercise has a logged weight yet.'}
-			</p>
-		{:else}
+	{#if exercise}
+		<ChartCard
+			title="Strength"
+			description="Based on the weights and reps you log in your workouts."
+			columns={['Date', 'Load (kg)', 'Reps', 'Estimated strength (kg)']}
+			rows={[...exercise.sessions]
+				.reverse()
+				.map((session) => [
+					longDate(session.date),
+					formatNumber(session.load, 1),
+					session.reps ?? '–',
+					formatNumber(session.strength, 1)
+				])}
+		>
 			{#if strength.length > 1}
 				<label class="mb-4 grid max-w-sm gap-1 font-semibold"
 					>Exercise
@@ -245,31 +241,30 @@
 					</select>
 				</label>
 			{/if}
-			<div class="mb-5 grid grid-cols-1 gap-3 min-[560px]:grid-cols-3">
-				<StatTile
-					label="Estimated strength"
-					value={formatFixed(exercise.sessions.at(-1)?.strength ?? 0)}
-					unit="kg"
-					change={exercise.change
-						? {
-								text: `${signed(exercise.change.kg)} kg (${signed(exercise.change.percent)}%)`,
-								direction: direction(exercise.change.kg)
-							}
-						: null}
-					changeLabel="since your first log"
-					tone="good"
-				/>
-			</div>
-			<p class="{help} mt-0! mb-3! flex items-start gap-1">
+			<StatGrid
+				tiles={[
+					{
+						label: 'Estimated strength',
+						value: formatFixed(exercise.sessions.at(-1)?.strength ?? 0),
+						unit: 'kg',
+						change: exercise.change
+							? {
+									text: `${signed(exercise.change.kg)} kg (${signed(exercise.change.percent)}%)`,
+									direction: direction(exercise.change.kg)
+								}
+							: null,
+						changeLabel: 'since your first log',
+						tone: 'good'
+					}
+				]}
+			/>
+			<p class="{help} mt-4! mb-3! flex items-start gap-1">
 				<!-- The note comes first: its bubble opens to the right and would run off a narrow screen from the line end. -->
 				<Tooltip
 					label="How strength is estimated"
 					text="Estimated one-rep max (Epley formula): weight × (1 + reps ÷ 30), counting up to 12 reps. It is a guide to your trend, not a max-out test."
 				/>
-				<span class="pt-0.5"
-					>Estimated from the weight and reps you log, so the same weight for more reps counts as
-					stronger.</span
-				>
+				<span class="pt-0.5">Same weight for more reps counts as <strong>stronger</strong>.</span>
 			</p>
 			{#if exercise.sessions.length > 1}
 				<LineChart
@@ -284,31 +279,27 @@
 			{:else}
 				<p class="m-0 text-muted">Log {exercise.name} again to see it as a trend.</p>
 			{/if}
-		{/if}
-	</ChartCard>
+		</ChartCard>
+	{/if}
 
 	<!-- 4. Effort and consistency: steps, cardio, workouts. -->
-	<h2 class="{sectionTitle} mt-4">Effort and consistency</h2>
+	{#if hasSteps || hasCardio || hasWorkouts}
+		<h2 class="{sectionTitle} mt-4">Effort and consistency</h2>
+	{/if}
 
-	<ChartCard
-		title="Steps"
-		description={stepTarget !== null
-			? `The last 14 days against your target of ${formatNumber(stepTarget)} steps a day.`
-			: 'The last 14 days.'}
-		columns={['Date', 'Steps', 'Target']}
-		rows={[...days]
-			.reverse()
-			.map((day) => [
-				longDate(day.date),
-				day.steps === null ? 'Not logged' : formatNumber(day.steps),
-				day.met === null ? '–' : day.met ? 'Reached' : 'Below'
-			])}
-	>
-		{#if data.steps.length === 0}
-			<p class="m-0 text-muted">
-				{audience === 'client' ? 'Log your steps to see them here.' : 'No steps logged yet.'}
-			</p>
-		{:else}
+	{#if hasSteps}
+		<ChartCard
+			title="Steps"
+			description="The last 14 days against the daily target."
+			columns={['Date', 'Steps', 'Target']}
+			rows={[...days]
+				.reverse()
+				.map((day) => [
+					longDate(day.date),
+					day.steps === null ? 'Not logged' : formatNumber(day.steps),
+					day.met === null ? '–' : day.met ? 'Reached' : 'Below'
+				])}
+		>
 			<ColumnChart
 				bars={days.map((day) => ({
 					tick: String(Number(day.date.slice(8))),
@@ -323,28 +314,24 @@
 				targetLabel="Target"
 				label="Steps for each of the last 14 days"
 			/>
-		{/if}
-	</ChartCard>
+		</ChartCard>
+	{/if}
 
-	<ChartCard
-		title="Cardio"
-		description={requirement
-			? `Sessions each week against your requirement: ${requirement}.`
-			: 'Sessions each week.'}
-		columns={['Week of', cardioRequired !== null ? 'Counted sessions' : 'Sessions', 'Minutes']}
-		rows={[...history]
-			.reverse()
-			.map((item) => [
-				shortDate(item.week),
-				cardioRequired !== null ? item.cardioCounted : item.cardioSessions,
-				item.cardioMinutes
-			])}
-	>
-		{#if data.cardio.length === 0}
-			<p class="m-0 text-muted">
-				{audience === 'client' ? 'Log a cardio session to see it here.' : 'No cardio logged yet.'}
-			</p>
-		{:else}
+	{#if hasCardio}
+		<ChartCard
+			title="Cardio"
+			description={requirement
+				? 'Sessions each week against the weekly requirement.'
+				: 'Sessions each week.'}
+			columns={['Week of', cardioRequired !== null ? 'Counted sessions' : 'Sessions', 'Minutes']}
+			rows={[...history]
+				.reverse()
+				.map((item) => [
+					shortDate(item.week),
+					cardioRequired !== null ? item.cardioCounted : item.cardioSessions,
+					item.cardioMinutes
+				])}
+		>
 			<ColumnChart
 				bars={history.map((item, index) => {
 					const value = cardioRequired !== null ? item.cardioCounted : item.cardioSessions;
@@ -359,20 +346,16 @@
 				targetLabel="Required"
 				label="Cardio sessions for each of the last 8 weeks"
 			/>
-		{/if}
-	</ChartCard>
+		</ChartCard>
+	{/if}
 
-	<ChartCard
-		title="Workouts"
-		description="Completed strength sessions each week."
-		columns={['Week of', 'Workouts']}
-		rows={[...history].reverse().map((item) => [shortDate(item.week), item.workouts])}
-	>
-		{#if data.logs.length === 0}
-			<p class="m-0 text-muted">
-				{audience === 'client' ? 'Log a workout to see it here.' : 'No workouts logged yet.'}
-			</p>
-		{:else}
+	{#if hasWorkouts}
+		<ChartCard
+			title="Workouts"
+			description="Completed strength sessions each week."
+			columns={['Week of', 'Workouts']}
+			rows={[...history].reverse().map((item) => [shortDate(item.week), item.workouts])}
+		>
 			<ColumnChart
 				bars={history.map((item, index) => ({
 					tick: shortDate(item.week),
@@ -382,6 +365,25 @@
 				}))}
 				label="Workouts completed for each of the last 8 weeks"
 			/>
-		{/if}
-	</ChartCard>
+		</ChartCard>
+	{/if}
+
+	<!-- 5. One note for everything that has no data yet. -->
+	{#if missing.length > 0}
+		<section class={card} aria-labelledby="not-yet">
+			<h2 id="not-yet" class="m-0 mb-2 text-[1.25rem] font-bold">Not charted yet</h2>
+			<p class="m-0 text-muted">
+				{#each missing as name, index (name)}<strong class="text-ink">{name}</strong>{index <
+					missing.length - 2
+						? ', '
+						: index === missing.length - 2
+							? ' and '
+							: ''}{/each}
+				{audience === 'client' ? 'will chart here once you log them.' : 'have nothing logged yet.'}
+			</p>
+			{#if audience === 'client'}
+				<p class="mt-3 mb-0"><a class="text-cyan-ink underline" href="/app/log">Open the log</a></p>
+			{/if}
+		</section>
+	{/if}
 </div>

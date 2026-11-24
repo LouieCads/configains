@@ -71,15 +71,16 @@
 	<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
 		<h2 id="todo-title" class="m-0! text-[1.5rem]!">Today</h2>
 		{#if waiting > 0}<span class="text-[0.9rem] text-muted"
-				>{waiting} item{waiting === 1 ? '' : 's'} waiting</span
+				><strong class="text-ink">{waiting}</strong> waiting</span
 			>{/if}
 	</div>
 	{#if data.localDemo}
 		<p class="m-0 text-muted">Coaching tasks are not available in the local demo.</p>
 	{:else if groups.length === 0}
-		<p class="m-0 text-muted">Nothing waiting. You're all caught up.</p>
+		<p class="m-0 text-muted">All caught up.</p>
 	{:else}
-		<div class="grid gap-6 min-[900px]:grid-cols-2">
+		<!-- An odd last group spans both columns, so the grid never ends with an empty cell. -->
+		<div class="grid gap-6 min-[900px]:grid-cols-2 min-[900px]:*:last:odd:col-span-2">
 			{#each groups as group (group.key)}
 				<section aria-labelledby="todo-{group.key}">
 					<h3
@@ -87,7 +88,9 @@
 						class="mb-2 flex items-center gap-2 text-[0.8rem] font-bold tracking-[1px] text-muted uppercase"
 					>
 						<group.icon size={16} aria-hidden="true" />{group.title}
-						<span class="font-normal">({group.items.length})</span>
+						<span class="ml-auto rounded-full border border-current px-2 py-0.5 text-ink"
+							>{group.items.length}</span
+						>
 					</h3>
 					<ul class="m-0 grid list-none gap-2 p-0">
 						{#each group.items as item, index (`${item.clientId}-${index}`)}
@@ -135,12 +138,9 @@
 				/>
 			</span>
 			{#if item.value !== undefined}
-				<span class="flex items-baseline gap-1.5">
-					<span class="text-[2rem] leading-none font-bold text-ink">{item.value}</span>
-					<span class="text-base font-medium text-muted">total</span>
-				</span>
+				<span class="text-[2rem] leading-none font-bold text-ink">{item.value}</span>
 			{:else}
-				<span class="text-base font-medium text-muted">{item.note}</span>
+				<span class="text-base leading-8 font-medium text-muted">{item.note}</span>
 			{/if}
 		</a>
 	{/each}

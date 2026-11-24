@@ -5,7 +5,7 @@
 	import { macroCalories, type ClientTargets } from '$lib/coaching/targets';
 	import { card } from '$lib/features/cms/styles';
 	import { formatNumber } from './chart';
-	import StatTile from './StatTile.svelte';
+	import StatGrid, { type Tile } from './StatGrid.svelte';
 
 	let { targets }: { targets: ClientTargets } = $props();
 
@@ -16,7 +16,13 @@
 			{ label: 'Carbs', value: targets.carbs_g }
 		].filter((macro): macro is { label: string; value: number } => macro.value !== null)
 	);
-	const hasFigures = $derived(targets.calories_kcal !== null || macros.length > 0);
+	const tiles = $derived<Tile[]>([
+		...(targets.calories_kcal !== null
+			? [{ label: 'Calories', value: formatNumber(targets.calories_kcal), unit: 'kcal' }]
+			: []),
+		...macros.map((macro) => ({ label: macro.label, value: formatNumber(macro.value), unit: 'g' }))
+	]);
+	const hasFigures = $derived(tiles.length > 0);
 	const fromMacros = $derived(macroCalories(targets));
 </script>
 
@@ -30,14 +36,7 @@
 				? `, about ${formatNumber(fromMacros)} kcal from the macros`
 				: ''}.
 		</p>
-		<div class="grid grid-cols-2 gap-3 min-[560px]:grid-cols-4">
-			{#if targets.calories_kcal !== null}
-				<StatTile label="Calories" value={formatNumber(targets.calories_kcal)} unit="kcal" />
-			{/if}
-			{#each macros as macro (macro.label)}
-				<StatTile label={macro.label} value={formatNumber(macro.value)} unit="g" />
-			{/each}
-		</div>
+		<StatGrid {tiles} perRow={4} />
 	{/if}
 
 	{#if targets.nutrition_notes.length > 0}
