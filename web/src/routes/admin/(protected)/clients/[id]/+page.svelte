@@ -2,6 +2,7 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ClipboardList from '@lucide/svelte/icons/clipboard-list';
 	import Copy from '@lucide/svelte/icons/copy';
+	import Eye from '@lucide/svelte/icons/eye';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
@@ -317,60 +318,64 @@
 	</p>
 
 	<!-- Quick actions: the jobs a coach does most, without scrolling. Only relevant ones show. -->
-	{#if invitePending || showThread || data.program}
-		<div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Quick actions">
-			{#if showThread}
-				<a class={quick} href={conversationHref}
-					><MessagesSquare size={16} aria-hidden="true" />Check-ins and messages{#if pending + unread > 0}<span
-							class="rounded-full bg-[#962f24] px-2 text-[0.75rem] text-white"
-							>{pending + unread}<span class="sr-only"> waiting</span></span
-						>{/if}</a
+	<div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Quick actions">
+		<a
+			class={quick}
+			href="/admin/view/{data.client.id}"
+			title="See the client's screens exactly as they see them. Read only."
+			><Eye size={16} aria-hidden="true" />View as client</a
+		>
+		{#if showThread}
+			<a class={quick} href={conversationHref}
+				><MessagesSquare size={16} aria-hidden="true" />Check-ins and messages{#if pending + unread > 0}<span
+						class="rounded-full bg-[#962f24] px-2 text-[0.75rem] text-white"
+						>{pending + unread}<span class="sr-only"> waiting</span></span
+					>{/if}</a
+			>
+		{/if}
+		{#if data.program && nextPhase}
+			<form method="POST" action="?/phase" class="m-0" use:enhance={keepPlace('phase')}>
+				<input type="hidden" name="program_id" value={data.program.id} />
+				<button
+					class={quick}
+					name="phase_id"
+					value={nextPhase.id}
+					disabled={busy === 'phase'}
+					title="Move to {nextPhase.name}"
+					><SkipForward size={16} aria-hidden="true" />Next phase</button
 				>
-			{/if}
-			{#if data.program && nextPhase}
-				<form method="POST" action="?/phase" class="m-0" use:enhance={keepPlace('phase')}>
-					<input type="hidden" name="program_id" value={data.program.id} />
-					<button
-						class={quick}
-						name="phase_id"
-						value={nextPhase.id}
-						disabled={busy === 'phase'}
-						title="Move to {nextPhase.name}"
-						><SkipForward size={16} aria-hidden="true" />Next phase</button
-					>
-				</form>
-			{/if}
-			{#if data.program?.customised && data.program.workout}
-				<a class={quick} href="/admin/templates/{data.program.workout.id}?client={data.client.id}"
-					><Pencil size={16} aria-hidden="true" />Edit workout</a
+			</form>
+		{/if}
+		{#if data.program?.customised && data.program.workout}
+			<a class={quick} href="/admin/templates/{data.program.workout.id}?client={data.client.id}"
+				><Pencil size={16} aria-hidden="true" />Edit workout</a
+			>
+		{:else if data.program}
+			<form method="POST" action="?/customise" class="m-0" use:enhance={keepPlace('customise')}>
+				<input type="hidden" name="program_id" value={data.program.id} />
+				<button
+					class={quick}
+					disabled={busy === 'customise'}
+					title="Make a copy of the workout to edit for this client only"
+					><Copy size={16} aria-hidden="true" />Customise workout</button
 				>
-			{:else if data.program}
-				<form method="POST" action="?/customise" class="m-0" use:enhance={keepPlace('customise')}>
-					<input type="hidden" name="program_id" value={data.program.id} />
-					<button
-						class={quick}
-						disabled={busy === 'customise'}
-						title="Make a copy of the workout to edit for this client only"
-						><Copy size={16} aria-hidden="true" />Customise workout</button
-					>
-				</form>
-			{/if}
-			{#if data.program}
-				<button type="button" class={quick} onclick={openChange}
-					><Repeat size={16} aria-hidden="true" />Change program</button
+			</form>
+		{/if}
+		{#if data.program}
+			<button type="button" class={quick} onclick={openChange}
+				><Repeat size={16} aria-hidden="true" />Change program</button
+			>
+		{/if}
+		{#if invitePending}
+			<form method="POST" action="?/resend" class="m-0" use:enhance={keepPlace('resend')}>
+				<button class={quick} disabled={busy === 'resend'}
+					><Mail size={16} aria-hidden="true" />{busy === 'resend'
+						? 'Sending…'
+						: 'Resend invite'}</button
 				>
-			{/if}
-			{#if invitePending}
-				<form method="POST" action="?/resend" class="m-0" use:enhance={keepPlace('resend')}>
-					<button class={quick} disabled={busy === 'resend'}
-						><Mail size={16} aria-hidden="true" />{busy === 'resend'
-							? 'Sending…'
-							: 'Resend invite'}</button
-					>
-				</form>
-			{/if}
-		</div>
-	{/if}
+			</form>
+		{/if}
+	</div>
 </header>
 
 <!-- Only what needs the coach right now. Nothing renders when the client is up to date. -->

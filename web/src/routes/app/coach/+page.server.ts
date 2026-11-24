@@ -3,7 +3,8 @@ import { cleanText } from '$lib/coaching/text';
 import { requireClient } from '$lib/server/auth/client';
 import { requireSameOrigin } from '$lib/server/auth/origin';
 import { loadActiveProgram } from '$lib/server/coaching/templates';
-import { loadCoachingThread, sendMessage, submitCheckIn } from '$lib/server/coaching/human';
+import { loadClientCoach } from '$lib/server/coaching/client-view';
+import { sendMessage, submitCheckIn } from '$lib/server/coaching/human';
 import type { Actions, PageServerLoad } from './$types';
 
 const checkInLimit = 4000;
@@ -15,11 +16,7 @@ export const load: PageServerLoad = async (event) => {
 	if (profile.coaching_mode !== 'human') redirect(303, '/app');
 	event.setHeaders({ 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex, nofollow' });
 
-	const [program, thread] = await Promise.all([
-		loadActiveProgram(event.locals.supabase, user.id),
-		loadCoachingThread(event.locals.supabase, user.id)
-	]);
-	return { ...thread, programId: program?.id ?? null, displayName: profile.display_name };
+	return loadClientCoach(event.locals.supabase, user.id, profile);
 };
 
 export const actions = {
