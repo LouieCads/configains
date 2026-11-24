@@ -19,12 +19,29 @@
 	import { hasCardioTarget, hasNutritionTarget, hasStepTarget } from '$lib/coaching/targets';
 	import NutritionCard from '$lib/features/progress/NutritionCard.svelte';
 	import WeekPlan from '$lib/features/progress/WeekPlan.svelte';
-	import { prescription, rirHelp } from '$lib/coaching/template';
+	import { prescriptionFacts, rirHelp, type PrescriptionFact } from '$lib/coaching/template';
+	import FactList, { type Fact } from '$lib/components/FactList.svelte';
+	import Gauge from '@lucide/svelte/icons/gauge';
+	import Layers from '@lucide/svelte/icons/layers';
+	import Repeat from '@lucide/svelte/icons/repeat';
+	import Timer from '@lucide/svelte/icons/timer';
 	import { aiDisclosureVersion } from '$lib/coaching/disclosure';
 	import type { loadClientHome } from '$lib/server/coaching/client-view';
 	type Data = Awaited<ReturnType<typeof loadClientHome>>;
 	// `base` is where the client pages live: /app for the client, the coach's preview path otherwise.
 	let { data, base = '/app' }: { data: Data; base?: string } = $props();
+
+	const factIcons = { sets: Layers, reps: Repeat, rir: Gauge, rest: Timer } as const;
+	const toFacts = (facts: PrescriptionFact[]): Fact[] =>
+		facts.map((fact) => ({ ...fact, icon: factIcons[fact.kind] }));
+	/** What one set asks for: the reps and the effort left in the tank. */
+	const setFacts = (set: { reps?: string | null; rir?: string | null }): Fact[] => {
+		const facts: (Fact | null)[] = [
+			set.reps ? { icon: Repeat, value: String(set.reps), trail: 'reps' } : null,
+			set.rir ? { icon: Gauge, value: String(set.rir), lead: 'RIR' } : null
+		];
+		return facts.filter((fact): fact is Fact => fact !== null);
+	};
 
 	const phases = $derived(data.program?.workout?.phases ?? []);
 	let chosenPhaseId = $state<string | null>(null);
@@ -170,21 +187,23 @@
 													name={exercise.name}
 												/>{/if}
 										</div>
-										<p class="{help} flex flex-wrap items-center gap-1">
-											{prescription(exercise)}
+										<div class="{help} flex flex-wrap items-center gap-x-4 gap-y-1">
+											<FactList facts={toFacts(prescriptionFacts(exercise))} />
 											{#if exercise.rir || exercise.set_plan.some((set) => set.rir)}<Tooltip
 													label="What is RIR?"
 													text={rirHelp}
 												/>{/if}
-										</p>
+										</div>
 										{#if varied}
 											<ol class="m-0 mb-2 grid list-none gap-1 p-0 text-[0.9rem]">
 												{#each exercise.set_plan as set, index (index)}
-													<li>
-														<span class="font-semibold">Set {index + 1}:</span>
-														{[set.reps && `${set.reps} reps`, set.rir && `RIR ${set.rir}`]
-															.filter(Boolean)
-															.join(', ') || 'As you feel'}
+													<li class="flex flex-wrap items-center gap-x-4 gap-y-1">
+														<span class="font-semibold">Set {index + 1}</span>
+														{#if setFacts(set).length > 0}
+															<FactList facts={setFacts(set)} />
+														{:else}
+															<span class="text-muted">As you feel</span>
+														{/if}
 													</li>
 												{/each}
 											</ol>

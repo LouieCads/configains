@@ -1,4 +1,12 @@
 <script lang="ts">
+	import Activity from '@lucide/svelte/icons/activity';
+	import CircleCheck from '@lucide/svelte/icons/circle-check';
+	import CircleX from '@lucide/svelte/icons/circle-x';
+	import HeartPulse from '@lucide/svelte/icons/heart-pulse';
+	import Repeat from '@lucide/svelte/icons/repeat';
+	import Timer from '@lucide/svelte/icons/timer';
+	import Weight from '@lucide/svelte/icons/weight';
+	import FactList from '$lib/components/FactList.svelte';
 	import { progressMetrics } from '$lib/coaching/progress';
 	import { formatNumber } from '$lib/features/progress/chart';
 	import ProgressDashboard from '$lib/features/progress/ProgressDashboard.svelte';
@@ -102,21 +110,42 @@
 		<ul class="grid gap-3">
 			{#each data.logs.slice(0, 20) as log (log.id)}
 				<li class="border-b border-line pb-3">
-					<strong>{dayLabel(log.logged_on)}</strong>
-					<span class={help}
-						>{log.completed ? 'Completed' : 'Not completed'}{log.duration_minutes
-							? `, ${log.duration_minutes} min`
-							: ''}</span
-					>
+					<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+						<strong>{dayLabel(log.logged_on)}</strong>
+						<FactList
+							facts={[
+								log.completed
+									? { icon: CircleCheck, value: 'Completed' }
+									: { icon: CircleX, value: 'Not completed' },
+								...(log.duration_minutes
+									? [{ icon: Timer, value: String(log.duration_minutes), trail: 'min' }]
+									: [])
+							]}
+						/>
+					</div>
 					{#if log.entries.length > 0}
-						<p class={help}>
-							{log.entries
-								.map(
-									(entry) =>
-										`${entry.name}${entry.sets ? ` ${entry.sets}×${entry.reps ?? ''}` : ''}${entry.load_kg ? ` @ ${entry.load_kg} kg` : ''}`
-								)
-								.join(', ')}
-						</p>
+						<ul class="mt-2 mb-0 grid list-none gap-1 p-0 text-[0.9rem]">
+							{#each log.entries as entry, index (index)}
+								<li class="flex flex-wrap items-center gap-x-4 gap-y-1">
+									<span class="font-semibold">{entry.name}</span>
+									<FactList
+										facts={[
+											...(entry.sets
+												? [
+														{
+															icon: Repeat,
+															value: `${entry.sets}×${entry.reps ?? ''}`
+														}
+													]
+												: []),
+											...(entry.load_kg
+												? [{ icon: Weight, value: String(entry.load_kg), trail: 'kg' }]
+												: [])
+										]}
+									/>
+								</li>
+							{/each}
+						</ul>
 					{/if}
 					{#if log.notes}<p>{log.notes}</p>{/if}
 				</li>
@@ -129,10 +158,23 @@
 		{/if}
 		<ul class="grid gap-2">
 			{#each data.cardio.slice(0, 20) as session (session.id)}
-				<li>
-					{dayLabel(session.logged_on)}: {session.activity ?? 'Cardio'}, {session.duration_minutes} min{session.avg_heart_rate
-						? `, average ${session.avg_heart_rate} BPM`
-						: ''}
+				<li class="flex flex-wrap items-center gap-x-4 gap-y-1">
+					<strong>{dayLabel(session.logged_on)}</strong>
+					<FactList
+						facts={[
+							{ icon: Activity, value: session.activity ?? 'Cardio' },
+							{ icon: Timer, value: String(session.duration_minutes), trail: 'min' },
+							...(session.avg_heart_rate
+								? [
+										{
+											icon: HeartPulse,
+											value: String(session.avg_heart_rate),
+											trail: 'BPM average'
+										}
+									]
+								: [])
+						]}
+					/>
 				</li>
 			{/each}
 		</ul>

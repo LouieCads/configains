@@ -98,18 +98,38 @@ export function setTargets(
 	}));
 }
 
+/** One figure of an exercise's prescription: the value, with the words that go before and after it. */
+export type PrescriptionFact = {
+	kind: 'sets' | 'reps' | 'rir' | 'rest';
+	value: string;
+	lead?: string;
+	trail?: string;
+};
+
+/** The parts of an exercise's prescription, so a screen can give each its own icon. */
+export function prescriptionFacts(
+	exercise: Pick<ExerciseInput, 'sets' | 'reps' | 'rir' | 'set_plan' | 'rest_seconds'>
+): PrescriptionFact[] {
+	const varied = (exercise.set_plan?.length ?? 0) > 0;
+	const facts: (PrescriptionFact | false | null | undefined | 0 | '')[] = [
+		exercise.sets && { kind: 'sets', value: String(exercise.sets), trail: 'sets' },
+		!varied && exercise.reps && { kind: 'reps', value: String(exercise.reps), trail: 'reps' },
+		!varied && exercise.rir && { kind: 'rir', value: String(exercise.rir), lead: 'RIR' },
+		exercise.rest_seconds != null && {
+			kind: 'rest',
+			value: `${exercise.rest_seconds}s`,
+			trail: 'rest'
+		}
+	];
+	return facts.filter((fact): fact is PrescriptionFact => Boolean(fact));
+}
+
 /** One line for an exercise, for example "3 sets, 8-10 reps, RIR 2, 90s rest". */
 export function prescription(
 	exercise: Pick<ExerciseInput, 'sets' | 'reps' | 'rir' | 'set_plan' | 'rest_seconds'>
 ): string {
-	const varied = (exercise.set_plan?.length ?? 0) > 0;
-	return [
-		exercise.sets && `${exercise.sets} sets`,
-		!varied && exercise.reps && `${exercise.reps} reps`,
-		!varied && exercise.rir && `RIR ${exercise.rir}`,
-		exercise.rest_seconds != null && `${exercise.rest_seconds}s rest`
-	]
-		.filter(Boolean)
+	return prescriptionFacts(exercise)
+		.map((fact) => [fact.lead, fact.value, fact.trail].filter(Boolean).join(' '))
 		.join(', ');
 }
 

@@ -6,8 +6,11 @@
 	import Flame from '@lucide/svelte/icons/flame';
 	import Footprints from '@lucide/svelte/icons/footprints';
 	import HeartPulse from '@lucide/svelte/icons/heart-pulse';
+	import CalendarCheck from '@lucide/svelte/icons/calendar-check';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Timer from '@lucide/svelte/icons/timer';
 	import type { Component, Snippet } from 'svelte';
+	import FactList from '$lib/components/FactList.svelte';
 	import type { Consistency, WeekStatus } from '$lib/coaching/dashboard';
 	import { cardioRequirement, type ClientTargets } from '$lib/coaching/targets';
 	import { card, primary } from '$lib/features/cms/styles';
@@ -123,9 +126,16 @@
 						hints={cardioHints}
 					/>
 				{:else if week.cardio.sessions > 0}
-					<p class="m-0">
-						<strong>{plural(week.cardio.sessions, 'session')}</strong>, {week.cardio.minutes} min so far
-					</p>
+					<FactList
+						facts={[
+							{
+								icon: CalendarCheck,
+								value: String(week.cardio.sessions),
+								trail: week.cardio.sessions === 1 ? 'session' : 'sessions'
+							},
+							{ icon: Timer, value: String(week.cardio.minutes), trail: 'min so far' }
+						]}
+					/>
 				{/if}
 				{#if targets.cardio_notes}
 					<p class="m-0 rounded-lg border border-line p-3 text-[0.95rem]">
