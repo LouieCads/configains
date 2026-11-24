@@ -3,9 +3,14 @@
 	import Circle from '@lucide/svelte/icons/circle';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import X from '@lucide/svelte/icons/x';
-	import { maxPasswordLength, passwordChecks, passwordExample } from '$lib/auth/password';
+	import {
+		maxPasswordLength,
+		minPasswordLength,
+		passwordChecks,
+		passwordExample
+	} from '$lib/auth/password';
 	import type { PasswordCheck } from '$lib/auth/password';
-	import { authLabel, requiredMark } from '$lib/features/cms/styles';
+	import PasswordInput from './PasswordInput.svelte';
 
 	let password = $state('');
 	let confirmation = $state('');
@@ -36,36 +41,32 @@
 	</ul>
 {/snippet}
 
-<label class={authLabel}
-	><span>New password<span class={requiredMark} aria-hidden="true">*</span></span><input
-		name="password"
-		type="password"
-		autocomplete="new-password"
-		placeholder={passwordExample}
-		minlength="12"
-		maxlength={maxPasswordLength}
-		required
-		bind:value={password}
-		aria-describedby="password-checks"
-	/></label
->
+<PasswordInput
+	id="new-password"
+	name="password"
+	label="New password"
+	autocomplete="new-password"
+	placeholder={passwordExample}
+	minlength={minPasswordLength}
+	maxlength={maxPasswordLength}
+	describedby="password-checks"
+	bind:value={password}
+/>
 {@render hints('password-checks', passwordHints)}
 <!-- A hint, not a block: the password is still accepted, so the notice never stops someone mid-flow. -->
 <p class="{common ? 'my-3' : 'm-0'} text-[0.85rem] text-[#8a5a00]" role="status">
 	{#if common}Heads up: this is a common password that is easy to guess. Choose something harder to
 		guess, like a few unrelated words or a longer phrase.{/if}
 </p>
-<label class={authLabel}
-	><span>Confirm password<span class={requiredMark} aria-hidden="true">*</span></span><input
-		name="confirmation"
-		type="password"
-		autocomplete="new-password"
-		placeholder={passwordExample}
-		minlength="12"
-		maxlength={maxPasswordLength}
-		required
-		bind:value={confirmation}
-		aria-describedby="confirmation-check"
-	/></label
->
+<PasswordInput
+	id="confirm-password"
+	name="confirmation"
+	label="Confirm password"
+	autocomplete="new-password"
+	placeholder={passwordExample}
+	minlength={minPasswordLength}
+	maxlength={maxPasswordLength}
+	describedby="confirmation-check"
+	bind:value={confirmation}
+/>
 {@render hints('confirmation-check', matchHint)}

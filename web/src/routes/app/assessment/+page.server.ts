@@ -10,8 +10,29 @@ import type { Actions, PageServerLoad } from './$types';
 // Stops a client from running up model calls by resubmitting.
 const dailyLimit = 3;
 
+// Statuses where the answers are already in and Cash or the matcher is acting on them.
+const inProgress = ['submitted', 'needs_human_review', 'human_assigned'];
+
 export const load: PageServerLoad = async (event) => {
-	await requireClient(event);
+	const { user } = await requireClient(event);
+	const [{ data: active }, { data: latest }] = await Promise.all([
+		event.locals.supabase
+			.from('client_programs')
+			.select('id')
+			.eq('client_id', user.id)
+			.eq('status', 'active')
+			.maybeSingle(),
+		event.locals.supabase
+			.from('assessments')
+			.select('status')
+			.eq('client_id', user.id)
+			.order('created_at', { ascending: false })
+			.limit(1)
+			.maybeSingle()
+	]);
+	// Nothing left to answer: a client with a program, or answers already under review, goes back to
+	// their plan, where the recommendation or the review status is shown.
+	if (active || inProgress.includes(latest?.status as string)) redirect(303, '/app');
 	return {};
 };
 

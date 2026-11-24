@@ -3,6 +3,7 @@
 	import Mail from '@lucide/svelte/icons/mail';
 	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import { enhance } from '$app/forms';
+	import PasswordInput from '$lib/features/forms/PasswordInput.svelte';
 	import CoachContact from '$lib/components/layout/CoachContact.svelte';
 	import {
 		authCard,
@@ -61,14 +62,7 @@
 				value={form?.email ?? ''}
 			/></label
 		>
-		<label class={authLabel}
-			><span>Password<span class={requiredMark} aria-hidden="true">*</span></span><input
-				name="password"
-				type="password"
-				autocomplete="current-password"
-				required
-			/></label
-		>
+		<PasswordInput id="password" name="password" label="Password" autocomplete="current-password" />
 		<button class="{primary} {authSubmit}" disabled={busy}
 			><LogIn size={18} aria-hidden="true" />{busy ? 'Signing in…' : 'Sign in'}</button
 		>

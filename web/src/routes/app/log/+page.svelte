@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TrendingUp from '@lucide/svelte/icons/trending-up';
 	import Trash2 from '@lucide/svelte/icons/trash';
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import Save from '@lucide/svelte/icons/save';
@@ -323,7 +324,14 @@
 		</p>
 		{#if message}<p class={message.kind === 'error' ? error : success} role="status">
 				{message.text}
-			</p>{/if}
+			</p>
+			<!-- Logging is done once an entry is saved, so offer where to go next instead of leaving them here. -->
+			{#if message.kind === 'success'}<p class="flex flex-wrap gap-3">
+					<a class={secondary} href="/app/progress"
+						><TrendingUp size={18} aria-hidden="true" />See your progress</a
+					>
+					<a class={secondary} href="/app">Back to your plan</a>
+				</p>{/if}{/if}
 		{#if cachedAt}<p class={help}>
 				Showing the plan saved on {new Date(cachedAt).toLocaleString('en-GB')}.
 			</p>{/if}

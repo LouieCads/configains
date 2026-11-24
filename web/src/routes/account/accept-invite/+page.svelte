@@ -21,6 +21,9 @@
 	} from '$lib/features/cms/styles';
 	let { form, data } = $props();
 	let busy = $state(false);
+	// Each way forward is a framed option with a clear title, so they read as choices, not captions.
+	const optionCard = 'my-4 rounded-[10px] border border-line p-5';
+	const optionTitle = 'mt-0 mb-3 font-arial text-[1.05rem] font-bold text-ink';
 	const inviteMail = $derived(
 		`mailto:${data.site.brand.email}?subject=${encodeURIComponent('Configains invite request')}`
 	);
@@ -60,16 +63,20 @@
 			<!-- Expired and already-used links fail the same way, so offer both next steps equally. -->
 			<h1>This link no longer works.</h1>
 			<p>It expired or was already used. Pick what fits you:</p>
-			<p class="{help} mt-5! mb-0!">I already set a password</p>
-			<a class="{secondary} {authSubmit} mt-2!" href="/login"
-				><LogIn size={18} aria-hidden="true" />Sign in</a
-			>
-			<a class={authLink} href="/forgot-password">Forgot your password?</a>
-			<p class="{help} mt-6! mb-0!">I never set one</p>
-			<a class="{secondary} {authSubmit} mt-2!" href={inviteMail}
-				><Mail size={18} aria-hidden="true" />Email Cash for a new invite</a
-			>
-			{@render socials()}
+			<section class={optionCard}>
+				<h2 class={optionTitle}>I already set a password</h2>
+				<a class="{secondary} {authSubmit} mt-0!" href="/login"
+					><LogIn size={18} aria-hidden="true" />Sign in</a
+				>
+				<a class="{authLink} mt-3!" href="/forgot-password">Forgot your password?</a>
+			</section>
+			<section class={optionCard}>
+				<h2 class={optionTitle}>I never set one</h2>
+				<a class="{secondary} {authSubmit} mt-0!" href={inviteMail}
+					><Mail size={18} aria-hidden="true" />Email Cash for a new invite</a
+				>
+				{@render socials()}
+			</section>
 		{:else}
 			<h1>Welcome to Configains.</h1>
 			{#if hasLink}
