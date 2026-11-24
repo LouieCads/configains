@@ -5,6 +5,7 @@
 	import Mail from '@lucide/svelte/icons/mail';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import { enhance } from '$app/forms';
+	import CoachContact from '$lib/components/layout/CoachContact.svelte';
 	import PasswordFields from '$lib/features/forms/PasswordFields.svelte';
 	import {
 		authCard,
@@ -12,7 +13,6 @@
 		authSubmit,
 		brand,
 		error,
-		eyebrow,
 		help,
 		loginPage,
 		primary,
@@ -21,8 +21,17 @@
 	} from '$lib/features/cms/styles';
 	let { form, data } = $props();
 	let busy = $state(false);
+	const inviteMail = $derived(
+		`mailto:${data.site.brand.email}?subject=${encodeURIComponent('Configains invite request')}`
+	);
 	const hasLink = $derived(Boolean(data.tokenHash || data.authCode));
 </script>
+
+{#snippet socials()}
+	{#if data.site.brand.socialLinks.length}<p class="{help} mt-3! mb-0!">
+			Or message Cash on <CoachContact brand={data.site.brand} socialsOnly />
+		</p>{/if}
+{/snippet}
 
 <svelte:head
 	><title>Welcome to Configains</title><meta
@@ -33,7 +42,6 @@
 <main class="{studio} {loginPage}">
 	<div class={authCard}>
 		<a href="/" class={brand}>CONFIGAINS.</a>
-		<p class={eyebrow}>YOUR ACCOUNT</p>
 
 		{#if data.signedIn}
 			<!-- Already a client on this device: no second account, and the invitation is left unused. -->
@@ -58,9 +66,10 @@
 			>
 			<a class={authLink} href="/forgot-password">Forgot your password?</a>
 			<p class="{help} mt-6! mb-0!">I never set one</p>
-			<a class="{secondary} {authSubmit} mt-2!" href="/contact"
-				><Mail size={18} aria-hidden="true" />Ask Cash for a new invite</a
+			<a class="{secondary} {authSubmit} mt-2!" href={inviteMail}
+				><Mail size={18} aria-hidden="true" />Email Cash for a new invite</a
 			>
+			{@render socials()}
 		{:else}
 			<h1>Welcome to Configains.</h1>
 			{#if hasLink}
@@ -88,9 +97,10 @@
 				<a class="{authLink} mt-1!" href="/login">Sign in</a>
 			{:else}
 				<p class={error} role="alert">This link is incomplete.</p>
-				<a class="{secondary} {authSubmit}" href="/contact"
-					><Mail size={18} aria-hidden="true" />Ask Cash for a new invite</a
+				<a class="{secondary} {authSubmit}" href={inviteMail}
+					><Mail size={18} aria-hidden="true" />Email Cash for a new invite</a
 				>
+				{@render socials()}
 			{/if}
 		{/if}
 	</div>

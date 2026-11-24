@@ -7,7 +7,6 @@
 		authSubmit,
 		brand,
 		error,
-		eyebrow,
 		loginPage,
 		primary,
 		studio
@@ -35,7 +34,6 @@
 		}}
 	>
 		<a href="/" class={brand}>CONFIGAINS.</a>
-		<p class={eyebrow}>YOUR ACCOUNT</p>
 		<h1>Choose a new password.</h1>
 		<p>Your plan and progress stay safe.</p>
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}

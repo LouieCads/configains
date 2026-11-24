@@ -3,6 +3,7 @@
 	import Mail from '@lucide/svelte/icons/mail';
 	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import { enhance } from '$app/forms';
+	import CoachContact from '$lib/components/layout/CoachContact.svelte';
 	import {
 		authCard,
 		authLabel,
@@ -10,7 +11,6 @@
 		authSubmit,
 		brand,
 		error,
-		eyebrow,
 		loginPage,
 		primary,
 		studio,
@@ -40,7 +40,6 @@
 		}}
 	>
 		<a href="/" class={brand}>CONFIGAINS.</a>
-		<p class={eyebrow}>CLIENT SIGN IN</p>
 		<h1>Sign in.</h1>
 		<p>See your plan and track your progress.</p>
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
@@ -83,8 +82,11 @@
 			</li>
 			<li class="flex items-start gap-3">
 				<MessageCircle size={20} class="mt-px shrink-0 text-cyan-deep" aria-hidden="true" />
-				<span
-					>No invite yet? <a class="text-cyan-ink underline" href="/contact">Contact Cash</a>.</span
+				<span class="grid gap-1"
+					><span>No invite yet? Reach out to Cash:</span><CoachContact
+						brand={data.site.brand}
+						subject="Configains invite request"
+					/></span
 				>
 			</li>
 		</ul>

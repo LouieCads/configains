@@ -9,7 +9,6 @@
 		authSubmit,
 		brand,
 		error,
-		eyebrow,
 		loginPage,
 		primary,
 		studio,
@@ -29,7 +28,6 @@
 <main class="{studio} {loginPage}">
 	<section class={authCard}>
 		<a href="/" class={brand}>CONFIGAINS.</a>
-		<p class={eyebrow}>CLIENT SIGN IN</p>
 		<h1>Forgot your password?</h1>
 		<p>Enter your email and we'll send you a link to choose a new one.</p>
 		{#if form?.sent}

@@ -90,6 +90,14 @@ describe('client sign in', () => {
 	it('does not link clients to the admin sign in', () => {
 		const page = readFileSync(new URL('./+page.svelte', import.meta.url), 'utf8');
 		expect(page).not.toMatch(/\/admin/);
-		expect(page).toContain('href="/contact"');
+		// Clients without an invite reach Cash by email and socials, not the assessment form.
+		expect(page).not.toContain('href="/contact"');
+		expect(page).toContain('CoachContact');
+	});
+
+	it('explains why a signed-in non-client was sent back to sign in', async () => {
+		expect(await loadPage(loginEvent({ search: '?notice=not-client' }).event)).toEqual({
+			notice: 'not-client'
+		});
 	});
 });
