@@ -58,7 +58,13 @@ describe('client account guard', () => {
 		expect(thrown.status).toBe(401);
 	});
 
-	it('returns 403 for a signed-in user without a client profile', async () => {
+	it('sends a signed-in non-client to sign-in with a notice on a page request', async () => {
+		const thrown = await thrownBy(() => requireClient(event('/app', { id: 'admin-1' }, null)));
+		expect(thrown.status).toBe(303);
+		expect(thrown.location).toBe('/login?notice=not-client');
+	});
+
+	it('returns 403 for a signed-in user without a client profile on an API request', async () => {
 		const thrown = await thrownBy(() =>
 			requireClient(event('/api/coaching/recommend', { id: 'admin-1' }, null))
 		);

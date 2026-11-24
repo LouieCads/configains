@@ -83,7 +83,7 @@
 			</div>
 			<!-- The main action stays one tap away on small screens, outside the menu. -->
 			<a
-				class="{headerButton} ml-auto hidden px-4 bp-360:px-3 bp-360:text-[1rem] bp-360:tracking-[0.05em] cq-58:inline-flex"
+				class="{headerButton} ml-auto hidden! px-4 bp-360:px-3 bp-360:text-[1rem] bp-360:tracking-[0.05em] cq-58:inline-flex!"
 				href={publicHref('/contact', preview)}>{site.navigation.contactLabel}</a
 			>
 			<button

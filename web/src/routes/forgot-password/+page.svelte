@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Mail from '@lucide/svelte/icons/mail';
 	import { enhance } from '$app/forms';
+	import { emailExample } from '$lib/auth/password';
 	import {
 		authCard,
 		authLabel,
@@ -55,6 +56,7 @@
 						name="email"
 						type="email"
 						autocomplete="email"
+						placeholder={emailExample}
 						maxlength="254"
 						required
 					/></label

@@ -3,7 +3,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 
 /**
  * Ensures the request comes from a signed-in user listed in `client_profiles`.
- * API routes get 401/403; pages redirect to the sign-in screen.
+ * API routes get 401/403; pages redirect to the sign-in screen, with a notice when the account is not a client.
  */
 export async function requireClient(event: RequestEvent) {
 	const { user } = await event.locals.safeGetUser();
@@ -19,7 +19,13 @@ export async function requireClient(event: RequestEvent) {
 		.eq('id', user.id)
 		.maybeSingle();
 
-	if (!profile) error(403, 'A Configains client account is required.');
+	if (!profile) {
+		// A signed-in account that is not a client (for example a coach) opening a client page is sent to
+		// sign-in with an explanation, not a bare error. API calls still get 403.
+		if (event.url.pathname.startsWith('/api/'))
+			error(403, 'A Configains client account is required.');
+		redirect(303, '/login?notice=not-client');
+	}
 	return { user, profile };
 }
 

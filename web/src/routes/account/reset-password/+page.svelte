@@ -1,18 +1,16 @@
 <script lang="ts">
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import { enhance } from '$app/forms';
+	import PasswordFields from '$lib/features/forms/PasswordFields.svelte';
 	import {
 		authCard,
-		authLabel,
 		authSubmit,
 		brand,
 		error,
 		eyebrow,
-		help,
 		loginPage,
 		primary,
-		studio,
-		requiredMark
+		studio
 	} from '$lib/features/cms/styles';
 	let { form } = $props();
 	let busy = $state(false);
@@ -41,29 +39,9 @@
 		<h1>Choose a new password.</h1>
 		<p>Your plan and progress stay safe.</p>
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
-		<label class={authLabel}
-			><span>New password<span class={requiredMark} aria-hidden="true">*</span></span><input
-				name="password"
-				type="password"
-				autocomplete="new-password"
-				minlength="12"
-				maxlength="128"
-				required
-			/></label
-		>
-		<label class={authLabel}
-			><span>Confirm password<span class={requiredMark} aria-hidden="true">*</span></span><input
-				name="confirmation"
-				type="password"
-				autocomplete="new-password"
-				minlength="12"
-				maxlength="128"
-				required
-			/></label
-		>
+		<PasswordFields />
 		<button class="{primary} {authSubmit}" disabled={busy}
 			><KeyRound size={18} aria-hidden="true" />{busy ? 'Saving…' : 'Update password'}</button
 		>
-		<p class={help}>At least 12 characters.</p>
 	</form>
 </main>

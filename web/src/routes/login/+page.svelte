@@ -47,6 +47,9 @@
 		{#if data.notice === 'set'}<p class={success} role="status">
 				Password saved. Sign in to start.
 			</p>{/if}
+		{#if data.notice === 'not-client'}<p class={error} role="alert">
+				That account isn't a client account. Sign in with the email from your invitation.
+			</p>{/if}
 		{#if data.notice === 'updated'}<p class={success} role="status">
 				Password changed. Sign in with the new one.
 			</p>{/if}

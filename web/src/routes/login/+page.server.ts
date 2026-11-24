@@ -14,10 +14,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		// Already signed in: go straight to the page they wanted.
 		if (data) redirect(303, clientDestination(url.searchParams.get('redirectTo')));
 	}
-	const notice = url.searchParams.get('password');
+	const notice = url.searchParams.get('password') ?? url.searchParams.get('notice');
 	return {
-		// "set" after accepting an invitation, "updated" after a reset.
-		notice: notice === 'set' || notice === 'updated' ? notice : null
+		// "set" after accepting an invitation, "updated" after a reset, "not-client" when a signed-in
+		// account that is not a client opened a client page.
+		notice: notice === 'set' || notice === 'updated' || notice === 'not-client' ? notice : null
 	};
 };
 
