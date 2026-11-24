@@ -51,14 +51,12 @@
 		font-weight: 400;
 		line-height: 1.45;
 		text-align: left;
-		visibility: hidden;
-		opacity: 0;
+		/* display:none, not visibility:hidden, so a closed tip never widens the page on a phone. */
+		display: none;
 		pointer-events: none;
-		transition: opacity 120ms ease;
 	}
 	.tip:hover .bubble,
 	.tip:focus-within .bubble {
-		visibility: visible;
-		opacity: 1;
+		display: block;
 	}
 </style>

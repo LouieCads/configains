@@ -40,8 +40,10 @@
 			};
 		}}
 	>
-		<a href="/" class={brand}>CONFIGAINS.</a>
-		<h1>Sign in.</h1>
+		<div class="mb-5 flex items-baseline justify-between gap-4">
+			<a href="/" class={brand}>CONFIGAINS.</a>
+			<h1 class="m-0 text-[2rem] leading-none">Sign in.</h1>
+		</div>
 		<p>See your plan and track your progress.</p>
 		{#if form?.message}<p class={error} role="alert">{form.message}</p>{/if}
 		{#if data.notice === 'set'}<p class={success} role="status">
