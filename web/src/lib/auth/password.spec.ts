@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isCommonPassword, passwordChecks } from './password';
+import { emailExample, isCommonPassword, passwordChecks, passwordExample } from './password';
 
 describe('isCommonPassword', () => {
 	it('flags well known passwords and small variations of them', () => {
@@ -55,5 +55,14 @@ describe('passwordChecks', () => {
 
 	it('marks a mismatch bad', () => {
 		expect(states('k7#Vq2!mZx9Lp', 'k7#Vq2')).toMatchObject({ match: 'bad' });
+	});
+});
+
+describe('placeholder examples', () => {
+	it('shows a password that passes every hint, and a well formed email', () => {
+		expect(passwordChecks(passwordExample, passwordExample).every((c) => c.state === 'ok')).toBe(
+			true
+		);
+		expect(emailExample).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
 	});
 });

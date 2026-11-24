@@ -5,7 +5,8 @@ export const minPasswordLength = 12;
 export const maxPasswordLength = 128;
 /** Example values shown as placeholders. */
 export const emailExample = 'youremail@gmail.com';
-export const passwordExample = 'Password@123';
+// Passes every hint: 12+ characters and not a common password. Unrelated words, like a passphrase.
+export const passwordExample = 'Blue-Lamp-River-47';
 
 // Whole words that make a password easy to guess, even with digits or symbols around them.
 const commonWords = [

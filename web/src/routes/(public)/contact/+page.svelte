@@ -2,6 +2,7 @@
 	import { dev } from '$app/environment';
 	import { onMount, tick } from 'svelte';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
+	import { emailExample } from '$lib/auth/password';
 	import Arrow from '$lib/components/landing/Arrow.svelte';
 	import SectionLabel from '$lib/components/landing/SectionLabel.svelte';
 	import { container, textLink } from '$lib/components/landing/styles';
@@ -333,6 +334,7 @@
 									name="email"
 									type="email"
 									autocomplete="email"
+									placeholder={emailExample}
 									required
 									maxlength="254"
 									bind:value={flow.values.email}

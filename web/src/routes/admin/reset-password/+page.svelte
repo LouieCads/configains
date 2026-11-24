@@ -2,6 +2,7 @@
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import { enhance } from '$app/forms';
+	import { passwordExample } from '$lib/auth/password';
 	import AuthCard from '$lib/features/cms/AuthCard.svelte';
 	import {
 		authLabel,
@@ -36,6 +37,7 @@
 					name="password"
 					type="password"
 					autocomplete="new-password"
+					placeholder={passwordExample}
 					minlength="12"
 					maxlength="128"
 					required
@@ -47,6 +49,7 @@
 					name="confirmation"
 					type="password"
 					autocomplete="new-password"
+					placeholder={passwordExample}
 					minlength="12"
 					maxlength="128"
 					required

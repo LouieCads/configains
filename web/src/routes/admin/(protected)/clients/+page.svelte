@@ -8,6 +8,7 @@
 	import Send from '@lucide/svelte/icons/send';
 	import X from '@lucide/svelte/icons/x';
 	import { enhance } from '$app/forms';
+	import { emailExample } from '$lib/auth/password';
 	import { openStatuses } from '$lib/coaching/labels';
 	import {
 		badgeNeutral,
@@ -126,7 +127,13 @@
 		>
 			<label class="grid min-w-[220px] flex-[2] gap-2 font-semibold"
 				><span>Email<span class={requiredMark} aria-hidden="true">*</span></span>
-				<input name="email" type="email" required value={form?.email ?? ''} />
+				<input
+					name="email"
+					type="email"
+					placeholder={emailExample}
+					required
+					value={form?.email ?? ''}
+				/>
 			</label>
 			<label class="grid min-w-[180px] flex-1 gap-2 font-semibold"
 				>Name

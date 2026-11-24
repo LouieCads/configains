@@ -1,6 +1,7 @@
 <script lang="ts">
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import { enhance } from '$app/forms';
+	import { emailExample, passwordExample } from '$lib/auth/password';
 	import {
 		authCard,
 		authLabel,
@@ -55,6 +56,7 @@
 					name="email"
 					type="email"
 					autocomplete="username"
+					placeholder={emailExample}
 					required
 					value={form?.email ?? ''}
 				/></label
@@ -64,6 +66,7 @@
 					name="password"
 					type="password"
 					autocomplete="current-password"
+					placeholder={passwordExample}
 					required
 				/></label
 			>
